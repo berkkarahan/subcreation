@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Subcreation Mythic+</h1>
+<h2>Dungeon Difficulty: {{affixes}}</h2>
+<table class="sort" id="table-rdd">
+<tr data-sort-method='none'>
+<th>lb_ci</th>
+<th>Dungeon</th>
+<th>Mean</th>
+<th>n</th>
+</tr>
+{% for (score, dungeon, mean, n, dungeon_slug) in dungeons %}
+<tr>
+<td>{{score}}</td>
+<td>{{dungeon}}</td>
+<td>{{mean}}</td>
+<td>{{n}}</td>
+</tr>
+{% endfor %}
+</table>
+<script>
+  new Tablesort(document.getElementById('table-rdd'));
+</script>
+</p>
+<p>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average raider.io score for each dungeon run, based on top 20 runs for each dungeon, across all regions with these affixes. Higher indicates an easier dungeon.</i>
+</p>
+
+{% import 'spec_table.html' as st %}
+
+<h2>Spec Strength: {{affixes}}</h2>
+<div class="container flex-direction">
+{{ st.spec_table("Tanks", role_package["Tanks"]) }}
+{{ st.spec_table("Healers", role_package["Healers"]) }}
+</div>
+<div class="container flex-direction">
+{{ st.spec_table("Melee", role_package["Melee"]) }}
+{{ st.spec_table("Ranged", role_package["Ranged"]) }}
+</div>
+<p>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average raider.io score for each spec, based on top 20 runs for each dungeon, across all regions with these affixes. Higher is better.</i>
+</p>
+
+<h2>All Seen Affixes</h2>
+<ul>
+{% for (name, slug) in known_affixes %}
+<li><a href="{{slug}}.html">{{name}}</a></li>
+{% endfor %}
+</ul>
+
+{% endblock content %}

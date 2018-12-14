@@ -1,0 +1,28 @@
+{% macro spec_table(role_name, role_scores, prefix, affixes_slug, dungeon_slug) -%}
+<div>
+<h3>{{role_name}}</h3>
+<table class="sort" id="table-{{role_name}}">
+<tr data-sort-method='none'>
+<th>lb_ci</th>
+<th>Spec</th>
+<th>x&#772;</th>
+<th>n</th>
+</tr>
+{% for (lb_ci, spec, mean, n, slug) in role_scores %}
+<tr>
+<td>{{lb_ci}}</td>
+{% if True %}
+<td><a href="{{prefix}}{{slug}}-{{affixes_slug}}.html">{{spec}}</a></td>
+{% else %}
+<td><a href="{{prefix}}{{slug}}-{{dungeon_slug}}-{{affixes_slug}}.html">{{spec}}</a></td>
+{% endif %}
+<td>{{mean}}</td>
+<td>{{n}}</td>
+</tr>
+{% endfor %}
+</table>
+</div>
+<script>
+  new Tablesort(document.getElementById('table-{{role_name}}'));
+</script>
+{%- endmacro %}

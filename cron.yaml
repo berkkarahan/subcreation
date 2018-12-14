@@ -1,0 +1,7 @@
+cron:
+- description: "data pull + generate html"
+  url: /generate_html
+  schedule: every 4 hours from 00:45 to 23:45
+
+
+

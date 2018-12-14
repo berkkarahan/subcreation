@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Subcreation Mythic+</h1>
+{% if dungeon == "" %}
+<h2>Spec Pairing Strength with {{spec}}: <a href="{{prefix}}{{affixes_slug_index}}.html">All Dungeons</a> <a href="{{prefix}}{{affixes_slug}}.html">{{affixes}}</a></h2>
+{% else %}
+<h2>Spec Pairing Strength with {{spec}}: <a href="{{prefix}}{{dungeon_slug}}-{{affixes_slug}}.html">{{dungeon}}</a> <a href="{{prefix}}{{affixes_slug}}.html">{{affixes}}</a></h2>
+{% endif %}
+
+<div class="container flex-direction">
+<div>
+<b>Affixes</b>
+<ul>
+{% for a, as in known_affixes %}
+{% if a == affixes %}
+<li><b>{{a}}</b></li>
+{% else %}
+<li><a href="{{prefix}}{{spec_slug}}-{{as}}.html">{{a}}</a></li>
+{% endif %}
+{% endfor %}
+</ul>
+</div>
+</div>
+<br/>
+
+{% import 'spec_table.html' as st %}
+
+
+
+<div class="container flex-direction">
+{{ st.spec_table("Tanks", role_package["Tanks"], prefix, affixes_slug, dungeon_slug) }}
+{{ st.spec_table("Healers", role_package["Healers"], prefix, affixes_slug, dungeon_slug) }}
+</div>
+<div class="container flex-direction">
+{{ st.spec_table("Melee", role_package["Melee"], prefix, affixes_slug, dungeon_slug) }}
+{{ st.spec_table("Ranged", role_package["Ranged"], prefix, affixes_slug, dungeon_slug) }}
+</div>
+
+{% if dungeon == "" %}
+<h2>Composition Strength with {{spec}}: All Dungeons: {{affixes}}</h2>
+{% else %}
+<h2>Composition Strength with {{spec}}: {{dungeon}}: {{affixes}}</h2>
+{% endif %}
+<div>
+<table class="sort" id="table-csd">
+<tr data-sort-method='none'>
+<th>lb_ci</th>
+<th>Tank</th>
+<th>Healer</th>
+<th>DPS</th>
+<th>DPS</th>
+<th>DPS</th>
+<th>x&#772;</th>
+<th>n</th>
+</tr>
+{% for (score, comp, mean, n) in sets %}
+<tr>
+<td>{{score}}</td>
+{{comp}}
+<td>{{mean}}</td>
+<td>{{n}}</td>
+</tr>
+{% endfor %}
+</table>
+<script>
+  new Tablesort(document.getElementById('table-csd'));
+</script>
+</p>
+</div>
+
+{% if dungeon == "" %}
+<h2>Tank/Healer Composition Strength with {{spec}}: All Dungeons: {{affixes}}</h2>
+{% else %}
+<h2>Tank/Healer Composition Strength with {{spec}}: {{dungeon}}: {{affixes}}</h2>
+{% endif %}
+<div>
+<table class="sort" id="table-thd">
+<tr data-sort-method='none'>
+<th>lb_ci</th>
+<th>Tank</th>
+<th>Healer</th>
+<th>x&#772;</th>
+<th>n</th>
+</tr>
+{% for (score, comp, mean, n) in sets_th %}
+<tr>
+<td>{{score}}</td>
+{{comp}}
+<td>{{mean}}</td>
+<td>{{n}}</td>
+</tr>
+{% endfor %}
+</table>
+<script>
+  new Tablesort(document.getElementById('table-thd'));
+</script>
+</p>
+</div>
+
+{% if dungeon == "" %}
+<h2>DPS Composition Strength with {{spec}}: All Dungeons: {{affixes}}</h2>
+{% else %}
+<h2>DPS Composition Strength with {{spec}}: {{dungeon}}: {{affixes}}</h2>
+{% endif %}
+<div>
+<table class="sort" id="table-dpsd">
+<tr data-sort-method='none'>
+<th>lb_ci</th>
+<th>DPS</th>
+<th>DPS</th>
+<th>DPS</th>
+<th>x&#772;</th>
+<th>n</th>
+</tr>
+{% for (score, comp, mean, n) in sets_dps %}
+<tr>
+<td>{{score}}</td>
+{{comp}}
+<td>{{mean}}</td>
+<td>{{n}}</td>
+</tr>
+{% endfor %}
+</table>
+<script>
+  new Tablesort(document.getElementById('table-dpsd'));
+</script>
+</p>
+</div>
+
+<p>
+{% if dungeon == "" %}
+<i>lb_ci = Lower bound of a 95% confidence interval of the average raider.io score for each spec when there is at least one {{spec}} in the group, based on top 20 runs of all dungeons, across all regions with these affixes. Higher is better.</i>
+{% else %}
+<i>lb_ci = Lower bound of a 95% confidence interval of the average raider.io score for each spec when there is at least one {{spec}} in the group, based on top 20 runs of {{dungeon}}, across all regions with these affixes. Higher is better.</i>
+{% endif %}
+</p>
+
+
+{% endblock content %}

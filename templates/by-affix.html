@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Subcreation Mythic+</h1>
+<h2>Dungeon Difficulty: {{affixes}}</h2>
+<div class="container flex-direction">
+<div>
+<table class="sort" id="table-rdd">
+<tr data-sort-method='none'>
+<th>lb_ci</th>
+<th>Dungeon</th>
+<th>x&#772;</th>
+<th>n</th>
+</tr>
+{% for (score, dungeon, mean, n, dungeon_slug) in dungeons %}
+<tr>
+<td>{{score}}</td>
+<td><a href="{{prefix}}{{dungeon_slug}}-{{affixes_slug}}.html">{{dungeon}}</a></td>
+<td>{{mean}}</td>
+<td>{{n}}</td>
+</tr>
+{% endfor %}
+</table>
+<script>
+  new Tablesort(document.getElementById('table-rdd'));
+</script>
+</p>
+</div>
+<div>
+<ul>
+{% for (name, slug) in known_affixes %}
+{% if name == affixes %}
+<li><b>{{name}}</b></li>
+{% else %}
+<li><a href="{{slug}}.html">{{name}}</a></li>
+{% endif %}
+{% endfor %}
+</ul>
+</div>
+</div>
+
+{% import 'spec_table.html' as st %}
+
+<h2>Spec Strength: {{affixes}}</h2>
+<div class="container flex-direction">
+{{ st.spec_table("Tanks", role_package["Tanks"], prefix, affixes_slug, "") }}
+{{ st.spec_table("Healers", role_package["Healers"], prefix, affixes_slug, "") }}
+</div>
+<div class="container flex-direction">
+{{ st.spec_table("Melee", role_package["Melee"], prefix, affixes_slug, "") }}
+{{ st.spec_table("Ranged", role_package["Ranged"], prefix, affixes_slug, "") }}
+</div>
+
+<h2>Composition Strength: {{affixes}}</h2>
+<div>
+<table class="sort" id="table-csd">
+<tr data-sort-method='none'>
+<th>lb_ci</th>
+<th>Tank</th>
+<th>Healer</th>
+<th>DPS</th>
+<th>DPS</th>
+<th>DPS</th>
+<th>x&#772;</th>
+<th>n</th>
+</tr>
+{% for (score, comp, mean, n) in sets %}
+<tr>
+<td>{{score}}</td>
+{{comp}}
+<td>{{mean}}</td>
+<td>{{n}}</td>
+</tr>
+{% endfor %}
+</table>
+<script>
+  new Tablesort(document.getElementById('table-csd'));
+</script>
+</p>
+</div>
+
+<h2>Tank/Healer Composition Strength: {{affixes}}</h2>
+<div>
+<table class="sort" id="table-thd">
+<tr data-sort-method='none'>
+<th>lb_ci</th>
+<th>Tank</th>
+<th>Healer</th>
+<th>x&#772;</th>
+<th>n</th>
+</tr>
+{% for (score, comp, mean, n) in sets_th %}
+<tr>
+<td>{{score}}</td>
+{{comp}}
+<td>{{mean}}</td>
+<td>{{n}}</td>
+</tr>
+{% endfor %}
+</table>
+<script>
+  new Tablesort(document.getElementById('table-thd'));
+</script>
+</p>
+</div>
+
+<h2>DPS Composition Strength: {{affixes}}</h2>
+<div>
+<table class="sort" id="table-dpsd">
+<tr data-sort-method='none'>
+<th>lb_ci</th>
+<th>DPS</th>
+<th>DPS</th>
+<th>DPS</th>
+<th>x&#772;</th>
+<th>n</th>
+</tr>
+{% for (score, comp, mean, n) in sets_dps %}
+<tr>
+<td>{{score}}</td>
+{{comp}}
+<td>{{mean}}</td>
+<td>{{n}}</td>
+</tr>
+{% endfor %}
+</table>
+<script>
+  new Tablesort(document.getElementById('table-dpsd'));
+</script>
+</p>
+</div>
+
+
+
+<div>
+<p>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average raider.io score for each spec, based on top 20 runs for each dungeon, across all regions with these affixes. For dungeons, higher is easier; for specs and comps, higher is better.</i>
+</p>
+</div>
+
+{% endblock content %}

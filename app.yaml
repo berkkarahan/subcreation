@@ -1,0 +1,26 @@
+runtime: python27
+api_version: 1
+threadsafe: true
+
+builtins:
+- deferred: on
+
+handlers:
+- url: /css
+  static_dir: css
+
+- url: /js
+  static_dir: js
+
+- url: /.*
+  script: mplus.app
+
+- url: /_ah/queue/deferred
+  script: google.appengine.ext.deferred.deferred.application
+  login: admin
+
+libraries:
+- name: numpy
+  version: "1.6.1"
+- name: jinja2
+  version: latest
