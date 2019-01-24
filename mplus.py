@@ -79,7 +79,7 @@ def parse_response(data, dungeon, affixes, region):
 
 
 # update
-def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-1"):
+def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-2"):
     dungeon_slug = slugify.slugify(unicode(dungeon))
     affixes_slug = slugify.slugify(unicode(affixes))
 
@@ -147,33 +147,6 @@ def migrate_dungeon_affixes_region(dungeon, affixes, region):
         dar.runs += [Run(score=r.score, roster=r.characters)]
 
     dar.put()
-
-# specific code to fix missing eu
-def migrate_atal():
-    migrate_dungeon_affixes_region("Atal'dazar",
-                                   "Tyrannical, Bursting, Skittish, Infested",
-                                   "eu")
-
-def migrate_old():
-    # find the most recent pulls for each affix that isn't current
-    # and move them over to the new structure
-    known_affixes = []
-    known_affixes += ["Fortified, Sanguine, Necrotic, Infested"]
-    known_affixes += ["Tyrannical, Bursting, Skittish, Infested"]
-
-    global regions, dungeons
-
-    for region in regions:
-        for affixes in known_affixes:
-            for dungeon in dungeons:
-                deferred.defer(migrate_dungeon_affixes_region,
-                               dungeon, affixes, region)
-
-                # no deferred for testing
-#                migrate_dungeon_affixes_region(dungeon, affixes, region)
-#                return # for now, just do one
-
-## old data migration
 
 ## data analysis start
 
@@ -656,18 +629,6 @@ def test_view(destination):
 
 ## handlers
 
-class MigrateOldData(webapp2.RequestHandler):
-    def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
-        migrate_old()
-        self.response.write("Migrating old data...")
-
-class MigrateAtal(webapp2.RequestHandler):
-    def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
-        migrate_atal()
-        self.response.write("Migrating old data...")
-
 class UpdateCurrentDungeons(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
@@ -708,7 +669,6 @@ class KnownAffixesShow(webapp2.RequestHandler):
 
 
 app = webapp2.WSGIApplication([
-        ('/migrate_old_data', MigrateOldData),
         ('/update_current_dungeons', UpdateCurrentDungeons),
         ('/generate_html', GenerateHTML),
         ('/only_generate_html', OnlyGenerateHTML),
