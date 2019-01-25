@@ -4,18 +4,21 @@
 <h2>Dungeon Difficulty: {{affixes}}</h2>
 <div class="container flex-direction">
 <div>
+{% import 'max_link.html' as max_link %}
 <table class="sort" id="table-rdd">
 <tr data-sort-method='none'>
 <th>lb_ci</th>
 <th>Dungeon</th>
 <th>x&#772;</th>
+<th>max</th>
 <th>n</th>
 </tr>
-{% for (score, dungeon, mean, n, dungeon_slug) in dungeons %}
+{% for (score, dungeon, mean, n, dungeon_slug, max_f, max_id) in dungeons %}
 <tr>
 <td>{{score}}</td>
 <td><a href="{{prefix}}{{dungeon_slug}}-{{affixes_slug}}.html">{{dungeon}}</a></td>
 <td>{{mean}}</td>
+{{ max_link.max_link(max_f, max_id) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
@@ -61,13 +64,15 @@
 <th>DPS</th>
 <th>DPS</th>
 <th>x&#772;</th>
+<th>max</th>
 <th>n</th>
 </tr>
-{% for (score, comp, mean, n) in sets %}
+{% for (score, comp, mean, n, max_f, max_id) in sets %}
 <tr>
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
+{{ max_link.max_link(max_f, max_id) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
@@ -88,11 +93,12 @@
 <th>x&#772;</th>
 <th>n</th>
 </tr>
-{% for (score, comp, mean, n) in sets_th %}
+{% for (score, comp, mean, n, max_f, max_id) in sets_th %}
 <tr>
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
+{{ max_link.max_link(max_f, max_id) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
@@ -112,13 +118,15 @@
 <th>DPS</th>
 <th>DPS</th>
 <th>x&#772;</th>
+<th>max</th>
 <th>n</th>
 </tr>
-{% for (score, comp, mean, n) in sets_dps %}
+{% for (score, comp, mean, n, max_f, max_id) in sets_dps %}
 <tr>
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
+{{ max_link.max_link(max_f, max_id) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}

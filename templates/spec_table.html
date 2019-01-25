@@ -6,9 +6,10 @@
 <th>lb_ci</th>
 <th>Spec</th>
 <th>x&#772;</th>
+<th>max</th>
 <th>n</th>
 </tr>
-{% for (lb_ci, spec, mean, n, slug) in role_scores %}
+{% for (lb_ci, spec, mean, n, slug, max_f, max_id) in role_scores %}
 <tr>
 <td>{{lb_ci}}</td>
 {% if True %}
@@ -17,6 +18,8 @@
 <td><a href="{{prefix}}{{slug}}-{{dungeon_slug}}-{{affixes_slug}}.html">{{spec}}</a></td>
 {% endif %}
 <td>{{mean}}</td>
+{% import 'max_link.html' as ml %}
+{{ ml.max_link(max_f, max_id) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
@@ -26,3 +29,4 @@
   new Tablesort(document.getElementById('table-{{role_name}}'));
 </script>
 {%- endmacro %}
+

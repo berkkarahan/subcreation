@@ -7,6 +7,8 @@
 <h2>Spec Pairing Strength with {{spec}}: <a href="{{prefix}}{{dungeon_slug}}-{{affixes_slug}}.html">{{dungeon}}</a> <a href="{{prefix}}{{affixes_slug}}.html">{{affixes}}</a></h2>
 {% endif %}
 
+{% import 'max_link.html' as max_link %}
+
 <div class="container flex-direction">
 <div>
 <b>Affixes</b>
@@ -51,13 +53,15 @@
 <th>DPS</th>
 <th>DPS</th>
 <th>x&#772;</th>
+<th>max</th>
 <th>n</th>
 </tr>
-{% for (score, comp, mean, n) in sets %}
+{% for (score, comp, mean, n, max_f, max_id) in sets %}
 <tr>
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
+{{ max_link.max_link(max_f, max_id) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
@@ -80,13 +84,15 @@
 <th>Tank</th>
 <th>Healer</th>
 <th>x&#772;</th>
+<th>max</th>
 <th>n</th>
 </tr>
-{% for (score, comp, mean, n) in sets_th %}
+{% for (score, comp, mean, n, max_f, max_id) in sets_th %}
 <tr>
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
+{{ max_link.max_link(max_f, max_id) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
@@ -110,13 +116,15 @@
 <th>DPS</th>
 <th>DPS</th>
 <th>x&#772;</th>
+<th>max</th>
 <th>n</th>
 </tr>
-{% for (score, comp, mean, n) in sets_dps %}
+{% for (score, comp, mean, n, max_f, max_id) in sets_dps %}
 <tr>
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
+{{ max_link.max_link(max_f, max_id) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
