@@ -4,6 +4,7 @@ from google.appengine.ext import ndb
 class Run(ndb.Model):
     roster = ndb.StringProperty(repeated=True)
     score = ndb.FloatProperty(indexed=False)
+    keystone_run_id = ndb.StringProperty(indexed=False)
 
 # top 20 runs for a specific dungeon affix combo in a region
 class DungeonAffixRegion(ndb.Model):
