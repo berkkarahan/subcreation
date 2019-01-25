@@ -67,13 +67,17 @@ def parse_response(data, dungeon, affixes, region):
         
         score = d["score"]
         roster = []
+        ksrid = ""
+        
+        ksrid = str(r["keystone_run_id"])
 
         for c in r["roster"]:
             ch = c["character"]
             spec_class = ch["spec"]["name"] + " " + ch["class"]["name"]
             roster += [spec_class]
+           
             
-        dar.runs += [Run(score=score, roster=roster)]
+        dar.runs += [Run(score=score, roster=roster, keystone_run_id=ksrid)]
 
     return dar
 
@@ -120,69 +124,44 @@ def update_current():
 
 ## end raider.io processing
 
-## old data migration start
-
-
-def migrate_dungeon_affixes_region(dungeon, affixes, region):
-    logging.info("migrating: %s / %s / %s" % (dungeon, affixes, region))
-
-    run_query = OldRun.query(OldRun.region == region,
-                             OldRun.dungeon == dungeon,
-                             OldRun.affixes == affixes).order(-OldRun.pull.date)
-    
-    dungeon_slug = slugify.slugify(unicode(dungeon))
-    affixes_slug = slugify.slugify(unicode(affixes))
-    update_known_affixes(affixes, affixes_slug)
-
-    key_string = dungeon_slug + "-" + affixes_slug + "-" + region
-    key = ndb.Key('DungeonAffixRegion',
-                  key_string)
-    dar = DungeonAffixRegion(key=key)
-
-    dar.dungeon = dungeon
-    dar.affixes = affixes
-    dar.region = region
-
-    for r in run_query.fetch(20): # only 20 in a result
-        dar.runs += [Run(score=r.score, roster=r.characters)]
-
-    dar.put()
 
 ## data analysis start
 
 from numpy import average, std
 from math import sqrt
 
-# given a series, return
-def bayesian_average(series, m=0, C=1):
-#    return sum(series)/(1 + len(series))
-    return (C*m + sum(series))/(C + len(series))
-
 
 def construct_analysis(counts):
     overall = []
-    observations = 0
     all_data = []
-    for name, data in counts.iteritems():
-        observations += len(data)
-        all_data += data
+    for name, runs in counts.iteritems():
+        for r in runs:
+            all_data += [r.score]
     master_stddev = std(all_data, ddof=1)
        
-    for name, data in counts.iteritems():
+    for name, runs in counts.iteritems():
+        data = []
+        max_found = 0
+        max_id = ""
+        for r in runs:
+            data += [r.score]
+            if r.score >= max_found:
+                max_found = r.score
+                max_id = r.keystone_run_id
         n = len(data)
         if n == 0:
-            overall += [[name, 0, 0, n, [0, 0]]]
+            overall += [[name, 0, 0, n, [0, 0], [0, ""]]]
             continue
         mean = average(data)
         if n <= 1:
-            overall += [[name, mean, 0, n, [0, 0]]]
+            overall += [[name, mean, 0, n, [0, 0], [max_found, max_id]]]
             continue
         stddev = std(data, ddof=1)
         t_bounds = t_interval(n)
         ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
-#        ci = [bayesian_average(data),
-#              mean + -critval * stddev / sqrt(n)]
-        overall += [[name, mean, stddev, n, ci]]
+        maxi = [max_found, max_id]
+        overall += [[name, mean, stddev, n, ci, maxi]]
+
 
     overall = sorted(overall, key=lambda x: x[4][0], reverse=True)
     return overall
@@ -229,48 +208,49 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
                 for run in dar.runs:
                     if dung not in dungeon_counts:
                         dungeon_counts[dung] = []
-                    dungeon_counts[dung] += [run.score]
+                    dungeon_counts[dung] += [run]
 
                     if dungeon == "all" or dung == dungeon:
                         if spec == "all":
                             if canonical_order(run.roster) not in set_counts:
                                 set_counts[canonical_order(run.roster)] = []
-                            set_counts[canonical_order(run.roster)] += [run.score]
+                            set_counts[canonical_order(run.roster)] += [run]
 
                             if canonical_order(run.roster)[:2] not in th_counts:
                                 th_counts[canonical_order(run.roster)[:2]] = []
-                            th_counts[canonical_order(run.roster)[:2]] += [run.score]
+                            th_counts[canonical_order(run.roster)[:2]] += [run]
 
                             if canonical_order(run.roster)[-3:] not in dps_counts:
                                 dps_counts[canonical_order(run.roster)[-3:]] = []
-                            dps_counts[canonical_order(run.roster)[-3:]] += [run.score]
+                            dps_counts[canonical_order(run.roster)[-3:]] += [run]
 
                             for ch in run.roster:
                                 if ch not in spec_counts:
                                     spec_counts[ch] = []
-                                spec_counts[ch] += [run.score]
+                                spec_counts[ch] += [run]
                         else:
                             if spec not in run.roster:
                                 continue
 
                             if canonical_order(run.roster) not in set_counts:
                                 set_counts[canonical_order(run.roster)] = []
-                            set_counts[canonical_order(run.roster)] += [run.score]
+                            set_counts[canonical_order(run.roster)] += [run]
 
                             if canonical_order(run.roster)[:2] not in th_counts:
                                 th_counts[canonical_order(run.roster)[:2]] = []
-                            th_counts[canonical_order(run.roster)[:2]] += [run.score]
+                            th_counts[canonical_order(run.roster)[:2]] += [run]
 
                             if canonical_order(run.roster)[-3:] not in dps_counts:
                                 dps_counts[canonical_order(run.roster)[-3:]] = []
-                            dps_counts[canonical_order(run.roster)[-3:]] += [run.score]
+                            dps_counts[canonical_order(run.roster)[-3:]] += [run]
 
                             rc = copy.copy(run.roster)
                             rc.remove(spec)
                             for ch in rc:
                                 if ch not in spec_counts:
                                     spec_counts[ch] = []
-                                spec_counts[ch] += [run.score]                                
+                                spec_counts[ch] += [run]    
+                            
     return dungeon_counts, spec_counts, set_counts, th_counts, dps_counts
 
 
@@ -372,7 +352,10 @@ def gen_set_report(set_counts):
         set_output += [[str("%.2f" % x[4][0]),
                             pretty_set(x[0]),
                             str("%.2f" % x[1]),
-                            str(x[3])]]
+                            str(x[3]),
+                            str("%.2f" % x[5][0]), # maximum run
+                            x[5][1],
+                        ]]
 
     return set_output[:50]
 
@@ -386,7 +369,10 @@ def gen_dungeon_report(dungeon_counts):
                             x[0],
                             str("%.2f" % x[1]),
                             str(x[3]),
-                            slugify.slugify(unicode(x[0]))]]
+                            slugify.slugify(unicode(x[0])),
+                            str("%.2f" % x[5][0]), # maximum run
+                            x[5][1],
+                            ]] # id of the maximum run
 
     return dungeon_output
 
@@ -405,7 +391,10 @@ def gen_spec_report(spec_counts):
                                 str(k[0]),
                                 str("%.2f" % k[1]),
                                 str("%d" % k[3]).rjust(4),
-                                slugify.slugify(unicode(str(k[0])))]]
+                                slugify.slugify(unicode(str(k[0]))),
+                                str("%.2f" % k[5][0]), # maximum run
+                                k[5][1], # id of the maximum run
+                                ]]
         role_package[role_titles[i]] = role_score
     return role_package
 
