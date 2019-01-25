@@ -37,7 +37,7 @@ def update_known_affixes(affixes, affixes_slug):
         ka = KnownAffixes(id=affixes_slug, affixes=affixes)
         ka.put()
 
-def parse_response(data, dungeon, affixes, region):
+def parse_response(data, dungeon, affixes, region, page):
     dungeon_slug = slugify.slugify(unicode(dungeon))
 
     if affixes == "current":
@@ -53,7 +53,7 @@ def parse_response(data, dungeon, affixes, region):
     update_known_affixes(affixes, affixes_slug)
         
     
-    key_string = dungeon_slug + "-" + affixes_slug + "-" + region
+    key_string = dungeon_slug + "-" + affixes_slug + "-" + region + "-" + str(page)
     key = ndb.Key('DungeonAffixRegion',
                   key_string)
     dar = DungeonAffixRegion(key=key)
@@ -61,6 +61,7 @@ def parse_response(data, dungeon, affixes, region):
     dar.dungeon = dungeon
     dar.affixes = affixes
     dar.region = region
+    dar.page = page
 
     for d in data:
         r = d["run"]
@@ -83,7 +84,7 @@ def parse_response(data, dungeon, affixes, region):
 
 
 # update
-def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-2"):
+def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-2", page=0):
     dungeon_slug = slugify.slugify(unicode(dungeon))
     affixes_slug = slugify.slugify(unicode(affixes))
 
@@ -91,7 +92,7 @@ def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-2")
 #                                                   affixes_slug,
 #                                                   region))
 
-    req_url = "https://raider.io/api/v1/mythic-plus/runs?season=%s&region=%s&affixes=%s&dungeon=%s" % (season, region, affixes_slug, dungeon_slug)
+    req_url = "https://raider.io/api/v1/mythic-plus/runs?season=%s&region=%s&affixes=%s&dungeon=%s&page=%d" % (season, region, affixes_slug, dungeon_slug, page)
 
 #    logging.info(" %s" % req_url)
 
@@ -101,14 +102,14 @@ def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-2")
         if result.status_code == 200:
             response = json.loads(result.content)["rankings"]
             if response == []: # empty rankings, as sometimes happens at week start
-                logging.info("no rankings found for %s / %s / %s" % (dungeon, affixes, region))
+                logging.info("no rankings found for %s / %s / %s / %s" % (dungeon, affixes, region, page))
                 return
             dar = parse_response(response,
-                                 dungeon, affixes, region)
+                                 dungeon, affixes, region, page)
             dar.put()
     except DeadlineExceededError:
         logging.exception('deadline exception fetching url: ' + req_url)        
-        deferred.defer(update_dungeon_affix_region, dungeon, affixes, region, season)
+        deferred.defer(update_dungeon_affix_region, dungeon, affixes, region, season, page)
 
     except urlfetch.Error:
         logging.exception('caught exception fetching url: ' + req_url)
@@ -117,10 +118,12 @@ def update_current():
     global dungeons, regions
     for region in regions:
         for dungeon in dungeons:
-            deferred.defer(update_dungeon_affix_region,
-                           dungeon,
-                           "current",
-                           region)
+            for page in range(0, MAX_PAGE):
+                deferred.defer(update_dungeon_affix_region,
+                               dungeon,
+                               "current",
+                               region,
+                               page=page)
 
 ## end raider.io processing
 
@@ -172,8 +175,8 @@ def construct_analysis(counts):
 
 # generate counts
 def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
-    global dungeons, regions, specs, last_updated
-    
+    global dungeons, regions, specs, last_updated, MAX_PAGE
+
     affixes_to_get = [affixes]
     if affixes == "All Affixes":
         affixes_to_get = known_affixes()
@@ -191,65 +194,67 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
         affixes_slug = slugify.slugify(unicode(affix))
         for region in regions:
             for dung in dungeons:
-                dungeon_slug = slugify.slugify(unicode(dung))
-                key_string = dungeon_slug + "-" + affixes_slug + "-" + region
-                key = ndb.Key('DungeonAffixRegion',
-                              key_string)
+                for page in range(0, MAX_PAGE):
+                    dungeon_slug = slugify.slugify(unicode(dung))
+                    key_string = dungeon_slug + "-" + affixes_slug + "-" + region + "-" + str(page)
+                    key = ndb.Key('DungeonAffixRegion',
+                                  key_string)
 
-                dar = key.get()
-                if dar == None:
-                    continue
+                    dar = key.get()
 
-                if last_updated == None:
-                    last_updated = dar.last_updated
-                if dar.last_updated > last_updated:
-                    last_updated = dar.last_updated
+                    if dar == None:
+                        continue
 
-                for run in dar.runs:
-                    if dung not in dungeon_counts:
-                        dungeon_counts[dung] = []
-                    dungeon_counts[dung] += [run]
+                    if last_updated == None:
+                        last_updated = dar.last_updated
+                    if dar.last_updated > last_updated:
+                        last_updated = dar.last_updated
 
-                    if dungeon == "all" or dung == dungeon:
-                        if spec == "all":
-                            if canonical_order(run.roster) not in set_counts:
-                                set_counts[canonical_order(run.roster)] = []
-                            set_counts[canonical_order(run.roster)] += [run]
+                    for run in dar.runs:
+                        if dung not in dungeon_counts:
+                            dungeon_counts[dung] = []
+                        dungeon_counts[dung] += [run]
 
-                            if canonical_order(run.roster)[:2] not in th_counts:
-                                th_counts[canonical_order(run.roster)[:2]] = []
-                            th_counts[canonical_order(run.roster)[:2]] += [run]
+                        if dungeon == "all" or dung == dungeon:
+                                if spec == "all":
+                                    if canonical_order(run.roster) not in set_counts:
+                                        set_counts[canonical_order(run.roster)] = []
+                                    set_counts[canonical_order(run.roster)] += [run]
 
-                            if canonical_order(run.roster)[-3:] not in dps_counts:
-                                dps_counts[canonical_order(run.roster)[-3:]] = []
-                            dps_counts[canonical_order(run.roster)[-3:]] += [run]
+                                    if canonical_order(run.roster)[:2] not in th_counts:
+                                        th_counts[canonical_order(run.roster)[:2]] = []
+                                    th_counts[canonical_order(run.roster)[:2]] += [run]
 
-                            for ch in run.roster:
-                                if ch not in spec_counts:
-                                    spec_counts[ch] = []
-                                spec_counts[ch] += [run]
-                        else:
-                            if spec not in run.roster:
-                                continue
+                                    if canonical_order(run.roster)[-3:] not in dps_counts:
+                                        dps_counts[canonical_order(run.roster)[-3:]] = []
+                                    dps_counts[canonical_order(run.roster)[-3:]] += [run]
 
-                            if canonical_order(run.roster) not in set_counts:
-                                set_counts[canonical_order(run.roster)] = []
-                            set_counts[canonical_order(run.roster)] += [run]
+                                    for ch in run.roster:
+                                        if ch not in spec_counts:
+                                            spec_counts[ch] = []
+                                        spec_counts[ch] += [run]
+                                else:
+                                    if spec not in run.roster:
+                                        continue
 
-                            if canonical_order(run.roster)[:2] not in th_counts:
-                                th_counts[canonical_order(run.roster)[:2]] = []
-                            th_counts[canonical_order(run.roster)[:2]] += [run]
+                                    if canonical_order(run.roster) not in set_counts:
+                                        set_counts[canonical_order(run.roster)] = []
+                                    set_counts[canonical_order(run.roster)] += [run]
 
-                            if canonical_order(run.roster)[-3:] not in dps_counts:
-                                dps_counts[canonical_order(run.roster)[-3:]] = []
-                            dps_counts[canonical_order(run.roster)[-3:]] += [run]
+                                    if canonical_order(run.roster)[:2] not in th_counts:
+                                        th_counts[canonical_order(run.roster)[:2]] = []
+                                    th_counts[canonical_order(run.roster)[:2]] += [run]
 
-                            rc = copy.copy(run.roster)
-                            rc.remove(spec)
-                            for ch in rc:
-                                if ch not in spec_counts:
-                                    spec_counts[ch] = []
-                                spec_counts[ch] += [run]    
+                                    if canonical_order(run.roster)[-3:] not in dps_counts:
+                                        dps_counts[canonical_order(run.roster)[-3:]] = []
+                                    dps_counts[canonical_order(run.roster)[-3:]] += [run]
+
+                                    rc = copy.copy(run.roster)
+                                    rc.remove(spec)
+                                    for ch in rc:
+                                        if ch not in spec_counts:
+                                            spec_counts[ch] = []
+                                        spec_counts[ch] += [run]
                             
     return dungeon_counts, spec_counts, set_counts, th_counts, dps_counts
 
@@ -627,6 +632,7 @@ class UpdateCurrentDungeons(webapp2.RequestHandler):
 import datetime
 import pytz
 last_updated = None
+MAX_PAGE = 5
 
 class OnlyGenerateHTML(webapp2.RequestHandler):
     def get(self):
