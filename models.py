@@ -5,6 +5,11 @@ class Run(ndb.Model):
     roster = ndb.StringProperty(repeated=True)
     score = ndb.FloatProperty(indexed=False)
     keystone_run_id = ndb.StringProperty(indexed=False)
+    completed_at = ndb.DateTimeProperty(indexed=False)
+    clear_time_ms = ndb.IntegerProperty(indexed=False)
+    mythic_level = ndb.IntegerProperty(indexed=False)
+    num_chests = ndb.IntegerProperty(indexed=False)
+
 
 # a set of 20 runs for a specific dungeon affix combo in a region
 # now with pagination!
