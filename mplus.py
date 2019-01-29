@@ -75,6 +75,8 @@ def parse_response(data, dungeon, affixes, region, page):
         clear_time_ms = r["clear_time_ms"]
         mythic_level = r["mythic_level"]
         num_chests = r["num_chests"]
+        keystone_time_ms = r["keystone_time_ms"]
+        faction = r["faction"]
         
         ksrid = str(r["keystone_run_id"])
 
@@ -86,7 +88,8 @@ def parse_response(data, dungeon, affixes, region, page):
             
         dar.runs += [Run(score=score, roster=roster, keystone_run_id=ksrid,
                          completed_at=completed_at, clear_time_ms=clear_time_ms,
-                         mythic_level=mythic_level, num_chests=num_chests)]
+                         mythic_level=mythic_level, num_chests=num_chests,
+                         keystone_time_ms=keystone_time_ms, faction=faction)]
 
     return dar
 

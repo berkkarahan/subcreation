@@ -7,8 +7,11 @@ class Run(ndb.Model):
     keystone_run_id = ndb.StringProperty(indexed=False)
     completed_at = ndb.DateTimeProperty(indexed=False)
     clear_time_ms = ndb.IntegerProperty(indexed=False)
+    keystone_time_ms = ndb.IntegerProperty(indexed=False)
     mythic_level = ndb.IntegerProperty(indexed=False)
     num_chests = ndb.IntegerProperty(indexed=False)
+    faction = ndb.StringProperty(indexed=False)
+
 
 
 # a set of 20 runs for a specific dungeon affix combo in a region
