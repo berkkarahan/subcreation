@@ -357,7 +357,7 @@ def canonical_order(s):
 def pretty_set(s):
     output_string = ""
     for k in s:
-        output_string += "<td>%s</td>" % k
+        output_string += "<td class=\"%s\">%s</td>" % (k, k)
     return output_string
 
 def gen_set_report(set_counts):
