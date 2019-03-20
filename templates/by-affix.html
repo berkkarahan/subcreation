@@ -41,9 +41,16 @@
 </div>
 </div>
 
+<div>
+<p>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For dungeons, a higher score indicates more challenging versions of the dungeon are being completed. For an equivalent key, a dungeon with a higher score is relatively easier than a dungeon with a lower score.</i>
+</p>
+</div>
+
 {% import 'spec_table.html' as st %}
 
 <h2>Spec Strength: {{affixes}}</h2>
+<div>
 <div class="container flex-direction">
 {{ st.spec_table("Tanks", role_package["Tanks"], prefix, affixes_slug, "") }}
 {{ st.spec_table("Healers", role_package["Healers"], prefix, affixes_slug, "") }}
@@ -51,6 +58,13 @@
 <div class="container flex-direction">
 {{ st.spec_table("Melee", role_package["Melee"], prefix, affixes_slug, "") }}
 {{ st.spec_table("Ranged", role_package["Ranged"], prefix, affixes_slug, "") }}
+</div>
+</div>
+
+<div>
+<p>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For specs, higher is better.</i>
+</p>
 </div>
 
 <h2>Composition Strength: {{affixes}}</h2>
@@ -83,6 +97,12 @@
 </p>
 </div>
 
+<div>
+<p>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For comps, higher is better.</i>
+</p>
+</div>
+
 <h2>Tank/Healer Composition Strength: {{affixes}}</h2>
 <div>
 <table class="sort" id="table-thd">
@@ -106,6 +126,12 @@
 <script>
   new Tablesort(document.getElementById('table-thd'));
 </script>
+</p>
+</div>
+
+<div>
+<p>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For comps, higher is better.</i>
 </p>
 </div>
 
@@ -141,7 +167,7 @@
 
 <div>
 <p>
-<i>lb_ci = Lower bound of a 95% confidence interval of the average raider.io score for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For dungeons, higher is easier; for specs and comps, higher is better.</i>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For comps, higher is better.</i>
 </p>
 </div>
 
