@@ -9,7 +9,7 @@ from google.appengine.api import urlfetch
 from google.appengine.api import app_identity
 from google.appengine.ext import ndb
 from google.appengine.ext import deferred
-from google.appengine.api import taskqueue
+from google.appengine.api.taskqueue import TaskRetryOptions
 from google.appengine.runtime import DeadlineExceededError
 
 from google.appengine.ext import vendor
@@ -121,7 +121,7 @@ def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-2",
             dar.put()
     except DeadlineExceededError:
         logging.exception('deadline exception fetching url: ' + req_url)        
-        options = taskqueue.TaskRetryOptions(task_retry_limit = 3)
+        options = TaskRetryOptions(task_retry_limit = 3)
         deferred.defer(update_dungeon_affix_region, dungeon, affixes, region, season, page, _retry_options=options)
 
     except urlfetch.Error:
@@ -547,8 +547,7 @@ def write_to_storage(filename, content):
     bucket_name = 'mplus.subcreation.net'
     
     filename = "/%s/%s" % (bucket_name, filename)
-    write_retry_params = gcs.RetryParams(backoff_factor=1.1,
-                                         task_retry_limit=2)
+    write_retry_params = gcs.RetryParams(backoff_factor=1.1)
     gcs_file = gcs.open(filename,
                         'w', content_type='text/html',
                         retry_params=write_retry_params)
