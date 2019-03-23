@@ -4,6 +4,7 @@ cron:
   schedule: every 4 hours from 00:45 to 23:45
   retry_parameters:
     job_retry_limit: 1
+    job_age_limit: 5m
 
 
 
