@@ -121,7 +121,7 @@ def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-2",
             dar.put()
     except DeadlineExceededError:
         logging.exception('deadline exception fetching url: ' + req_url)        
-        options = TaskRetryOptions(task_retry_limit = 3)
+        options = TaskRetryOptions(task_retry_limit = 1)
         deferred.defer(update_dungeon_affix_region, dungeon, affixes, region, season, page, _retry_options=options)
 
     except urlfetch.Error:
@@ -132,11 +132,13 @@ def update_current():
     for region in regions:
         for dungeon in dungeons:
             for page in range(0, MAX_PAGE):
+                options = TaskRetryOptions(task_retry_limit = 1)
                 deferred.defer(update_dungeon_affix_region,
                                dungeon,
                                "current",
                                region,
-                               page=page)
+                               page=page,
+                               _retry_options=options)
 
 ## end raider.io processing
 
