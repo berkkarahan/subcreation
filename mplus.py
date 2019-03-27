@@ -571,13 +571,16 @@ def write_overviews():
 
         affix_slug = slugify.slugify(unicode(af))
 
-        deferred.defer(write_to_storage, filename_slug + ".html", rendered)
+        options = TaskRetryOptions(task_retry_limit = 1)
+        deferred.defer(write_to_storage, filename_slug + ".html", rendered,
+                       _retry_options=options)
 
         for dg in dungeons:
             rendered = render_dungeon(af, dg)
             dungeon_slug = slugify.slugify(unicode(dg))
             filename = "%s-%s.html" % (dungeon_slug, affix_slug)
-            deferred.defer(write_to_storage, filename, rendered)
+            deferred.defer(write_to_storage, filename, rendered,
+                           _retry_options=options)
 
     for s in specs:
         for af in affixes_to_write:
@@ -585,7 +588,8 @@ def write_overviews():
             spec_slug = slugify.slugify(unicode(s))
             affix_slug = slugify.slugify(unicode(af))
             filename = "%s-%s.html" % (spec_slug, affix_slug)
-            deferred.defer(write_to_storage, filename, rendered)            
+            deferred.defer(write_to_storage, filename, rendered,
+                           _retry_options=options)            
 
             # no longer doing per dungeon spec -- too small granularity
             # for dg in dungeons:
@@ -661,7 +665,9 @@ class GenerateHTML(webapp2.RequestHandler):
         self.response.write("Queueing updates\n")
         update_current()
         self.response.write("Writing templates to cloud storage...\n")
-        deferred.defer(write_overviews, _countdown=20)
+        options = TaskRetryOptions(task_retry_limit = 1)
+        deferred.defer(write_overviews, _countdown=20,
+                       _retry_options=options)
 
 class TestView(webapp2.RequestHandler):
     def get(self):
