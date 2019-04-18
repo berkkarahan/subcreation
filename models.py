@@ -34,4 +34,5 @@ class DungeonAffixRegion(ndb.Model):
 class KnownAffixes(ndb.Model):
     affixes = ndb.StringProperty()
     first_seen = ndb.DateTimeProperty(auto_now_add=True)
+    last_seen = ndb.DateTimeProperty(auto_now=True)
 

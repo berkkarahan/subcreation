@@ -10,6 +10,13 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: KnownAffixes
+  properties:
+  - name: last_seen
+    direction: desc
+  - name: first_seen
+    direction: desc
+
 - kind: Run
   properties:
   - name: affixes

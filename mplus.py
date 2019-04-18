@@ -37,6 +37,8 @@ def update_known_affixes(affixes, affixes_slug):
     if ka is None: # only add it if we haven't seen it before
         ka = KnownAffixes(id=affixes_slug, affixes=affixes)
         ka.put()
+    else:
+        ka.put() # put it back to update last seen
 
 def parse_response(data, dungeon, affixes, region, page):
     dungeon_slug = slugify.slugify(unicode(dungeon))
@@ -320,7 +322,7 @@ def known_dungeon_links(affixes_slug, prefix=""):
 
 
 def current_affixes():
-    pull_query = KnownAffixes.query().order(-KnownAffixes.first_seen)
+    pull_query = KnownAffixes.query().order(-KnownAffixes.last_seen, -KnownAffixes.first_seen)
 #    logging.info(pull_query)
 #    logging.info(pull_query.fetch(1))
     current_affixes_save = pull_query.fetch(1)[0].affixes
