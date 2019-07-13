@@ -98,7 +98,7 @@ def parse_response(data, dungeon, affixes, region, page):
 
 
 # update
-def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-2", page=0):
+def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-3", page=0):
     dungeon_slug = slugify.slugify(unicode(dungeon))
     affixes_slug = slugify.slugify(unicode(affixes))
 
