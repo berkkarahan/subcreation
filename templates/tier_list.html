@@ -1,0 +1,62 @@
+{% macro tier_list(tl) -%}
+<div class="container flex-direction">
+  <table id="table-dungeon-tier">
+    <tr>
+      <td class="legendary tier">
+        S
+      </td>
+      <td>
+       {{tl["S"]}}
+      </td>
+    </tr>
+
+    <tr>
+      <td class="epic tier">
+        A
+      </td>
+      <td>
+        {{tl["A"]}}
+      </td>
+    </tr>
+
+    
+    <tr>
+      <td class="rare tier">
+        B
+      </td>
+      <td>
+        {{tl["B"]}}
+      </td>
+    </tr>
+
+    
+    <tr>
+      <td class="uncommon tier">
+        C
+      </td>
+      <td>
+        {{tl["C"]}}
+      </td>
+    </tr>
+
+    <tr>
+      <td class="common tier">
+        D
+      </td>
+      <td>
+        {{tl["D"]}}
+      </td>
+    </tr>
+
+    <tr>
+      <td class="poor tier">
+        F
+      </td>
+      <td>
+        {{tl["F"]}}
+      </td>
+    </tr>    
+  </table>
+  
+</div>
+{%- endmacro %}

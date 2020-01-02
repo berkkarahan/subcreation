@@ -151,6 +151,180 @@ from numpy import average, std
 from math import sqrt
 
 
+# new: spit out all measurements for boxplot fun
+def gen_box_plot(counts):
+    buckets = {}
+    for name, runs in counts.iteritems():
+        if name not in buckets:
+            buckets[name] = []
+        for r in runs:
+            buckets[name] += [r.mythic_level]
+    print buckets
+
+# new: generate a dungeon tier list
+def gen_dungeon_tier_list(dungeons_report):
+
+    # super simple tier list -- figure out the max and the min, and then bucket tiers
+    cimax = -1
+    cimin = -1
+    for k in dungeons_report:       
+        if cimax == -1:
+            cimax = float(k[0])
+        if cimin == -1:
+            cimin = float(k[0])
+        if float(k[0]) < cimin:
+            cimin = float(k[0])
+        if float(k[0]) > cimax:
+            cimax = float(k[0])
+
+    cirange = cimax - cimin
+    cistep = cirange / 6
+
+    added = []
+
+    tiers = {}
+    tm = {}
+    tm[0] = "S"
+    tm[1] = "A"
+    tm[2] = "B"
+    tm[3] = "C"
+    tm[4] = "D"
+    tm[5] = "F"
+
+    for i in range(0, 6):
+        tiers[tm[i]] = []
+    
+    for i in range(0, 6):
+        for k in dungeons_report:
+            if float(k[0]) >= (cimax-cistep*(i+1)):
+                if k not in added:
+                    if tm[i] not in tiers:
+                        tiers[tm[i]] = []
+                    tiers[tm[i]] += [k]
+                    added += [k]
+
+
+    # add stragglers to last tier
+    for k in dungeons_report:
+        if k not in added:
+            if tm[5] not in tiers:
+                tiers[tm[5]] = []
+            tiers[tm[5]] += [k]
+            added += [k]
+
+    def miniicon(dname, dslug):
+        return '<div class="innertier"><img src="images/dungeons/%s.jpg" alt="%s" /><br/>%s</div>' % (dslug, dname, dname)
+     
+    dtl = {}
+    dtl["S"] = ""
+    dtl["A"] = ""
+    dtl["B"] = ""
+    dtl["C"] = ""
+    dtl["D"] = ""
+    dtl["F"] = ""
+
+    for i in range(0, 6):
+        for k in tiers[tm[i]]:
+            dtl[tm[i]] += miniicon(k[1], k[4])        
+    
+    return dtl
+
+
+# new: generate a specs tier list
+def gen_spec_tier_list(specs_report, role):
+    global role_titles
+
+    # take the highest max and the highest min
+    cimax = {}
+    cimin = {}
+    
+    # super simple tier list -- figure out the max and the min, and then bucket tiers
+    for i in range(0, 4):
+        cimax[role_titles[i]] = -1
+        cimin[role_titles[i]] = -1
+        for k in specs_report[role_titles[i]]:
+            print k
+            
+            if cimax[role_titles[i]] == -1:
+                cimax[role_titles[i]] = float(k[0])
+            if cimin[role_titles[i]] == -1:
+                cimin[role_titles[i]] = float(k[0])
+            if float(k[0]) < cimin[role_titles[i]]:
+                cimin[role_titles[i]] = float(k[0])
+            if float(k[0]) > cimax[role_titles[i]]:
+                cimax[role_titles[i]] = float(k[0])
+    
+
+    print cimin, cimax
+    cimax_c = []
+    cimin_c = []
+
+    for i in range(0, 4):
+        cimax_c += [cimax[role_titles[i]]]
+        cimin_c += [cimin[role_titles[i]]]
+    
+    cimaxx = max(cimax_c)
+    ciminn = max(cimin_c) # we want the highest minimum, thus max
+
+    cirange = cimaxx - ciminn
+    cistep = cirange / 6
+
+    added = []
+
+    tiers = {}
+    tm = {}
+    tm[0] = "S"
+    tm[1] = "A"
+    tm[2] = "B"
+    tm[3] = "C"
+    tm[4] = "D"
+    tm[5] = "F"
+
+
+    for i in range(0, 6):
+        tiers[tm[i]] = []
+    
+    for i in range(0, 6):
+        for k in specs_report[role]:
+            print (cimaxx-cistep*(i+1))
+            if float(k[0]) >= (cimaxx-cistep*(i+1)):
+                if k not in added:
+                    tiers[tm[i]] += [k]
+                    added += [k]
+
+    # add stragglers to last tier
+    for k in specs_report[role]:
+        if k not in added:
+            tiers[tm[5]] += [k]
+            added += [k]
+
+    for i in range(0, 6):
+        print tm[i]
+        print tiers[tm[i]]
+
+
+    def miniicon(dname, dslug):
+        return '<div class="innertier"><img src="images/specs/%s.jpg" alt="%s" /><br/>%s</div>' % (dslug, dname, dname)
+     
+    dtl = {}
+    dtl["S"] = ""
+    dtl["A"] = ""
+    dtl["B"] = ""
+    dtl["C"] = ""
+    dtl["D"] = ""
+    dtl["F"] = ""
+
+    for i in range(0, 6):
+        for k in tiers[tm[i]]:
+            dtl[tm[i]] += miniicon(k[1], k[4])        
+    
+    return dtl   
+
+
+# todo: affix tier list (how do affixes compare with each other)
+# have this show on all affixes?
+
+
 def construct_analysis(counts):
     overall = []
     all_data = []
@@ -437,6 +611,11 @@ def render_affixes(affixes, prefix=""):
     dps_report = gen_set_report(dps_counts)
 
 
+    dtl = gen_dungeon_tier_list(dungeons_report)
+    tankstl = gen_spec_tier_list(specs_report, "Tanks")
+    healerstl = gen_spec_tier_list(specs_report, "Healers")
+    meleetl = gen_spec_tier_list(specs_report, "Melee")
+    rangedtl = gen_spec_tier_list(specs_report, "Ranged")
     
     template = env.get_template('by-affix.html')
     rendered = template.render(title=affixes,
@@ -444,6 +623,11 @@ def render_affixes(affixes, prefix=""):
                                affixes=affixes,
                                affixes_slug=affixes_slug,
                                dungeons=dungeons_report,
+                               dtl = dtl,
+                               tankstl = tankstl,
+                               healerstl = healerstl,
+                               meleetl = meleetl,
+                               rangedtl = rangedtl,
                                role_package=specs_report,
                                sets=set_report,
                                sets_th=th_report,
