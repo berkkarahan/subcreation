@@ -213,7 +213,7 @@ def gen_dungeon_tier_list(dungeons_report):
             added += [k]
 
     def miniicon(dname, dslug):
-        return '<div class="innertier"><img src="images/dungeons/%s.jpg" alt="%s" /><br/>%s</div>' % (dslug, dname, dname)
+        return '<div class="innertier"><img src="images/dungeons/%s.jpg" title="%s" alt="%s" /><br/>%s</div>' % (dslug, dname, dname, dname)
      
     dtl = {}
     dtl["S"] = ""
@@ -304,7 +304,7 @@ def gen_spec_tier_list(specs_report, role):
 
 
     def miniicon(dname, dslug):
-        return '<div class="innertier"><img src="images/specs/%s.jpg" alt="%s" /><br/>%s</div>' % (dslug, dname, dname)
+        return '<div class="innertier"><img src="images/specs/%s.jpg" title="%s" alt="%s" /><br/>%s</div>' % (dslug, dname, dname, dname)
      
     dtl = {}
     dtl["S"] = ""

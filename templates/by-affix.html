@@ -69,29 +69,64 @@
 <h3>Tanks</h3>
 <b class="affixes">{{affixes}}</b><br/>
 {{ tier_list.tier_list(tankstl) }}
-
-<h3>Healers</h3>
-<b class="affixes">{{affixes}}</b><br/>
-{{ tier_list.tier_list(healerstl) }}
-
-<h3>Melee</h3>
-<b class="affixes">{{affixes}}</b><br/>
-{{ tier_list.tier_list(meleetl) }}
-
-<h3>Ranged</h3>
-<b class="affixes">{{affixes}}</b><br/>
-{{ tier_list.tier_list(rangedtl) }}
-
-
 <details>
    <summary>Detailed statistical analysis</summary>
 <div>
 <div class="container flex-direction">
 {{ st.spec_table("Tanks", role_package["Tanks"], prefix, affixes_slug, "") }}
+</div>
+</div>
+
+<div>
+<p>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For specs, higher is better.</i>
+</p>
+</div>
+</details>
+
+<h3>Healers</h3>
+<b class="affixes">{{affixes}}</b><br/>
+{{ tier_list.tier_list(healerstl) }}
+<details>
+   <summary>Detailed statistical analysis</summary>
+<div>
+<div class="container flex-direction">
 {{ st.spec_table("Healers", role_package["Healers"], prefix, affixes_slug, "") }}
 </div>
+</div>
+
+<div>
+<p>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For specs, higher is better.</i>
+</p>
+</div>
+</details>
+
+<h3>Melee</h3>
+<b class="affixes">{{affixes}}</b><br/>
+{{ tier_list.tier_list(meleetl) }}
+<details>
+   <summary>Detailed statistical analysis</summary>
+<div>
 <div class="container flex-direction">
 {{ st.spec_table("Melee", role_package["Melee"], prefix, affixes_slug, "") }}
+</div>
+</div>
+
+<div>
+<p>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For specs, higher is better.</i>
+</p>
+</div>
+</details>
+
+<h3>Ranged</h3>
+<b class="affixes">{{affixes}}</b><br/>
+{{ tier_list.tier_list(rangedtl) }}
+<details>
+   <summary>Detailed statistical analysis</summary>
+<div>
+<div class="container flex-direction">
 {{ st.spec_table("Ranged", role_package["Ranged"], prefix, affixes_slug, "") }}
 </div>
 </div>
@@ -103,8 +138,12 @@
 </div>
 </details>
 
+
+
+<br/>
+
 <details>
-  <summary>Detailed composition analysis</summary>
+  <summary>Detailed composition analysis (overall)</summary>
   
 <h2>Which compositions are strongest?</h2>
 <div>
@@ -141,7 +180,11 @@
 <i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For comps, higher is better.</i>
 </p>
 </div>
+</details>
 
+<details>
+  <summary>Detailed composition analysis (tank/healer)</summary>
+  
 <h2>Which tank/healer compositions are strongest?</h2>
 <div>
 <table class="sort" id="table-thd">
@@ -174,7 +217,11 @@
 <i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For comps, higher is better.</i>
 </p>
 </div>
+</details>
 
+<details>
+  <summary>Detailed composition analysis (dps)</summary>
+  
 <h2>Which DPS compositions are strongest?</h2>
 <div>
 <table class="sort" id="table-dpsd">

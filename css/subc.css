@@ -98,38 +98,38 @@ table {
   background-color: #e1b688;
 }
 
-.Legendary {
+.legendary {
     background-color: #ff8000;
 }
 
-.Epic {
+.epic {
     background-color: #a335ee;
 }
 
-.Rare {
+.rare {
     background-color: #0070dd;
 }
 
-.Uncommon {
+.uncommon {
     background-color: #1eff00;
 }
 
-.Common {
+.common {
     background-color: #ffffff;
 }
 
-.Poor {
+.poor {
     background-color: #9d9d9d;
 }
 
-.Tier {
+.tier {
     font-weight: bold;
     vertical-align: middle;
     text-align: center;
     font-size: 1.5em;
 }
 
-.Innertier {
+.innertier {
     text-align: center;
     vertical-align: middle;
     display:inline-block;
