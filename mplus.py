@@ -314,6 +314,89 @@ def gen_spec_tier_list(specs_report, role):
 
 # todo: affix tier list (how do affixes compare with each other)
 # have this show on all affixes?
+# new: generate a dungeon tier list
+def gen_affix_tier_list(affixes_report):
+
+    # super simple tier list -- figure out the max and the min, and then bucket tiers
+    cimax = -1
+    cimin = -1
+    for k in affixes_report:       
+        if cimax == -1:
+            cimax = float(k[0])
+        if cimin == -1:
+            cimin = float(k[0])
+        if float(k[0]) < cimin:
+            cimin = float(k[0])
+        if float(k[0]) > cimax:
+            cimax = float(k[0])
+
+    cirange = cimax - cimin
+    cistep = cirange / 6
+
+    added = []
+
+    tiers = {}
+    tm = {}
+    tm[0] = "S"
+    tm[1] = "A"
+    tm[2] = "B"
+    tm[3] = "C"
+    tm[4] = "D"
+    tm[5] = "F"
+
+    for i in range(0, 6):
+        tiers[tm[i]] = []
+    
+    for i in range(0, 6):
+        for k in affixes_report:
+            if float(k[0]) >= (cimax-cistep*(i+1)):
+                if k not in added:
+                    if tm[i] not in tiers:
+                        tiers[tm[i]] = []
+                    tiers[tm[i]] += [k]
+                    added += [k]
+
+
+    # add stragglers to last tier
+    for k in affixes_report:
+        if k not in added:
+            if tm[5] not in tiers:
+                tiers[tm[5]] = []
+            tiers[tm[5]] += [k]
+            added += [k]
+
+    def miniaffix(aname, aslug, size):
+        return '<img src="images/affixes/%s.jpg" width="%d" height="%d" title="%s" alt="%s" />' % (aslug, size, size, aname, aname)
+            
+    def miniicon(dname, dslug):
+        affixen = dname.split(", ")
+        output = []
+    
+        for af in affixen:
+            afname = af
+            afslug = slugify.slugify(af)
+            output += [miniaffix(afname, afslug, size=42)]
+
+        output_string = output[0]
+        output_string += output[1] + "<br/>"
+        output_string += output[2]
+        output_string += output[3]
+        output_string += "<br/>%s" % dname
+        return '<div class="innertier">%s</div>' % (output_string)
+     
+    dtl = {}
+    dtl["S"] = ""
+    dtl["A"] = ""
+    dtl["B"] = ""
+    dtl["C"] = ""
+    dtl["D"] = ""
+    dtl["F"] = ""
+
+    for i in range(0, 6):
+        for k in tiers[tm[i]]:
+            dtl[tm[i]] += miniicon(k[1], k[4])        
+    
+    return dtl
 
 
 def construct_analysis(counts):
@@ -326,25 +409,27 @@ def construct_analysis(counts):
        
     for name, runs in counts.iteritems():
         data = []
-        max_found = 0
+        max_found = 0 
         max_id = ""
+        max_level = 0
         for r in runs:
             data += [r.score]
             if r.score >= max_found:
                 max_found = r.score
                 max_id = r.keystone_run_id
+                max_level = r.mythic_level
         n = len(data)
         if n == 0:
-            overall += [[name, 0, 0, n, [0, 0], [0, ""]]]
+            overall += [[name, 0, 0, n, [0, 0], [0, "", 0]]]
             continue
         mean = average(data)
         if n <= 1:
-            overall += [[name, mean, 0, n, [0, 0], [max_found, max_id]]]
+            overall += [[name, mean, 0, n, [0, 0], [max_found, max_id, max_level]]]
             continue
         stddev = std(data, ddof=1)
         t_bounds = t_interval(n)
         ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
-        maxi = [max_found, max_id]
+        maxi = [max_found, max_id, max_level]
         overall += [[name, mean, stddev, n, ci, maxi]]
 
 
@@ -368,6 +453,7 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
     set_counts = {}
     th_counts = {} # tank healer
     dps_counts = {} # just dps
+    affix_counts = {} # compare affixes to each other (
 
     for s in specs:
         spec_counts[s] = []
@@ -397,6 +483,11 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
                             dungeon_counts[dung] = []
                         dungeon_counts[dung] += [run]
 
+                        if affix not in affix_counts:
+                            affix_counts[affix] = []
+                        affix_counts[affix] += [run]
+
+                        # all this is spec / dungeon / comp breakdown
                         if dungeon == "all" or dung == dungeon:
                                 if spec == "all":
                                     if canonical_order(run.roster) not in set_counts:
@@ -438,7 +529,7 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
                                             spec_counts[ch] = []
                                         spec_counts[ch] += [run]
                             
-    return dungeon_counts, spec_counts, set_counts, th_counts, dps_counts
+    return dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts
 
 
 # known affixes
@@ -565,6 +656,7 @@ def gen_set_report(set_counts):
                             str(x[3]),
                             str("%.2f" % x[5][0]), # maximum run
                             x[5][1],
+                            x[5][2], # level of the max run
                         ]]
 
     return set_output[:50]
@@ -581,10 +673,29 @@ def gen_dungeon_report(dungeon_counts):
                             str(x[3]),
                             slugify.slugify(unicode(x[0])),
                             str("%.2f" % x[5][0]), # maximum run
-                            x[5][1],
-                            ]] # id of the maximum run
+                            x[5][1], # id of the maximum run
+                            x[5][2], # level of the max run
+                            ]] 
 
     return dungeon_output
+
+def gen_affix_report(affix_counts):
+    affixes_overall = construct_analysis(affix_counts)
+
+    affix_output = []
+    for x in affixes_overall:
+
+        affix_output += [[str("%.2f" % x[4][0]),
+                            x[0],
+                            str("%.2f" % x[1]),
+                            str(x[3]),
+                            slugify.slugify(unicode(x[0])),
+                            str("%.2f" % x[5][0]), # maximum run
+                            x[5][1],
+                            x[5][2], # level of the max run 
+                            ]] # id of the maximum run
+
+    return affix_output
 
 def gen_spec_report(spec_counts):
     global role_titles, specs
@@ -604,6 +715,7 @@ def gen_spec_report(spec_counts):
                                 slugify.slugify(unicode(str(k[0]))),
                                 str("%.2f" % k[5][0]), # maximum run
                                 k[5][1], # id of the maximum run
+                                k[5][2], # level of the max run
                                 ]]
         role_package[role_titles[i]] = role_score
     return role_package
@@ -615,7 +727,7 @@ def localized_time(last_updated):
 
 
 def render_affixes(affixes, prefix=""):
-    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts = generate_counts(affixes)
+    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts = generate_counts(affixes)
     affixes_slug = slugify.slugify(unicode(affixes))
     
     dungeons_report = gen_dungeon_report(dungeon_counts)
@@ -623,6 +735,7 @@ def render_affixes(affixes, prefix=""):
     set_report = gen_set_report(set_counts)
     th_report = gen_set_report(th_counts)
     dps_report = gen_set_report(dps_counts)
+    affixes_report = gen_dungeon_report(affix_counts)
 
 
     dtl = gen_dungeon_tier_list(dungeons_report)
@@ -630,6 +743,7 @@ def render_affixes(affixes, prefix=""):
     healerstl = gen_spec_tier_list(specs_report, "Healers")
     meleetl = gen_spec_tier_list(specs_report, "Melee")
     rangedtl = gen_spec_tier_list(specs_report, "Ranged")
+    aftl = gen_affix_tier_list(affixes_report)
     
     template = env.get_template('by-affix.html')
     rendered = template.render(title=affixes,
@@ -638,6 +752,8 @@ def render_affixes(affixes, prefix=""):
                                pretty_affixes=pretty_affixes(affixes),
                                affixes_slug=affixes_slug,
                                dungeons=dungeons_report,
+                               affixes_report=affixes_report,
+                               aftl = aftl,
                                dtl = dtl,
                                tankstl = tankstl,
                                healerstl = healerstl,

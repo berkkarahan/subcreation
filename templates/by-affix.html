@@ -17,13 +17,59 @@
 
 {% import 'tier_list.html' as tier_list %}
 
+
+{% if affixes == "All Affixes" %}
+<h2>Affixes Ease Tier List</h2>
+
+{{ tier_list.tier_list(aftl) }}
+
+<details>
+  <summary>Detailed statistical analysis (by affixes)</summary>
+<div class="container flex-direction">
+
+  <div>
+{% import 'max_link.html' as max_link %}
+<table class="sort" id="table-rdd">
+<tr data-sort-method='none'>
+<th>lb_ci</th>
+<th>Affixes</th>
+<th>x&#772;</th>
+<th>max</th>
+<th>n</th>
+</tr>
+{% for (score, indiv_affix, mean, n, dungeon_slug, max_f, max_id, max_level) in affixes_report %}
+<tr>
+<td>{{score}}</td>
+<td>{{indiv_affix}}</td>
+<td>{{mean}}</td>
+{{ max_link.max_link(max_f, max_id, max_level) }}
+<td>{{n}}</td>
+</tr>
+{% endfor %}
+</table>
+<script>
+  new Tablesort(document.getElementById('table-rdd'));
+</script>
+</p>
+</div>
+</div>
+
+<div>
+<p>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with each set of affixes. For affixes, higher scores indicates affixes are relatively easier. (Other factors; e.g. gear acquisition, particularly early in a season, may also contribute to relative difficulty).</i>
+</p>
+</div>
+</details>
+
+{% endif %}
+
 <h2>Dungeon Ease Tier List</h2>
 <b class="affixes">{{pretty_affixes}}</b><br/>
 
 {{ tier_list.tier_list(dtl) }}
 
 <details>
-   <summary>Detailed statistical analysis</summary>
+   <summary>Detailed statistical analysis (by dungeon)</summary>
 <div class="container flex-direction">
 
   <div>
@@ -36,12 +82,12 @@
 <th>max</th>
 <th>n</th>
 </tr>
-{% for (score, dungeon, mean, n, dungeon_slug, max_f, max_id) in dungeons %}
+{% for (score, dungeon, mean, n, dungeon_slug, max_f, max_id, max_level) in dungeons %}
 <tr>
 <td>{{score}}</td>
 <td>{{dungeon}}</td>
 <td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id) }}
+{{ max_link.max_link(max_f, max_id, max_level) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
@@ -69,7 +115,7 @@
 <b class="affixes">{{pretty_affixes}}</b><br/>
 {{ tier_list.tier_list(tankstl) }}
 <details>
-   <summary>Detailed statistical analysis</summary>
+   <summary>Detailed statistical analysis (for tanks)</summary>
 <div>
 <div class="container flex-direction">
 {{ st.spec_table("Tanks", role_package["Tanks"], prefix, affixes_slug, "") }}
@@ -87,7 +133,7 @@
 <b class="affixes">{{pretty_affixes}}</b><br/>
 {{ tier_list.tier_list(healerstl) }}
 <details>
-   <summary>Detailed statistical analysis</summary>
+   <summary>Detailed statistical analysis (for healers)</summary>
 <div>
 <div class="container flex-direction">
 {{ st.spec_table("Healers", role_package["Healers"], prefix, affixes_slug, "") }}
@@ -105,7 +151,7 @@
 <b class="affixes">{{pretty_affixes}}</b><br/>
 {{ tier_list.tier_list(meleetl) }}
 <details>
-   <summary>Detailed statistical analysis</summary>
+   <summary>Detailed statistical analysis (for melee)</summary>
 <div>
 <div class="container flex-direction">
 {{ st.spec_table("Melee", role_package["Melee"], prefix, affixes_slug, "") }}
@@ -123,7 +169,7 @@
 <b class="affixes">{{pretty_affixes}}</b><br/>
 {{ tier_list.tier_list(rangedtl) }}
 <details>
-   <summary>Detailed statistical analysis</summary>
+   <summary>Detailed statistical analysis (for ranged)</summary>
 <div>
 <div class="container flex-direction">
 {{ st.spec_table("Ranged", role_package["Ranged"], prefix, affixes_slug, "") }}
@@ -158,12 +204,12 @@
 <th>max</th>
 <th>n</th>
 </tr>
-{% for (score, comp, mean, n, max_f, max_id) in sets %}
+{% for (score, comp, mean, n, max_f, max_id, max_level) in sets %}
 <tr>
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id) }}
+{{ max_link.max_link(max_f, max_id, max_level) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
@@ -195,12 +241,12 @@
 <th>max</th>
 <th>n</th>
 </tr>
-{% for (score, comp, mean, n, max_f, max_id) in sets_th %}
+{% for (score, comp, mean, n, max_f, max_id, max_level) in sets_th %}
 <tr>
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id) }}
+{{ max_link.max_link(max_f, max_id, max_level) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
@@ -233,12 +279,12 @@
 <th>max</th>
 <th>n</th>
 </tr>
-{% for (score, comp, mean, n, max_f, max_id) in sets_dps %}
+{% for (score, comp, mean, n, max_f, max_id, max_level) in sets_dps %}
 <tr>
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id) }}
+{{ max_link.max_link(max_f, max_id, max_level) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
