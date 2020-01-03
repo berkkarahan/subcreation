@@ -511,6 +511,29 @@ def current_affixes():
 
 ##   generating common reports
 
+
+
+# given a list of affixes, return a pretty affix string
+# <img> Affix1, <img> Affix2, <img> Affix3, <img> Affix4
+def pretty_affixes(affixes, size=16):
+    if affixes=="All Affixes":
+        return "All Affixes"
+
+    def miniaffix(aname, aslug):
+        return '<img src="images/affixes/%s.jpg" width="%d" height="%d" title="%s" alt="%s" />' % (aslug, size, size, aname, aname)
+
+    affixen = affixes.split(", ")
+    output = []
+    
+    for af in affixen:
+        afname = af
+        afslug = slugify.slugify(af)
+        output += [miniaffix(afname, afslug) + " %s" % afname]
+
+    output_string = ', '.join(output)
+    return output_string
+        
+
 def canonical_order(s):
     # given a list, return a tuple in canonical order
     output = []
@@ -621,6 +644,7 @@ def render_affixes(affixes, prefix=""):
     rendered = template.render(title=affixes,
                                prefix=prefix,
                                affixes=affixes,
+                               pretty_affixes=pretty_affixes(affixes),
                                affixes_slug=affixes_slug,
                                dungeons=dungeons_report,
                                dtl = dtl,

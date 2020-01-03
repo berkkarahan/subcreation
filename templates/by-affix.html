@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Affixes: {{affixes}}</h2>
 <div class="container flex-direction">
   <div>
     <ul>
@@ -19,7 +18,7 @@
 {% import 'tier_list.html' as tier_list %}
 
 <h2>Dungeon Ease Tier List</h2>
-<b class="affixes">{{affixes}}</b><br/>
+<b class="affixes">{{pretty_affixes}}</b><br/>
 
 {{ tier_list.tier_list(dtl) }}
 
@@ -67,7 +66,7 @@
 
 <h2>Spec Strength Tier Lists</h2>
 <h3>Tanks</h3>
-<b class="affixes">{{affixes}}</b><br/>
+<b class="affixes">{{pretty_affixes}}</b><br/>
 {{ tier_list.tier_list(tankstl) }}
 <details>
    <summary>Detailed statistical analysis</summary>
@@ -85,7 +84,7 @@
 </details>
 
 <h3>Healers</h3>
-<b class="affixes">{{affixes}}</b><br/>
+<b class="affixes">{{pretty_affixes}}</b><br/>
 {{ tier_list.tier_list(healerstl) }}
 <details>
    <summary>Detailed statistical analysis</summary>
@@ -103,7 +102,7 @@
 </details>
 
 <h3>Melee</h3>
-<b class="affixes">{{affixes}}</b><br/>
+<b class="affixes">{{pretty_affixes}}</b><br/>
 {{ tier_list.tier_list(meleetl) }}
 <details>
    <summary>Detailed statistical analysis</summary>
@@ -121,7 +120,7 @@
 </details>
 
 <h3>Ranged</h3>
-<b class="affixes">{{affixes}}</b><br/>
+<b class="affixes">{{pretty_affixes}}</b><br/>
 {{ tier_list.tier_list(rangedtl) }}
 <details>
    <summary>Detailed statistical analysis</summary>
