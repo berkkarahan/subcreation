@@ -39,7 +39,7 @@
 {% for (score, dungeon, mean, n, dungeon_slug, max_f, max_id) in dungeons %}
 <tr>
 <td>{{score}}</td>
-<td><a href="{{prefix}}{{dungeon_slug}}-{{affixes_slug}}.html">{{dungeon}}</a></td>
+<td>{{dungeon}}</td>
 <td>{{mean}}</td>
 {{ max_link.max_link(max_f, max_id) }}
 <td>{{n}}</td>

@@ -243,8 +243,6 @@ def gen_spec_tier_list(specs_report, role):
         cimax[role_titles[i]] = -1
         cimin[role_titles[i]] = -1
         for k in specs_report[role_titles[i]]:
-            print k
-            
             if cimax[role_titles[i]] == -1:
                 cimax[role_titles[i]] = float(k[0])
             if cimin[role_titles[i]] == -1:
@@ -255,7 +253,6 @@ def gen_spec_tier_list(specs_report, role):
                 cimax[role_titles[i]] = float(k[0])
     
 
-    print cimin, cimax
     cimax_c = []
     cimin_c = []
 
@@ -286,7 +283,6 @@ def gen_spec_tier_list(specs_report, role):
     
     for i in range(0, 6):
         for k in specs_report[role]:
-            print (cimaxx-cistep*(i+1))
             if float(k[0]) >= (cimaxx-cistep*(i+1)):
                 if k not in added:
                     tiers[tm[i]] += [k]
@@ -297,11 +293,6 @@ def gen_spec_tier_list(specs_report, role):
         if k not in added:
             tiers[tm[5]] += [k]
             added += [k]
-
-    for i in range(0, 6):
-        print tm[i]
-        print tiers[tm[i]]
-
 
     def miniicon(dname, dslug):
         return '<div class="innertier"><img src="images/specs/%s.jpg" title="%s" alt="%s" /><br/>%s</div>' % (dslug, dname, dname, dname)
@@ -785,21 +776,25 @@ def write_overviews():
         deferred.defer(write_to_storage, filename_slug + ".html", rendered,
                        _retry_options=options)
 
-        for dg in dungeons:
-            rendered = render_dungeon(af, dg)
-            dungeon_slug = slugify.slugify(unicode(dg))
-            filename = "%s-%s.html" % (dungeon_slug, affix_slug)
-            deferred.defer(write_to_storage, filename, rendered,
-                           _retry_options=options)
 
-    for s in specs:
-        for af in affixes_to_write:
-            rendered = render_spec(af, "all", s)
-            spec_slug = slugify.slugify(unicode(s))
-            affix_slug = slugify.slugify(unicode(af))
-            filename = "%s-%s.html" % (spec_slug, affix_slug)
-            deferred.defer(write_to_storage, filename, rendered,
-                           _retry_options=options)            
+        # no longer doing dungeons
+        # for dg in dungeons:
+        #     rendered = render_dungeon(af, dg)
+        #     dungeon_slug = slugify.slugify(unicode(dg))
+        #     filename = "%s-%s.html" % (dungeon_slug, affix_slug)
+        #     deferred.defer(write_to_storage, filename, rendered,
+        #                    _retry_options=options)
+
+    # no longer doing specs per affix
+    # for s in specs:
+    #     for af in affixes_to_write:
+    #         rendered = render_spec(af, "all", s)
+    #         spec_slug = slugify.slugify(unicode(s))
+    #         affix_slug = slugify.slugify(unicode(af))
+    #         filename = "%s-%s.html" % (spec_slug, affix_slug)
+    #         deferred.defer(write_to_storage, filename, rendered,
+    #                        _retry_options=options)   
+            
 
             # no longer doing per dungeon spec -- too small granularity
             # for dg in dungeons:
