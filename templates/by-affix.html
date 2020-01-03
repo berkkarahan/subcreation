@@ -4,7 +4,7 @@
   <div>
     <ul>
       {% for (name, slug) in known_affixes %}
-      {% if name == affixes %}
+      {% if affixes in name %}
       <li><b>{{name}}</b></li>
       {% else %}
       <li><a href="{{slug}}.html">{{name}}</a></li>

@@ -65,3 +65,19 @@ role_titles[1] = "Healers"
 role_titles[2] = "Melee"
 role_titles[3] = "Ranged"
 
+
+# season 3 only
+beguiling_weeks = {}
+beguiling_weeks["Tyrannical, Bursting, Skittish, Beguiling"] = "Enchanted"
+beguiling_weeks["Fortified, Teeming, Quaking, Beguiling"] = "Tides"
+beguiling_weeks["Tyrannical, Raging, Necrotic, Beguiling"] = "Void"
+beguiling_weeks["Fortified, Bursting, Volcanic, Beguiling"] = "Enchanted"
+beguiling_weeks["Tyrannical, Bolstering, Explosive, Beguiling"] =  "Tides"
+beguiling_weeks["Fortified, Sanguine, Quaking, Beguiling"] = "Void"
+beguiling_weeks["Tyrannical, Bursting, Necrotic, Beguiling"] = "Enchanted"
+beguiling_weeks["Fortified, Bolstering, Skittish, Beguiling"] = "Tides"
+beguiling_weeks["Tyrannical, Teeming, Volcanic, Beguiling"] = "Void"
+beguiling_weeks["Fortified, Sanguine, Grievous, Beguiling"] = "Enchanted"
+beguiling_weeks["Tyrannical, Raging, Explosive, Beguiling"] = "Tides"
+beguiling_weeks["Fortified, Bolstering, Grievous, Beguiling"] = "Void"
+

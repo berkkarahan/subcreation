@@ -23,6 +23,9 @@ from warcraft import dungeons, dungeon_slugs, regions
 from warcraft import specs, tanks, healers, melee, ranged, role_titles
 from t_interval import t_interval
 
+# season 3 only
+from warcraft import beguiling_weeks
+
 from models import Run, DungeonAffixRegion, KnownAffixes
 from old_models import Pull, AffixSet, Run as OldRun
 
@@ -375,10 +378,10 @@ def gen_affix_tier_list(affixes_report):
         for af in affixen:
             afname = af
             afslug = slugify.slugify(af)
-            output += [miniaffix(afname, afslug, size=42)]
+            output += [miniaffix(afname, afslug, size=28)]
 
         output_string = output[0]
-        output_string += output[1] + "<br/>"
+        output_string += output[1] #+ "<br/>"
         output_string += output[2]
         output_string += output[3]
         output_string += "<br/>%s" % dname
@@ -557,11 +560,11 @@ def known_affixes_links(prefix="", use_index=True):
     for k in known_affixes_list:
         if use_index:
             if k == current_affixes():
-                known_affixes_report += [[k, prefix+"index"]]
+                known_affixes_report += [[beguiling_affixes(k), prefix+"index"]]
             else:
-                known_affixes_report += [[k, prefix+slugify.slugify(unicode(k))]]
+                known_affixes_report += [[beguiling_affixes(k), prefix+slugify.slugify(unicode(k))]]
         else:
-            known_affixes_report += [[k, prefix+slugify.slugify(unicode(k))]]
+            known_affixes_report += [[beguiling_affixes(k), prefix+slugify.slugify(unicode(k))]]
             
     known_affixes_report.reverse()
     return known_affixes_report
@@ -593,7 +596,12 @@ def current_affixes():
 
 ##   generating common reports
 
-
+# season 3 only
+def beguiling_affixes(affixes):
+    global beguiling_weeks
+    if affixes in beguiling_weeks:
+        return affixes + " (%s)" % beguiling_weeks[affixes]
+    return affixes
 
 # given a list of affixes, return a pretty affix string
 # <img> Affix1, <img> Affix2, <img> Affix3, <img> Affix4
@@ -604,6 +612,9 @@ def pretty_affixes(affixes, size=16):
     def miniaffix(aname, aslug):
         return '<img src="images/affixes/%s.jpg" width="%d" height="%d" title="%s" alt="%s" />' % (aslug, size, size, aname, aname)
 
+    # season 3 only
+    affixes = beguiling_affixes(affixes)
+    
     affixen = affixes.split(", ")
     output = []
     
@@ -686,7 +697,7 @@ def gen_affix_report(affix_counts):
     for x in affixes_overall:
 
         affix_output += [[str("%.2f" % x[4][0]),
-                            x[0],
+                            beguiling_affixes(x[0]),
                             str("%.2f" % x[1]),
                             str(x[3]),
                             slugify.slugify(unicode(x[0])),
@@ -735,7 +746,7 @@ def render_affixes(affixes, prefix=""):
     set_report = gen_set_report(set_counts)
     th_report = gen_set_report(th_counts)
     dps_report = gen_set_report(dps_counts)
-    affixes_report = gen_dungeon_report(affix_counts)
+    affixes_report = gen_affix_report(affix_counts)
 
 
     dtl = gen_dungeon_tier_list(dungeons_report)
