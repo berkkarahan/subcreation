@@ -1264,7 +1264,7 @@ def write_overviews():
     for af in affixes_to_write:
         options = TaskRetryOptions(task_retry_limit = 1)        
         deferred.defer(render_and_write, af,
-                       _retry_options=options))
+                       _retry_options=options)
 
 
 def create_spec_overview(s):
