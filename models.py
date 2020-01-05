@@ -36,3 +36,16 @@ class KnownAffixes(ndb.Model):
     first_seen = ndb.DateTimeProperty(auto_now_add=True)
     last_seen = ndb.DateTimeProperty(auto_now=True)
 
+
+# new: for storing rankings from wcl's api
+class SpecRankings(ndb.Model):
+    # which spec
+    spec = ndb.StringProperty()
+    dungeon = ndb.StringProperty()
+    page = ndb.IntegerProperty()
+    rankings = ndb.JsonProperty()
+
+    # when were these data last updated
+    last_updated = ndb.DateTimeProperty(auto_now_add=True)
+
+

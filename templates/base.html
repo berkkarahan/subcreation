@@ -3,9 +3,13 @@
 <head>
 <title>{{title}} - Subcreation Mythic+</title>
 <meta name=description content="Subcreation Mythic+ provides statistical analysis of Mythic+ dungeons in World of Warcraft, using the raider.io API.">
+
+<meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+    
 <link href='css/subc.css' rel='stylesheet'>
 <link href='css/tablesort.css' rel='stylesheet'>
+
 <script src='js/tablesort.js'></script>
 <script src='js/sorts/tablesort.number.js'></script>
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-272864-13"></script>
@@ -16,14 +20,20 @@
 
   gtag('config', 'UA-272864-13');
 </script>
+<script>var whTooltips = {colorLinks: true, iconizeLinks: true, renameLinks: false, iconSize: 'medium'};</script>
+<script src="https://wow.zamimg.com/widgets/power.js"></script>
 </head>
 <body>
-<h1>Subcreation Mythic+</h1>
-{% block content %}{% endblock %}
+    <h1>Subcreation Mythic+</h1>
+    {% block content %}{% endblock %}
+
 <hr />
 <address>
-  Subcreation Mythic+ provides statistical analysis of Mythic+ dungeons in World of Warcraft, using the <a href="http://raider.io">raider.io</a> API. Updates every eight hours. Last updated: {{last_updated}}.
-  Archived legacy <a href="/s2/">Season 2</a>.  <a href="https://github.com/alcaras/mplus.subcreation.net">Subcreation Mythic+ source code</a>. <a href="https://discord.gg/X8dyq67">Subcreation Mythic+ Discord</a>. 
+  <a href="index.html">Subcreation Mythic+</a> provides statistical analysis of Mythic+ dungeons in World of Warcraft, using the <a href="http://raider.io">raider.io</a> API and <a href="https://www.warcraftlogs.com/">Warcraft Logs</a> API</i>. Tooltips by <a href="https://www.wowhead.com/tooltips">Wowhead</a>.<br/>
+
+<a href="https://github.com/alcaras/mplus.subcreation.net">Source code on GitHub</a>. Discuss the site on <a href="https://discord.gg/X8dyq67">Discord</a>. Support the site on <a href="https://www.patreon.com/bePatron?u=10541594">Patreon</a>. (Archived data: <a href="/s2/">Season 2</a>.)<br/>
+
+Updates every eight hours for raider.io M+ data and every 24 hours for WCL log data. This page last updated: {{last_updated}}.
 </address>
 </body>
 </html>

@@ -1,7 +1,7 @@
 body {background-color: #c4c4c4;
       font-family: sans-serif;}
 
-table {
+table.subc {
   background:#eee;
   max-width:100%;
   border-spacing:0;

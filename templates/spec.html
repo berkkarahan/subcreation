@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2><img src="images/specs/{{spec_slug}}.jpg" /> {{spec}}</h2>
+<i>Based on data from the top {{n_parses}} {{spec}} parses in Mythic+ dungeons of at least +16 difficulty.</i>
+
+<h3>Talent Builds</h3>
+<table class="subc">
+<tr>
+  <th>Talents</th>
+  <th>Overall %</th>
+</tr>
+{% for (frequency, build) in talents %}
+<tr>
+  <td>
+    {% for spell in build %}
+    <a href="https://www.wowhead.com/spell={{spells[spell][0]}}"></a>
+    {% endfor %}
+  </td>
+  <td>
+    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
+  </td>
+</tr>
+{% endfor %}
+</table>
+
+<h3>Essences</h3>
+<table class="subc">
+<tr>
+  <th>Major + Minors</th>
+  <th>Overall %</th>
+</tr>
+{% for (frequency, build) in essences %}
+<tr>
+  <td>
+    {% for spell in build %}
+    <a href="https://www.wowhead.com/spell={{spells[spell][0]}}"></a>
+    {% if loop.index0 == 0 %}
+    &nbsp;
+    {% endif %}
+    {% endfor %}
+  </td>
+  <td>
+    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
+  </td>
+</tr>
+{% endfor %}
+</table>
+
+<h3>Azerite Powers</h3>
+<h4>Primary</h4>
+
+<table class="subc">
+<tr>
+  <th>Azerite Powers</th>
+  <th>Overall %</th>
+</tr>
+{% for (frequency, build) in primary %}
+<tr>
+  <td>
+    {% for spell in build %}
+    <a href="https://www.wowhead.com/spell={{spells[spell][0]}}"></a>
+    {% endfor %}
+  </td>
+  <td>
+    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
+  </td>
+</tr>
+{% endfor %}
+</table>
+
+
+<h4>Role</h4>
+<table class="subc">
+<tr>
+  <th>Azerite Powers</th>
+  <th>Overall %</th>
+</tr>
+{% for (frequency, build) in role %}
+<tr>
+  <td>
+    {% for spell in build %}
+    <a href="https://www.wowhead.com/spell={{spells[spell][0]}}"></a>
+    {% endfor %}
+  </td>
+  <td>
+    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
+  </td>
+</tr>
+{% endfor %}
+</table>
+
+<h4>Defensive</h4>
+
+<table class="subc">
+<tr>
+  <th>Azerite Powers</th>
+  <th>Overall %</th>
+</tr>
+{% for (frequency, build) in defensive %}
+<tr>
+  <td>
+    {% for spell in build %}
+    <a href="https://www.wowhead.com/spell={{spells[spell][0]}}"></a>
+    {% endfor %}
+  </td>
+  <td>
+    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
+  </td>
+</tr>
+{% endfor %}
+</table>
+
+<h3>Gear</h3>
+<h4>Helm / Shoulder / Chest</h4>
+
+<table class="subc">
+<tr>
+  <th>Helm / Shoulder / Chest</th>
+  <th>Overall %</th>
+</tr>
+{% for (frequency, build) in hsc %}
+<tr>
+  <td>
+    {% for item in build %}
+    <a href="https://www.wowhead.com/item={{items[item][0]}}"></a>
+    {% endfor %}
+  </td>
+  <td>
+    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
+  </td>
+</tr>
+{% endfor %}
+</table>
+
+<h4>Rings</h4>
+
+<table class="subc">
+<tr>
+  <th>Rings</th>
+  <th>Overall %</th>
+</tr>
+{% for (frequency, build) in rings %}
+<tr>
+  <td>
+    {% for item in build %}
+    <a href="https://www.wowhead.com/item={{items[item][0]}}"></a>
+    {% endfor %}
+  </td>
+  <td>
+    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
+  </td>
+</tr>
+{% endfor %}
+</table>
+
+<h4>Trinkets</h4>
+
+<table class="subc">
+<tr>
+  <th>Trinkets</th>
+  <th>Overall %</th>
+</tr>
+{% for (frequency, build) in trinkets %}
+<tr>
+  <td>
+    {% for item in build %}
+    <a href="https://www.wowhead.com/item={{items[item][0]}}"></a>
+    {% endfor %}
+  </td>
+  <td>
+    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
+  </td>
+</tr>
+{% endfor %}
+</table>
+
+<h4>Weapons</h4>
+
+<table class="subc">
+<tr>
+  <th>Weapons</th>
+  <th>Overall %</th>
+</tr>
+{% for (frequency, build) in weapons %}
+<tr>
+  <td>
+    {% for item in build %}
+    <a href="https://www.wowhead.com/item={{items[item][0]}}"></a>
+    {% endfor %}
+  </td>
+  <td>
+    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
+  </td>
+</tr>
+{% endfor %}
+</table>
+
+
+{% endblock content %}

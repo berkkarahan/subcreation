@@ -4,6 +4,7 @@ import os
 import json
 import pdb
 import copy
+import operator
 
 from google.appengine.api import urlfetch
 from google.appengine.api import app_identity
@@ -23,11 +24,16 @@ from warcraft import dungeons, dungeon_slugs, regions
 from warcraft import specs, tanks, healers, melee, ranged, role_titles
 from t_interval import t_interval
 
+from models import Run, DungeonAffixRegion, KnownAffixes
+from old_models import Pull, AffixSet, Run as OldRun
+
 # season 3 only
 from warcraft import beguiling_weeks
 
-from models import Run, DungeonAffixRegion, KnownAffixes
-from old_models import Pull, AffixSet, Run as OldRun
+# wcl handling
+from models import SpecRankings
+from auth import api_key
+from wcl import wcl_specs, dungeon_encounters
 
 ## raider.io handling
 
@@ -298,7 +304,7 @@ def gen_spec_tier_list(specs_report, role):
             added += [k]
 
     def miniicon(dname, dslug):
-        return '<div class="innertier"><img src="images/specs/%s.jpg" title="%s" alt="%s" /><br/>%s</div>' % (dslug, dname, dname, dname)
+        return '<div class="innertier"><a href="%s.html"><img src="images/specs/%s.jpg" title="%s" alt="%s" /><br/>%s</a></div>' % (dslug, dslug, dname, dname, dname)
      
     dtl = {}
     dtl["S"] = ""
@@ -731,6 +737,329 @@ def gen_spec_report(spec_counts):
         role_package[role_titles[i]] = role_score
     return role_package
 
+
+def can_tuple(elements):
+    new_list = []
+    for k in elements:
+        new_list += [tuple((k))]
+    return tuple(new_list)
+
+
+def wcl_talents(rankings):
+    groupings = {}
+    shadow = []
+    
+    for k in rankings:
+        talents = []
+        for i, j in enumerate(k["talents"]):
+            talents += [j["name"]]
+            shadow += [j]
+
+        add_this = tuple(talents)
+    
+        if add_this not in groupings:
+            groupings[add_this] = 0
+        groupings[add_this] += 1
+
+
+    shdw = {}
+    for x in shadow:
+        shdw[x["name"]] = [x["id"], x["icon"]]
+
+    return groupings, shdw
+
+def wcl_essences(rankings):
+    groupings = {}
+    shadow = []
+    
+    for k in rankings:
+        if "essencePowers" not in k:
+            continue
+        
+        essences = []
+        for i, j in enumerate(k["essencePowers"]):
+            if i != 1: # skip the major's minor
+                essences += [j["name"]]
+                shadow += [j]
+
+
+        major = essences[0]
+        minors = sorted(essences[1:])
+        essences = [major] + minors
+        
+        add_this = tuple(essences)
+    
+        if add_this not in groupings:
+            groupings[add_this] = 0
+        groupings[add_this] += 1
+
+
+    shdw = {}
+    for x in shadow:
+        shdw[x["name"]] = [x["id"], x["icon"]]
+
+    return groupings, shdw
+
+def wcl_primary(rankings):
+    groupings = {}
+    shadow = []
+    
+    for k in rankings:
+
+        primary = []
+        # ignoring empowered traits
+        for i, j in enumerate(k["azeritePowers"]):
+            if i % 5 == 0 or i % 5 == 1: 
+                primary += [j["name"]]
+                shadow += [j]
+
+        primary = sorted(primary)
+
+        add_this = tuple(primary)
+    
+        if add_this not in groupings:
+            groupings[add_this] = 0
+        groupings[add_this] += 1
+
+
+    shdw = {}
+    for x in shadow:
+        shdw[x["name"]] = [x["id"], x["icon"]]
+
+    return groupings, shdw
+
+def wcl_role(rankings):
+    groupings = {}
+    shadow = []
+    
+    for k in rankings:
+
+        role = []
+        # ignoring empowered traits
+        for i, j in enumerate(k["azeritePowers"]):
+            if i % 5 == 2:
+                role += [j["name"]]
+                shadow += [j]                
+
+        role = sorted(role)
+
+        add_this = tuple(role)
+    
+        if add_this not in groupings:
+            groupings[add_this] = 0
+        groupings[add_this] += 1
+
+
+    shdw = {}
+    for x in shadow:
+        shdw[x["name"]] = [x["id"], x["icon"]]
+
+    return groupings, shdw
+
+def wcl_defensive(rankings):
+    groupings = {}
+    shadow = []
+    
+    for k in rankings:
+
+        defensive = []
+        # ignoring empowered traits
+        for i, j in enumerate(k["azeritePowers"]):
+            if i % 5 == 3:
+                defensive += [j["name"]]
+                shadow += [j]                
+
+        defensive = sorted(defensive)
+
+        add_this = tuple(defensive)
+    
+        if add_this not in groupings:
+            groupings[add_this] = 0
+        groupings[add_this] += 1
+
+
+    shdw = {}
+    for x in shadow:
+        shdw[x["name"]] = [x["id"], x["icon"]]
+
+    return groupings, shdw
+
+
+def wcl_hsc(rankings):
+    groupings = {}
+    shadow = []
+    
+    for k in rankings:
+
+        hsc = []
+        for i, j in enumerate(k["gear"]):
+            if i == 0 or i == 2 or i == 4:
+                hsc += [j["name"]]
+                shadow += [j]
+        
+        add_this = tuple(hsc)
+    
+        if add_this not in groupings:
+            groupings[add_this] = 0
+        groupings[add_this] += 1
+
+
+    shdw = {}
+    for x in shadow:
+        shdw[x["name"]] = [x["id"], x["icon"]]
+
+    return groupings, shdw
+
+def wcl_rings(rankings):
+    groupings = {}
+    shadow = []
+    
+    for k in rankings:
+
+        rings = []
+        for i, j in enumerate(k["gear"]):
+            if i == 10 or i == 11:
+                rings += [j["name"]]
+                shadow += [j]
+        
+        add_this = tuple(sorted(rings))
+    
+        if add_this not in groupings:
+            groupings[add_this] = 0
+        groupings[add_this] += 1
+
+
+    shdw = {}
+    for x in shadow:
+        shdw[x["name"]] = [x["id"], x["icon"]]
+
+    return groupings, shdw
+
+
+def wcl_trinkets(rankings):
+    groupings = {}
+    shadow = []
+    
+    for k in rankings:
+
+        trinkets = []
+        for i, j in enumerate(k["gear"]):
+            if i == 12 or i == 13:
+                trinkets += [j["name"]]
+                shadow += [j]
+        
+        add_this = tuple(sorted(trinkets))
+    
+        if add_this not in groupings:
+            groupings[add_this] = 0
+        groupings[add_this] += 1
+
+
+    shdw = {}
+    for x in shadow:
+        shdw[x["name"]] = [x["id"], x["icon"]]
+
+    return groupings, shdw
+
+def wcl_weapons(rankings):
+    groupings = {}
+    shadow = []
+    
+    for k in rankings:
+
+        weapons = []
+        for i, j in enumerate(k["gear"]):
+            if i == 15 or i == 16:
+                weapons += [j["name"]]
+                shadow += [j]
+        
+        add_this = tuple(weapons)
+    
+        if add_this not in groupings:
+            groupings[add_this] = 0
+        groupings[add_this] += 1
+
+
+    shdw = {}
+    for x in shadow:
+        shdw[x["name"]] = [x["id"], x["icon"]]
+
+    return groupings, shdw
+
+
+def wcl_top10(d):
+    dv = sorted(d.items(), key=operator.itemgetter(1), reverse=True)
+    output = []
+    for i, (s, n) in enumerate(dv):
+        if i >= 10:
+            break
+        output += [[n, s]]
+
+    return output
+    
+
+
+def gen_wcl_spec_report(spec):
+    wcl_query = SpecRankings.query(SpecRankings.spec==spec)
+    results = wcl_query.fetch()
+
+    global last_updated
+    
+    n_parses = 0
+
+    rankings = []
+    
+    for k in results:
+        if last_updated == None:
+            last_updated = k.last_updated
+        if k.last_updated > last_updated:
+            last_updated = k.last_updated
+
+        latest = json.loads(k.rankings)
+        rankings += latest
+
+    t, spells = wcl_talents(rankings)
+    talents = wcl_top10(t)
+
+
+    e, espells = wcl_essences(rankings)
+    essences = wcl_top10(e)
+    spells.update(espells) 
+
+
+    p, pspells = wcl_primary(rankings)
+    primary = wcl_top10(p)
+    spells.update(pspells) 
+
+
+    r, rspells = wcl_role(rankings)
+    role = wcl_top10(r)
+    spells.update(rspells) 
+
+    
+    d, dspells = wcl_defensive(rankings)
+    defensive = wcl_top10(d)
+    spells.update(dspells) 
+
+
+    h, items = wcl_hsc(rankings)
+    hsc = wcl_top10(h)
+
+    r, ritems = wcl_rings(rankings)
+    rings = wcl_top10(r)
+    items.update(ritems)
+    
+    t, titems = wcl_trinkets(rankings)
+    trinkets = wcl_top10(t)
+    items.update(titems)
+
+    w, witems = wcl_weapons(rankings)
+    weapons = wcl_top10(w)
+    items.update(witems)
+    
+    return len(rankings), talents, essences, primary, role, defensive, hsc, rings, trinkets, weapons, spells, items
+   
+
 def localized_time(last_updated):
     if last_updated == None:
         return "N/A"
@@ -860,6 +1189,34 @@ def render_spec(affixes, dungeon, spec, prefix=""):
 
     return rendered
 
+
+def render_wcl_spec(spec, prefix=""):
+    spec_slug = slugify.slugify(unicode(spec))
+
+    n_parses, talents, essences, primary, role, defensive, hsc, rings, trinkets, weapons, spells, items = gen_wcl_spec_report(spec)
+    
+    template = env.get_template('spec.html')
+    rendered = template.render(title = spec,
+                               spec = spec,
+                               spec_slug = spec_slug,
+                               talents = talents,
+                               essences = essences,
+                               primary = primary,
+                               role = role,
+                               defensive = defensive,
+                               hsc = hsc,
+                               rings = rings,
+                               trinkets = trinkets,
+                               weapons = weapons,
+                               spells = spells,
+                               items = items,
+                               n_parses = n_parses,
+                               prefix=prefix,
+                               last_updated = localized_time(last_updated))
+
+    return rendered
+
+
 ## end html generation
     
 ## templates
@@ -884,26 +1241,49 @@ def write_to_storage(filename, content):
     gcs_file.write(str(content))
     gcs_file.close()
 
+
+def render_and_write(af):
+    rendered = render_affixes(af)
+    
+    filename_slug = slugify.slugify(unicode(af))
+
+    if af == current_affixes():
+        filename_slug = "index"
+
+    affix_slug = slugify.slugify(unicode(af))
+
+    options = TaskRetryOptions(task_retry_limit = 1)
+    deferred.defer(write_to_storage, filename_slug + ".html", rendered,
+                   _retry_options=options)
+    
 def write_overviews():
     affixes_to_write = []
     affixes_to_write += ["All Affixes"]
     affixes_to_write += known_affixes()
 
     for af in affixes_to_write:
-        rendered = render_affixes(af)
-
-        filename_slug = slugify.slugify(unicode(af))
-
-        if af == current_affixes():
-            filename_slug = "index"
-
-        affix_slug = slugify.slugify(unicode(af))
-
-        options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(write_to_storage, filename_slug + ".html", rendered,
-                       _retry_options=options)
+        options = TaskRetryOptions(task_retry_limit = 1)        
+        deferred.defer(render_and_write, af,
+                       _retry_options=options))
 
 
+def create_spec_overview(s):
+    spec_slug = slugify.slugify(unicode(s))    
+    print "rendering %s" % (spec_slug)    
+    rendered = render_wcl_spec(s)
+    print "writing %s" % (spec_slug)
+    filename = "%s.html" % (spec_slug)
+    options = TaskRetryOptions(task_retry_limit = 1)        
+    deferred.defer(write_to_storage, filename, rendered,
+                       _retry_options=options)     
+        
+def write_spec_overviews():
+    for s in specs:
+        options = TaskRetryOptions(task_retry_limit = 1)        
+        deferred.defer(create_spec_overview, s,
+                       _retry_options=options)   
+  
+        
         # no longer doing dungeons
         # for dg in dungeons:
         #     rendered = render_dungeon(af, dg)
@@ -961,9 +1341,7 @@ def test_view(destination):
             dung = dungeons[i]
 
     if spec != "all":
-        return destination + render_spec(affixes,
-                                         dung,
-                                         spec,
+        return destination + render_wcl_spec(spec,
                                          prefix=prefix)
     if dung != "all":
         return destination + render_dungeon(affixes,
@@ -971,6 +1349,84 @@ def test_view(destination):
                                             prefix=prefix)
 
     return destination + render_affixes(affixes, prefix=prefix)
+
+
+## wcl querying
+def _rankings(encounterId, class_id, spec, page=1, season=3):
+    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&class=%d&spec=%d&page=%d&api_key=%s" % (encounterId, season, class_id, spec, page, api_key)
+    result = urlfetch.fetch(url)
+    data = json.loads(result.content)
+    return data
+
+
+
+def update_wcl_rankings(spec, dungeon, page):
+    if spec not in wcl_specs:
+        return "invalid spec [%s]" % spec
+    spec_key = slugify.slugify(unicode(spec))
+    if dungeon not in dungeon_encounters:
+        return "invalid dungeon [%s]" % dungeon
+    dungeon_id = dungeon_encounters[dungeon]
+    dungeon_slug = slugify.slugify(unicode(dungeon))
+
+    aggregate = []
+    
+    stopFlag = False
+    rankings = _rankings(dungeon_id, wcl_specs[spec][0], wcl_specs[spec][1], page=page)
+    for k in rankings["rankings"]:
+        if int(k["keystoneLevel"]) >= 16:
+            aggregate += [k]
+        else:
+            stopFlag = True
+    
+    key = ndb.Key('SpecRankings', "%s-%s-%d" % (spec_key, dungeon_slug, page))
+    sr = SpecRankings(key=key)
+    sr.spec = spec
+    sr.dungeon = dungeon
+    sr.page = page
+    sr.rankings = json.dumps(aggregate)
+    sr.put()
+    
+    return stopFlag
+
+    
+def update_wcl_spec(spec):
+    if spec not in wcl_specs:
+        return "invalid spec [%s]" % spec
+    spec_key = slugify.slugify(unicode(spec))
+
+    print "Updating %s..." % (spec)
+
+    aggregate = []
+    for k, v in dungeon_encounters.iteritems():
+        page = 1
+        stopFlag = False
+        while stopFlag != True and page <= 10:
+            print "%s %s %d" % (spec, k, page)
+            stopFlag = update_wcl_rankings(spec, k, page)
+            page += 1
+
+    return spec, spec_key,  wcl_specs[spec]
+
+
+# get the data
+def update_wcl_update():
+    for i, s in enumerate(specs):
+        options = TaskRetryOptions(task_retry_limit = 1)
+        deferred.defer(update_wcl_spec, s, _countdown=150*i, _retry_options=options)
+    
+    
+
+# update all the wcl
+def update_wcl_all():
+    update_wcl_update()
+
+    options = TaskRetryOptions(task_retry_limit = 1)
+    deferred.defer(write_spec_overviews, _countdown=40*150,
+                   _retry_options=options)
+
+
+
 
 ## handlers
 
@@ -989,7 +1445,9 @@ class OnlyGenerateHTML(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Writing templates to cloud storage...")
-        write_overviews()
+        options = TaskRetryOptions(task_retry_limit = 1)
+        deferred.defer(write_overviews, _countdown=20,
+                       _retry_options=options)        
 
 class GenerateHTML(webapp2.RequestHandler):
     def get(self):
@@ -1013,8 +1471,20 @@ class KnownAffixesShow(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/html'
         self.response.write(str(current_affixes()))
         self.response.write(str(known_affixes()))
-        
 
+class WCLGetRankings(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Queueing updates...\n")
+        update_wcl_all()
+
+class WCLGenHTML(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Writing WCL HTML...\n")
+        options = TaskRetryOptions(task_retry_limit = 1)
+        deferred.defer(write_spec_overviews, _retry_options=options)        
+        
 
 app = webapp2.WSGIApplication([
         ('/update_current_dungeons', UpdateCurrentDungeons),
@@ -1022,4 +1492,6 @@ app = webapp2.WSGIApplication([
         ('/only_generate_html', OnlyGenerateHTML),
         ('/view', TestView),
         ('/known_affixes', KnownAffixesShow),
+        ('/update_wcl', WCLGetRankings),
+        ('/generate_wcl_html', WCLGenHTML),
         ], debug=True)
