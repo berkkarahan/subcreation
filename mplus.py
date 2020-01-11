@@ -1401,7 +1401,7 @@ def update_wcl_spec(spec):
     for k, v in dungeon_encounters.iteritems():
         page = 1
         stopFlag = False
-        while stopFlag != True and page <= 10:
+        while stopFlag != True and page <= 2:
             print "%s %s %d" % (spec, k, page)
             stopFlag = update_wcl_rankings(spec, k, page)
             page += 1
@@ -1413,7 +1413,7 @@ def update_wcl_spec(spec):
 def update_wcl_update():
     for i, s in enumerate(specs):
         options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(update_wcl_spec, s, _countdown=150*i, _retry_options=options)
+        deferred.defer(update_wcl_spec, s, _countdown=30*i, _retry_options=options)
     
     
 
@@ -1422,7 +1422,7 @@ def update_wcl_all():
     update_wcl_update()
 
     options = TaskRetryOptions(task_retry_limit = 1)
-    deferred.defer(write_spec_overviews, _countdown=40*150,
+    deferred.defer(write_spec_overviews, _countdown=40*30,
                    _retry_options=options)
 
 
