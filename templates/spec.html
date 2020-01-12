@@ -1,12 +1,21 @@
 {% extends "base.html" %}
+{% set page_type = "spec" %}
+{% set active_page = spec_slug %}
+
 {% block content %}
-&larr; back to <a href="/index.html">Current Affixes</a> or <a href="/all-affixes.html">All Affixes</a>
 
-<h2><img src="images/specs/{{spec_slug}}.jpg" /> {{spec}}</h2>
+<div class="container-fluid">
+  <div class="row">
+<div class="col-12 py-3">
+<h1><img src="images/specs/{{spec_slug}}.jpg" /> {{spec}}</h1>
 <i>Based on data from the top {{n_parses}} {{spec}} parses in Mythic+ dungeons of at least +16 difficulty.</i>
+</div>
+  </div>
+  <div class="row">
 
+    <div class="col-xl-4 col-lg-6 py-3">
 <h3>Talent Builds</h3>
-<table class="subc">
+<table class="table table-striped">
 <tr>
   <th>Talents</th>
   <th>Overall %</th>
@@ -24,9 +33,11 @@
 </tr>
 {% endfor %}
 </table>
-
+    </div>
+    
+    <div class="col-xl-4 col-lg-6 py-3">
 <h3>Essences</h3>
-<table class="subc">
+<table class="table table-striped">
 <tr>
   <th>Major + Minors</th>
   <th>Overall %</th>
@@ -47,11 +58,12 @@
 </tr>
 {% endfor %}
 </table>
+    </div>
+    
+    <div class="col-xl-4 col-lg-6 py-3">
+<h3>Primary Azerite</h3>
 
-<h3>Azerite Powers</h3>
-<h4>Primary</h4>
-
-<table class="subc">
+<table class="table table-striped">
 <tr>
   <th>Azerite Powers</th>
   <th>Overall %</th>
@@ -69,10 +81,11 @@
 </tr>
 {% endfor %}
 </table>
-
-
-<h4>Role</h4>
-<table class="subc">
+    </div>
+    
+    <div class="col-xl-4 col-lg-6 py-3">
+<h3>Role Azerite</h3>
+<table class="table table-striped">
 <tr>
   <th>Azerite Powers</th>
   <th>Overall %</th>
@@ -90,10 +103,12 @@
 </tr>
 {% endfor %}
 </table>
+    </div>
+    
+    <div class="col-xl-4 col-lg-6 py-3">
+<h3>Defensive Azerite</h3>
 
-<h4>Defensive</h4>
-
-<table class="subc">
+<table class="table table-striped">
 <tr>
   <th>Azerite Powers</th>
   <th>Overall %</th>
@@ -111,11 +126,12 @@
 </tr>
 {% endfor %}
 </table>
+    </div>
+    
+    <div class="col-xl-4 col-lg-6 py-3">
+<h3>Helm / Shoulder / Chest</h3>
 
-<h3>Gear</h3>
-<h4>Helm / Shoulder / Chest</h4>
-
-<table class="subc">
+<table class="table table-striped">
 <tr>
   <th>Helm / Shoulder / Chest</th>
   <th>Overall %</th>
@@ -133,10 +149,12 @@
 </tr>
 {% endfor %}
 </table>
+    </div>
+    
+    <div class="col-xl-3 col-lg-4 py-3">
+<h3>Rings</h3>
 
-<h4>Rings</h4>
-
-<table class="subc">
+<table class="table table-striped">
 <tr>
   <th>Rings</th>
   <th>Overall %</th>
@@ -154,10 +172,12 @@
 </tr>
 {% endfor %}
 </table>
+    </div>
+    
+    <div class="col-xl-3 col-lg-4 py-3">
+<h3>Trinkets</h3>
 
-<h4>Trinkets</h4>
-
-<table class="subc">
+<table class="table table-striped">
 <tr>
   <th>Trinkets</th>
   <th>Overall %</th>
@@ -175,10 +195,12 @@
 </tr>
 {% endfor %}
 </table>
+    </div>
+    
+    <div class="col-xl-3 col-lg-4 py-3">
+<h3>Weapons</h3>
 
-<h4>Weapons</h4>
-
-<table class="subc">
+<table class="table table-striped">
 <tr>
   <th>Weapons</th>
   <th>Overall %</th>
@@ -196,6 +218,9 @@
 </tr>
 {% endfor %}
 </table>
+    </div>
+  </div>
+</div>
 
 
 {% endblock content %}

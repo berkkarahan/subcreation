@@ -146,7 +146,8 @@ def update_current():
                 options = TaskRetryOptions(task_retry_limit = 1)
                 deferred.defer(update_dungeon_affix_region,
                                dungeon,
-                               "current",
+                               "Fortified, Bolstering, Grievous, Beguiling",
+#                               "current",
                                region,
                                page=page,
                                _retry_options=options)
@@ -168,7 +169,7 @@ def gen_box_plot(counts):
             buckets[name] = []
         for r in runs:
             buckets[name] += [r.mythic_level]
-    print buckets
+    return buckets
 
 # new: generate a dungeon tier list
 def gen_dungeon_tier_list(dungeons_report):
@@ -239,8 +240,12 @@ def gen_dungeon_tier_list(dungeons_report):
     return dtl
 
 
+def icon_spec(dname, prefix="", size=56):
+    dslug = slugify.slugify(unicode(dname))
+    return '<a href="%s.html"><img src="images/specs/%s.jpg" width="%d" height="%d" title="%s" alt="%s" /><br/>%s</a>' % (prefix+dslug, dslug, size, size, dname, dname, dname)
+
 # new: generate a specs tier list
-def gen_spec_tier_list(specs_report, role):
+def gen_spec_tier_list(specs_report, role, prefix=""):
     global role_titles
 
     # take the highest max and the highest min
@@ -302,10 +307,7 @@ def gen_spec_tier_list(specs_report, role):
         if k not in added:
             tiers[tm[5]] += [k]
             added += [k]
-
-    def miniicon(dname, dslug):
-        return '<div class="innertier"><a href="%s.html"><img src="images/specs/%s.jpg" title="%s" alt="%s" /><br/>%s</a></div>' % (dslug, dslug, dname, dname, dname)
-     
+    
     dtl = {}
     dtl["S"] = ""
     dtl["A"] = ""
@@ -316,10 +318,35 @@ def gen_spec_tier_list(specs_report, role):
 
     for i in range(0, 6):
         for k in tiers[tm[i]]:
-            dtl[tm[i]] += miniicon(k[1], k[4])        
+            dtl[tm[i]] += '<div class="innertier">' + icon_spec(k[1], prefix) + "</div>"
     
     return dtl   
 
+
+
+
+def icon_affix(dname, size=28):
+    # season 3 only
+    dname = beguiling_affixes(dname)
+    dslug = slugify.slugify(unicode(dname))
+    
+    def miniaffix(aname, aslug, size):
+        return '<img src="images/affixes/%s.jpg" width="%d" height="%d" title="%s" alt="%s" />' % (aslug, size, size, aname, aname)
+    
+    affixen = dname.split(", ")
+    output = []
+    
+    for af in affixen:
+        afname = af
+        afslug = slugify.slugify(af)
+        output += [miniaffix(afname, afslug, size=size)]
+        
+    output_string = output[0]
+    output_string += output[1]
+    output_string += output[2]
+    output_string += output[3]
+       
+    return output_string
 
 # todo: affix tier list (how do affixes compare with each other)
 # have this show on all affixes?
@@ -373,26 +400,7 @@ def gen_affix_tier_list(affixes_report):
                 tiers[tm[5]] = []
             tiers[tm[5]] += [k]
             added += [k]
-
-    def miniaffix(aname, aslug, size):
-        return '<img src="images/affixes/%s.jpg" width="%d" height="%d" title="%s" alt="%s" />' % (aslug, size, size, aname, aname)
-            
-    def miniicon(dname, dslug):
-        affixen = dname.split(", ")
-        output = []
     
-        for af in affixen:
-            afname = af
-            afslug = slugify.slugify(af)
-            output += [miniaffix(afname, afslug, size=28)]
-
-        output_string = output[0]
-        output_string += output[1] #+ "<br/>"
-        output_string += output[2]
-        output_string += output[3]
-        output_string += "<br/>%s" % dname
-        return '<div class="innertier">%s</div>' % (output_string)
-     
     dtl = {}
     dtl["S"] = ""
     dtl["A"] = ""
@@ -403,7 +411,7 @@ def gen_affix_tier_list(affixes_report):
 
     for i in range(0, 6):
         for k in tiers[tm[i]]:
-            dtl[tm[i]] += miniicon(k[1], k[4])        
+            dtl[tm[i]] += '<div class="innertier">' + icon_affix(k[1]) + "<br/> %s</div>" % k[1]        
     
     return dtl
 
@@ -562,15 +570,19 @@ def known_affixes():
 def known_affixes_links(prefix="", use_index=True):
     known_affixes_list = known_affixes()
     known_affixes_report = []
-    known_affixes_report += [["All Affixes", prefix+"all-affixes"]]
+    known_affixes_report += [["All Affixes", prefix+"all-affixes", ""]]
     for k in known_affixes_list:
         if use_index:
             if k == current_affixes():
-                known_affixes_report += [[beguiling_affixes(k), prefix+"index"]]
+                known_affixes_report += [[beguiling_affixes(k), prefix+"index",
+                                          icon_affix(k)]]
             else:
-                known_affixes_report += [[beguiling_affixes(k), prefix+slugify.slugify(unicode(k))]]
+                known_affixes_report += [[beguiling_affixes(k), prefix+slugify.slugify(unicode(k)),
+                                          icon_affix(k)]]
+            
         else:
-            known_affixes_report += [[beguiling_affixes(k), prefix+slugify.slugify(unicode(k))]]
+            known_affixes_report += [[beguiling_affixes(k), prefix+slugify.slugify(unicode(k)),
+                                      icon_affix(k)]]
             
     known_affixes_report.reverse()
     return known_affixes_report
@@ -584,6 +596,26 @@ def known_dungeon_links(affixes_slug, prefix=""):
         known_dungeon_report += [[k, prefix+slugify.slugify(unicode(k))+"-" + affixes_slug]]
             
     return known_dungeon_report
+
+def known_specs_links(prefix=""):
+    global tanks, healers, melee, ranged
+    known_specs_report = []
+    for d in [sorted(tanks), sorted(healers), sorted(melee), sorted(ranged)]:
+        for k in d:
+            known_specs_report += [[k, slugify.slugify(unicode(k)), icon_spec(k, size=22)]]
+
+    return known_specs_report
+
+def known_specs_subset_links(subset, prefix=""):
+    known_specs_report = []
+    for d in [sorted(subset)]:
+        for k in d:
+            known_specs_report += [[k, slugify.slugify(unicode(k)), icon_spec(k, size=22)]]
+
+    return known_specs_report
+
+
+        
 
 
 def current_affixes():
@@ -610,26 +642,13 @@ def beguiling_affixes(affixes):
     return affixes
 
 # given a list of affixes, return a pretty affix string
-# <img> Affix1, <img> Affix2, <img> Affix3, <img> Affix4
+# <img><img><img><img> Affix1, Affix2, Affix3, Affix4
 def pretty_affixes(affixes, size=16):
     if affixes=="All Affixes":
         return "All Affixes"
 
-    def miniaffix(aname, aslug):
-        return '<img src="images/affixes/%s.jpg" width="%d" height="%d" title="%s" alt="%s" />' % (aslug, size, size, aname, aname)
-
-    # season 3 only
-    affixes = beguiling_affixes(affixes)
-    
-    affixen = affixes.split(", ")
-    output = []
-    
-    for af in affixen:
-        afname = af
-        afslug = slugify.slugify(af)
-        output += [miniaffix(afname, afslug) + " %s" % afname]
-
-    output_string = ', '.join(output)
+    # season 3 only  
+    output_string = icon_affix(affixes, size=size) + " %s" % beguiling_affixes(affixes)
     return output_string
         
 
@@ -657,7 +676,7 @@ def canonical_order(s):
 def pretty_set(s):
     output_string = ""
     for k in s:
-        output_string += "<td class=\"%s\">%s</td>" % (k, k)
+        output_string += "<td class=\"comp %s\">%s</td>" % (k, k)
     return output_string
 
 def gen_set_report(set_counts):
@@ -1065,10 +1084,12 @@ def localized_time(last_updated):
         return "N/A"
     return pytz.utc.localize(last_updated).astimezone(pytz.timezone("America/New_York"))
 
-
 def render_affixes(affixes, prefix=""):
     dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts = generate_counts(affixes)
     affixes_slug = slugify.slugify(unicode(affixes))
+    affixes_slug_special = affixes_slug
+    if affixes == current_affixes():
+        affixes_slug_special = "index"
     
     dungeons_report = gen_dungeon_report(dungeon_counts)
     specs_report = gen_spec_report(spec_counts)
@@ -1079,10 +1100,10 @@ def render_affixes(affixes, prefix=""):
 
 
     dtl = gen_dungeon_tier_list(dungeons_report)
-    tankstl = gen_spec_tier_list(specs_report, "Tanks")
-    healerstl = gen_spec_tier_list(specs_report, "Healers")
-    meleetl = gen_spec_tier_list(specs_report, "Melee")
-    rangedtl = gen_spec_tier_list(specs_report, "Ranged")
+    tankstl = gen_spec_tier_list(specs_report, "Tanks", prefix=prefix)
+    healerstl = gen_spec_tier_list(specs_report, "Healers", prefix=prefix)
+    meleetl = gen_spec_tier_list(specs_report, "Melee", prefix=prefix)
+    rangedtl = gen_spec_tier_list(specs_report, "Ranged", prefix=prefix)
     aftl = gen_affix_tier_list(affixes_report)
     
     template = env.get_template('by-affix.html')
@@ -1090,7 +1111,9 @@ def render_affixes(affixes, prefix=""):
                                prefix=prefix,
                                affixes=affixes,
                                pretty_affixes=pretty_affixes(affixes),
+                               pretty_affixes_large=pretty_affixes(affixes, size=56),
                                affixes_slug=affixes_slug,
+                               affixes_slug_special=affixes_slug_special,
                                dungeons=dungeons_report,
                                affixes_report=affixes_report,
                                aftl = aftl,
@@ -1103,6 +1126,10 @@ def render_affixes(affixes, prefix=""):
                                sets=set_report,
                                sets_th=th_report,
                                sets_dps=dps_report,
+                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
+                               known_healers = known_specs_subset_links(healers, prefix=prefix),
+                               known_melee = known_specs_subset_links(melee, prefix=prefix),
+                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
                                known_affixes = known_affixes_links(prefix=prefix),
                                last_updated = localized_time(last_updated))
     return rendered
@@ -1115,7 +1142,7 @@ def render_dungeon(affixes, dungeon, prefix=""):
     affixes_slug_special = affixes_slug
     if affixes == current_affixes():
         affixes_slug_special = "index"
-    
+
     dungeons_report = gen_dungeon_report(dungeon_counts)
     specs_report = gen_spec_report(spec_counts)
     set_report = gen_set_report(set_counts)
@@ -1192,7 +1219,7 @@ def render_spec(affixes, dungeon, spec, prefix=""):
 
 def render_wcl_spec(spec, prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
-
+    affixes = "N/A"
     n_parses, talents, essences, primary, role, defensive, hsc, rings, trinkets, weapons, spells, items = gen_wcl_spec_report(spec)
     
     template = env.get_template('spec.html')
@@ -1200,6 +1227,7 @@ def render_wcl_spec(spec, prefix=""):
                                spec = spec,
                                spec_slug = spec_slug,
                                talents = talents,
+                               affixes = affixes,
                                essences = essences,
                                primary = primary,
                                role = role,
@@ -1212,6 +1240,11 @@ def render_wcl_spec(spec, prefix=""):
                                items = items,
                                n_parses = n_parses,
                                prefix=prefix,
+                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
+                               known_healers = known_specs_subset_links(healers, prefix=prefix),
+                               known_melee = known_specs_subset_links(melee, prefix=prefix),
+                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
+                               known_affixes = known_affixes_links(prefix=prefix),
                                last_updated = localized_time(last_updated))
 
     return rendered
@@ -1269,9 +1302,7 @@ def write_overviews():
 
 def create_spec_overview(s):
     spec_slug = slugify.slugify(unicode(s))    
-    print "rendering %s" % (spec_slug)    
     rendered = render_wcl_spec(s)
-    print "writing %s" % (spec_slug)
     filename = "%s.html" % (spec_slug)
     options = TaskRetryOptions(task_retry_limit = 1)        
     deferred.defer(write_to_storage, filename, rendered,
@@ -1341,18 +1372,20 @@ def test_view(destination):
             dung = dungeons[i]
 
     if spec != "all":
-        return destination + render_wcl_spec(spec,
-                                         prefix=prefix)
+        return render_wcl_spec(spec,
+                               prefix=prefix)
     if dung != "all":
-        return destination + render_dungeon(affixes,
-                                            dung,
-                                            prefix=prefix)
+        return render_dungeon(affixes,
+                              dung,
+                              prefix=prefix)
 
-    return destination + render_affixes(affixes, prefix=prefix)
+    return render_affixes(affixes, prefix=prefix)
 
 
 ## wcl querying
 def _rankings(encounterId, class_id, spec, page=1, season=3):
+    # filter=date.1577854800000.1578821006982 (timestamp * 10000)
+    # last month? (see how many we actually have)
     url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&class=%d&spec=%d&page=%d&api_key=%s" % (encounterId, season, class_id, spec, page, api_key)
     result = urlfetch.fetch(url)
     data = json.loads(result.content)
@@ -1395,16 +1428,9 @@ def update_wcl_spec(spec):
         return "invalid spec [%s]" % spec
     spec_key = slugify.slugify(unicode(spec))
 
-    print "Updating %s..." % (spec)
-
     aggregate = []
     for k, v in dungeon_encounters.iteritems():
-        page = 1
-        stopFlag = False
-        while stopFlag != True and page <= 2:
-            print "%s %s %d" % (spec, k, page)
-            stopFlag = update_wcl_rankings(spec, k, page)
-            page += 1
+        stopFlag = update_wcl_rankings(spec, k, 1)
 
     return spec, spec_key,  wcl_specs[spec]
 
@@ -1413,7 +1439,7 @@ def update_wcl_spec(spec):
 def update_wcl_update():
     for i, s in enumerate(specs):
         options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(update_wcl_spec, s, _countdown=30*i, _retry_options=options)
+        deferred.defer(update_wcl_spec, s, _countdown=15*i, _retry_options=options)
     
     
 
@@ -1422,7 +1448,7 @@ def update_wcl_all():
     update_wcl_update()
 
     options = TaskRetryOptions(task_retry_limit = 1)
-    deferred.defer(write_spec_overviews, _countdown=40*30,
+    deferred.defer(write_spec_overviews, _countdown=40*15,
                    _retry_options=options)
 
 

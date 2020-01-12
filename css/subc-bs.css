@@ -1,0 +1,192 @@
+
+.comp {
+    color:black;
+}
+             
+
+.Hunter {
+    background-color: #A9D271;
+}
+
+.Demon {
+    background-color: #A330C9;
+}
+
+.Death {
+    background-color: #C41F3B;
+}
+
+.Druid {
+    background-color: #FF7D0A;
+}
+
+.Mage {
+    background-color: #40C7EB;
+}
+
+.Monk {
+    background-color: #00FF96;
+}
+
+.Paladin {
+  background-color: #ffbfed;
+}
+
+.Priest {
+ background-color: #ffffff;
+}
+
+.Rogue {
+    background-color: #FFF569;
+}
+
+.Shaman {
+    background-color: #0070DE;
+}
+
+.Warlock {
+    background-color: #8787ED;
+}
+
+.Warrior {
+    background-color: #C79C6E;
+}
+
+.legendary {
+    background-color: #ff8000;
+}
+
+.epic {
+    background-color: #a335ee;
+}
+
+.rare {
+    background-color: #0070dd;
+}
+
+.uncommon {
+    background-color: #1eff00;
+}
+
+.common {
+    background-color: #ffffff;
+}
+
+.poor {
+    background-color: #9d9d9d;
+}
+
+.tier {
+    font-weight: bold;
+    vertical-align: middle;
+    text-align: center;
+    font-size: 1.5em;
+    color: black;
+    width: 28px;
+}
+
+.innertier {
+    text-align: center;
+    vertical-align: top;
+    display:inline-block;
+    width: 130px;
+    font-size: 0.85em;
+}
+
+h1 {
+    font-size: 2.5em;
+}
+
+h2 {
+    font-size: 1.5em;
+}
+
+h3 {
+    font-size: 1.4em;
+}
+
+
+/* bootstrap additions */
+
+.bd-footer {
+    font-size: .875rem;
+    text-align: center;
+    background-color: #111;
+}
+
+.bd-footer a {
+    font-weight: 600;
+    color: #495057;
+}
+
+.bd-footer a:focus,.bd-footer a:hover {
+    color: #007bff;
+}
+
+.bd-footer p {
+    margin-bottom: 0;
+}
+
+@media (min-width:576px) {
+    .bd-footer {
+        text-align: left;
+    }
+}
+
+.bd-footer-links {
+    padding-left: 0;
+    margin-bottom: 1rem;
+}
+
+.bd-footer-links li {
+    display: inline-block;
+}
+
+.bd-footer-links li+li {
+    margin-left: 1rem;
+}
+
+a {
+    color: #3498DB;
+    background-color: transparent;
+}
+
+a:hover {
+    color: #007bff;
+  text-decoration: underline;
+}
+
+a:not([href]) {
+  color: inherit;
+  text-decoration: none;
+}
+
+a:not([href]):hover {
+  color: inherit;
+  text-decoration: none;
+}
+
+.active {
+    font-weight: bold;
+}
+
+.dropdown-menu.show[aria-labelledby="navbarSpecs"] {
+	display: flex;
+	width: 500px;
+	flex-wrap: wrap;
+}
+
+.dropdown-menu.show[aria-labelledby="navbarSpecs"] .dropdown-item {
+	  width: 50%;
+}
+
+a.class-color {
+    text-decoration: underline;
+    color: black;
+}
+
+a.class-color:hover {
+    text-decoration: underline;
+    color: #007bff;
+}
+    

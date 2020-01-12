@@ -1,7 +1,5 @@
 {% macro spec_table(role_name, role_scores, prefix, affixes_slug, dungeon_slug) -%}
-<div>
-<h3>{{role_name}}</h3>
-<table class="sort subc" id="table-{{role_name}}">
+<table class="sort table table-striped" id="table-{{role_name}}">
 <tr data-sort-method='none'>
 <th>lb_ci</th>
 <th>Spec</th>
@@ -12,7 +10,7 @@
 {% for (lb_ci, spec, mean, n, slug, max_f, max_id, max_level) in role_scores %}
 <tr>
 <td>{{lb_ci}}</td>
-<td class="{{spec}}"><a href="{{prefix}}{{slug}}.html">{{spec}}</a></td>
+<td class="{{spec}}"><a href="{{prefix}}{{slug}}.html" class="class-color">{{spec}}</a></td>
 <td>{{mean}}</td>
 {% import 'max_link.html' as ml %}
 {{ ml.max_link(max_f, max_id, max_level) }}
@@ -20,9 +18,9 @@
 </tr>
 {% endfor %}
 </table>
-</div>
 <script>
   new Tablesort(document.getElementById('table-{{role_name}}'));
 </script>
 {%- endmacro %}
+
 
