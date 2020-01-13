@@ -1,35 +1,31 @@
+{% set page_type = "affixes" %}
+{% set active_page = affixes_slug_special %}
 {% extends "base.html" %}
 {% block content %}
-<div class="container flex-direction">
-  <div>
-    <ul>
-      {% for (name, slug) in known_affixes %}
-      {% if affixes in name %}
-      <li><b>{{name}}</b></li>
-      {% else %}
-      <li><a href="{{slug}}.html">{{name}}</a></li>
-      {% endif %}
-      {% endfor %}
-    </ul>
-  </div>
-</div>
-
 
 {% import 'tier_list.html' as tier_list %}
 
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12 py-3">
+      <h1>{{pretty_affixes_large}}</h1>
+    </div>
+</div>
 
-{% if affixes == "All Affixes" %}
-<h2>Affixes Ease Tier List</h2>
+  <div class="row">
+  {% if affixes == "All Affixes" %}
 
+        <div class="col-xl-4 col-lg-6 py-3">
+          <h2>Affixes Ease Tier List</h2>
+          <p><b>All Affixes</b></p>
 {{ tier_list.tier_list(aftl) }}
 
 <details>
   <summary>Detailed statistical analysis (by affixes)</summary>
-<div class="container flex-direction">
+<div class="container-fluid">
 
-  <div>
 {% import 'max_link.html' as max_link %}
-<table class="sort subc" id="table-rdd">
+<table class="sort table table-striped " id="table-afdd">
 <tr data-sort-method='none'>
 <th>lb_ci</th>
 <th>Affixes</th>
@@ -48,33 +44,30 @@
 {% endfor %}
 </table>
 <script>
-  new Tablesort(document.getElementById('table-rdd'));
+  new Tablesort(document.getElementById('table-afdd'));
 </script>
-</p>
-</div>
-</div>
 
-<div>
 <p>
-<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with each set of affixes. For affixes, higher scores indicates affixes are relatively easier. (Other factors, e.g. gear acquisition, particularly early in a season, may also contribute to relative difficulty).</i>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions, for each set of affixes. For affixes, higher scores indicates affixes are relatively easier. (Other factors, e.g. gear acquisition, particularly early in a season, may also contribute to relative difficulty).</i>
 </p>
 </div>
 </details>
+</div>
 
-{% endif %}
+        {% endif %}
+        
 
-<h2>Dungeon Ease Tier List</h2>
-<b class="affixes">{{pretty_affixes}}</b><br/>
+<div class="col-xl-4 col-lg-6 py-3">
+  <h2>Dungeon Ease Tier List</h2>
+<p><b class="affixes">{{pretty_affixes}}</b></p>
 
 {{ tier_list.tier_list(dtl) }}
 
 <details>
    <summary>Detailed statistical analysis (by dungeon)</summary>
-<div class="container flex-direction">
-
-  <div>
+<div class="container-fluid">
 {% import 'max_link.html' as max_link %}
-<table class="sort subc" id="table-rdd">
+<table class="sort table table-striped" id="table-rdd">
 <tr data-sort-method='none'>
 <th>lb_ci</th>
 <th>Dungeon</th>
@@ -95,104 +88,29 @@
 <script>
   new Tablesort(document.getElementById('table-rdd'));
 </script>
-</p>
-</div>
-</div>
 
-<div>
 <p>
 <i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For dungeons, a higher score indicates more challenging versions of the dungeon are being completed. For an equivalent key, a dungeon with a higher score is relatively easier than a dungeon with a lower score.</i>
 </p>
 </div>
 </details>
+</div>
 
 
+{% import 'spec_tier_list.html' as spec_tier_list %}
+{{ spec_tier_list.spec_tier_list("Tanks", "Tank", "tanks", tankstl, pretty_affixes, role_package, prefix, affixes_slug) }}
+{{ spec_tier_list.spec_tier_list("Healers", "Healer", "healers", healerstl, pretty_affixes, role_package, prefix, affixes_slug) }}
+{{ spec_tier_list.spec_tier_list("Melee", "Melee", "melee", meleetl, pretty_affixes, role_package, prefix, affixes_slug) }}
+{{ spec_tier_list.spec_tier_list("Ranged", "Ranged", "ranged", rangedtl, pretty_affixes, role_package, prefix, affixes_slug) }}
 
-{% import 'spec_table.html' as st %}
 
-<h2>Spec Strength Tier Lists</h2>
-<h3>Tanks</h3>
-<b class="affixes">{{pretty_affixes}}</b><br/>
-{{ tier_list.tier_list(tankstl) }}
+<div class="col-12 py-3">
+  <h2>Team Compositions</h2>
 <details>
-   <summary>Detailed statistical analysis (for tanks)</summary>
-<div>
-<div class="container flex-direction">
-{{ st.spec_table("Tanks", role_package["Tanks"], prefix, affixes_slug, "") }}
-</div>
-</div>
-
-<div>
-<p>
-<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For specs, higher is better.</i>
-</p>
-</div>
-</details>
-
-<h3>Healers</h3>
-<b class="affixes">{{pretty_affixes}}</b><br/>
-{{ tier_list.tier_list(healerstl) }}
-<details>
-   <summary>Detailed statistical analysis (for healers)</summary>
-<div>
-<div class="container flex-direction">
-{{ st.spec_table("Healers", role_package["Healers"], prefix, affixes_slug, "") }}
-</div>
-</div>
-
-<div>
-<p>
-<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For specs, higher is better.</i>
-</p>
-</div>
-</details>
-
-<h3>Melee</h3>
-<b class="affixes">{{pretty_affixes}}</b><br/>
-{{ tier_list.tier_list(meleetl) }}
-<details>
-   <summary>Detailed statistical analysis (for melee)</summary>
-<div>
-<div class="container flex-direction">
-{{ st.spec_table("Melee", role_package["Melee"], prefix, affixes_slug, "") }}
-</div>
-</div>
-
-<div>
-<p>
-<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For specs, higher is better.</i>
-</p>
-</div>
-</details>
-
-<h3>Ranged</h3>
-<b class="affixes">{{pretty_affixes}}</b><br/>
-{{ tier_list.tier_list(rangedtl) }}
-<details>
-   <summary>Detailed statistical analysis (for ranged)</summary>
-<div>
-<div class="container flex-direction">
-{{ st.spec_table("Ranged", role_package["Ranged"], prefix, affixes_slug, "") }}
-</div>
-</div>
-
-<div>
-<p>
-<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For specs, higher is better.</i>
-</p>
-</div>
-</details>
-
-
-
-<br/>
-
-<details>
-  <summary>Detailed composition analysis (overall)</summary>
+  <summary>Detailed team composition analysis (full group)</summary>
   
-<h2>Which compositions are strongest?</h2>
 <div>
-<table class="sort subc" id="table-csd">
+<table class="sort table table-striped" id="table-csd">
 <tr data-sort-method='none'>
 <th>lb_ci</th>
 <th>Tank</th>
@@ -228,11 +146,10 @@
 </details>
 
 <details>
-  <summary>Detailed composition analysis (tank/healer)</summary>
+  <summary>Detailed team composition analysis (tank+healer)</summary>
   
-<h2>Which tank/healer compositions are strongest?</h2>
 <div>
-<table class="sort subc" id="table-thd">
+<table class="sort table table-striped" id="table-thd">
 <tr data-sort-method='none'>
 <th>lb_ci</th>
 <th>Tank</th>
@@ -265,11 +182,9 @@
 </details>
 
 <details>
-  <summary>Detailed composition analysis (dps)</summary>
-  
-<h2>Which DPS compositions are strongest?</h2>
-<div>
-<table class="sort subc" id="table-dpsd">
+  <summary>Detailed team composition analysis (dps)</summary>
+  <div>
+<table class="sort table table-striped" id="table-dpsd">
 <tr data-sort-method='none'>
 <th>lb_ci</th>
 <th>DPS</th>
@@ -302,4 +217,9 @@
 </p>
 </div>
 </details>
+
+</div>
+</div>
+</div>
+
 {% endblock content %}

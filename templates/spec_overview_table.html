@@ -1,0 +1,29 @@
+{% macro spec_overview_table(sizing, title, heading, data, lookup, lookup_type, n_parses, offset_first="") -%}
+    
+<div class="{{sizing}} py-3">
+  <h3>{{title}}</h3>
+  
+  <table class="table table-striped">
+    <tr>
+      <th>{{heading}}</th>
+      <th>Overall % (n)</th>
+    </tr>
+    {% for (frequency, build) in data %}
+    <tr>
+      <td>
+        {% for k in build %}
+        <a href="https://www.wowhead.com/{{lookup_type}}={{lookup[k][0]}}"></a>
+        {% if loop.index0 == 0 %}
+        {{offset_first}}
+        {% endif %}
+        {% endfor %}
+      </td>
+      <td>
+        {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+{%- endmacro %}

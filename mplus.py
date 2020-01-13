@@ -5,6 +5,7 @@ import json
 import pdb
 import copy
 import operator
+import time
 
 from google.appengine.api import urlfetch
 from google.appengine.api import app_identity
@@ -146,8 +147,7 @@ def update_current():
                 options = TaskRetryOptions(task_retry_limit = 1)
                 deferred.defer(update_dungeon_affix_region,
                                dungeon,
-                               "Fortified, Bolstering, Grievous, Beguiling",
-#                               "current",
+                               "current",
                                region,
                                page=page,
                                _retry_options=options)
@@ -171,42 +171,35 @@ def gen_box_plot(counts):
             buckets[name] += [r.mythic_level]
     return buckets
 
-# new: generate a dungeon tier list
+
+from ckmeans import ckmeans
+
+# generate a dungeon tier list
 def gen_dungeon_tier_list(dungeons_report):
 
-    # super simple tier list -- figure out the max and the min, and then bucket tiers
-    cimax = -1
-    cimin = -1
-    for k in dungeons_report:       
-        if cimax == -1:
-            cimax = float(k[0])
-        if cimin == -1:
-            cimin = float(k[0])
-        if float(k[0]) < cimin:
-            cimin = float(k[0])
-        if float(k[0]) > cimax:
-            cimax = float(k[0])
+    scores = []
+    for k in dungeons_report:
+        scores += [float(k[0])]
 
-    cirange = cimax - cimin
-    cistep = cirange / 6
-
+    buckets = ckmeans(scores, 6)
+   
     added = []
 
     tiers = {}
     tm = {}
-    tm[0] = "S"
-    tm[1] = "A"
-    tm[2] = "B"
-    tm[3] = "C"
-    tm[4] = "D"
-    tm[5] = "F"
+    tm[5] = "S"
+    tm[4] = "A"
+    tm[3] = "B"
+    tm[2] = "C"
+    tm[1] = "D"
+    tm[0] = "F"
 
     for i in range(0, 6):
         tiers[tm[i]] = []
     
     for i in range(0, 6):
         for k in dungeons_report:
-            if float(k[0]) >= (cimax-cistep*(i+1)):
+            if float(k[0]) in buckets[i]:
                 if k not in added:
                     if tm[i] not in tiers:
                         tiers[tm[i]] = []
@@ -217,9 +210,9 @@ def gen_dungeon_tier_list(dungeons_report):
     # add stragglers to last tier
     for k in dungeons_report:
         if k not in added:
-            if tm[5] not in tiers:
-                tiers[tm[5]] = []
-            tiers[tm[5]] += [k]
+            if tm[0] not in tiers:
+                tiers[tm[0]] = []
+            tiers[tm[0]] += [k]
             added += [k]
 
     def miniicon(dname, dslug):
@@ -244,60 +237,40 @@ def icon_spec(dname, prefix="", size=56):
     dslug = slugify.slugify(unicode(dname))
     return '<a href="%s.html"><img src="images/specs/%s.jpg" width="%d" height="%d" title="%s" alt="%s" /><br/>%s</a>' % (prefix+dslug, dslug, size, size, dname, dname, dname)
 
-# new: generate a specs tier list
+import pdb
+
+# generate a specs tier list
 def gen_spec_tier_list(specs_report, role, prefix=""):
     global role_titles
 
-    # take the highest max and the highest min
-    cimax = {}
-    cimin = {}
-    
-    # super simple tier list -- figure out the max and the min, and then bucket tiers
+
+    scores = []
     for i in range(0, 4):
-        cimax[role_titles[i]] = -1
-        cimin[role_titles[i]] = -1
         for k in specs_report[role_titles[i]]:
-            if cimax[role_titles[i]] == -1:
-                cimax[role_titles[i]] = float(k[0])
-            if cimin[role_titles[i]] == -1:
-                cimin[role_titles[i]] = float(k[0])
-            if float(k[0]) < cimin[role_titles[i]]:
-                cimin[role_titles[i]] = float(k[0])
-            if float(k[0]) > cimax[role_titles[i]]:
-                cimax[role_titles[i]] = float(k[0])
+            if int(k[3]) < 20: # ignore specs with less than 20 runs as they would skew the buckets; we'll add them to F later
+                continue
+            scores += [float(k[0])]
     
-
-    cimax_c = []
-    cimin_c = []
-
-    for i in range(0, 4):
-        cimax_c += [cimax[role_titles[i]]]
-        cimin_c += [cimin[role_titles[i]]]
-    
-    cimaxx = max(cimax_c)
-    ciminn = max(cimin_c) # we want the highest minimum, thus max
-
-    cirange = cimaxx - ciminn
-    cistep = cirange / 6
+    buckets = ckmeans(scores, 6)
+            
 
     added = []
 
     tiers = {}
     tm = {}
-    tm[0] = "S"
-    tm[1] = "A"
-    tm[2] = "B"
-    tm[3] = "C"
-    tm[4] = "D"
-    tm[5] = "F"
-
+    tm[5] = "S"
+    tm[4] = "A"
+    tm[3] = "B"
+    tm[2] = "C"
+    tm[1] = "D"
+    tm[0] = "F"
 
     for i in range(0, 6):
         tiers[tm[i]] = []
     
     for i in range(0, 6):
         for k in specs_report[role]:
-            if float(k[0]) >= (cimaxx-cistep*(i+1)):
+            if float(k[0]) in buckets[i]:
                 if k not in added:
                     tiers[tm[i]] += [k]
                     added += [k]
@@ -305,7 +278,7 @@ def gen_spec_tier_list(specs_report, role, prefix=""):
     # add stragglers to last tier
     for k in specs_report[role]:
         if k not in added:
-            tiers[tm[5]] += [k]
+            tiers[tm[0]] += [k]
             added += [k]
     
     dtl = {}
@@ -352,7 +325,69 @@ def icon_affix(dname, size=28):
 # have this show on all affixes?
 # new: generate a dungeon tier list
 def gen_affix_tier_list(affixes_report):
+    if len(affixes_report) < 6:
+        return gen_affix_tier_list_small(affixes_report)
 
+    # ckmeans
+    scores = []
+    for k in affixes_report:
+        scores += [float(k[0])]
+
+    buckets = ckmeans(scores, 6)
+    added = []
+
+    tiers = {}
+    tm = {}
+    tm[5] = "S"
+    tm[4] = "A"
+    tm[3] = "B"
+    tm[2] = "C"
+    tm[1] = "D"
+    tm[0] = "F"
+
+
+    for i in range(0, 6):
+        tiers[tm[i]] = []
+    
+    for i in range(0, 6):
+        for k in affixes_report:
+            if float(k[0]) in buckets[i]:
+                if k not in added:
+                    if tm[i] not in tiers:
+                        tiers[tm[i]] = []
+                    tiers[tm[i]] += [k]
+                    added += [k]
+
+        # add stragglers to last tier
+    for k in affixes_report:
+        if k not in added:
+            if tm[0] not in tiers:
+                tiers[tm[0]] = []
+            tiers[tm[0]] += [k]
+            added += [k]
+
+
+        
+    dtl = {}
+    dtl["S"] = ""
+    dtl["A"] = ""
+    dtl["B"] = ""
+    dtl["C"] = ""
+    dtl["D"] = ""
+    dtl["F"] = ""
+
+    for i in range(0, 6):
+        for k in tiers[tm[i]]:
+            dtl[tm[i]] += '<div class="innertier">' + icon_affix(k[1]) + "<br/> %s</div>" % k[1]        
+    
+    return dtl
+    
+
+    
+# use this if there are fewer than 6 affixes scanned
+# since we can't cluster into 6 with uh, fewer than 6
+def gen_affix_tier_list_small(affixes_report):
+   
     # super simple tier list -- figure out the max and the min, and then bucket tiers
     cimax = -1
     cimin = -1
@@ -955,19 +990,20 @@ def wcl_rings(rankings):
     return groupings, shdw
 
 
-def wcl_trinkets(rankings):
+
+def wcl_gear(rankings, slots):
     groupings = {}
     shadow = []
     
     for k in rankings:
 
-        trinkets = []
+        gear = []
         for i, j in enumerate(k["gear"]):
-            if i == 12 or i == 13:
-                trinkets += [j["name"]]
+            if i in slots:
+                gear += [j["name"]]
                 shadow += [j]
         
-        add_this = tuple(sorted(trinkets))
+        add_this = tuple(sorted(gear))
     
         if add_this not in groupings:
             groupings[add_this] = 0
@@ -978,32 +1014,7 @@ def wcl_trinkets(rankings):
     for x in shadow:
         shdw[x["name"]] = [x["id"], x["icon"]]
 
-    return groupings, shdw
-
-def wcl_weapons(rankings):
-    groupings = {}
-    shadow = []
-    
-    for k in rankings:
-
-        weapons = []
-        for i, j in enumerate(k["gear"]):
-            if i == 15 or i == 16:
-                weapons += [j["name"]]
-                shadow += [j]
-        
-        add_this = tuple(weapons)
-    
-        if add_this not in groupings:
-            groupings[add_this] = 0
-        groupings[add_this] += 1
-
-
-    shdw = {}
-    for x in shadow:
-        shdw[x["name"]] = [x["id"], x["icon"]]
-
-    return groupings, shdw
+    return wcl_top10(groupings), shdw
 
 
 def wcl_top10(d):
@@ -1023,6 +1034,8 @@ def gen_wcl_spec_report(spec):
     results = wcl_query.fetch()
 
     global last_updated
+
+    key_levels = []
     
     n_parses = 0
 
@@ -1037,9 +1050,11 @@ def gen_wcl_spec_report(spec):
         latest = json.loads(k.rankings)
         rankings += latest
 
+    for k in rankings:
+        key_levels += [k["keystoneLevel"]]
+        
     t, spells = wcl_talents(rankings)
     talents = wcl_top10(t)
-
 
     e, espells = wcl_essences(rankings)
     essences = wcl_top10(e)
@@ -1060,23 +1075,30 @@ def gen_wcl_spec_report(spec):
     defensive = wcl_top10(d)
     spells.update(dspells) 
 
+    gear = {}
 
     h, items = wcl_hsc(rankings)
     hsc = wcl_top10(h)
 
-    r, ritems = wcl_rings(rankings)
-    rings = wcl_top10(r)
-    items.update(ritems)
-    
-    t, titems = wcl_trinkets(rankings)
-    trinkets = wcl_top10(t)
-    items.update(titems)
+    gear_slots = []
+    gear_slots += [["helms", [0]]]
+    gear_slots += [["shoulders", [2]]]
+    gear_slots += [["chests", [4]]]
+    gear_slots += [["belts", [5]]]
+    gear_slots += [["legs", [6]]]
+    gear_slots += [["feet", [7]]]
+    gear_slots += [["wrists", [8]]]
+    gear_slots += [["gloves", [9]]]
+    gear_slots += [["rings", [10, 11]]]
+    gear_slots += [["trinkets", [12, 13]]]
+    gear_slots += [["cloaks", [14]]]
+    gear_slots += [["weapons", [15, 16]]]
 
-    w, witems = wcl_weapons(rankings)
-    weapons = wcl_top10(w)
-    items.update(witems)
+    for (slot_name, slots) in gear_slots:
+        gear[slot_name], update_items = wcl_gear(rankings, slots)
+        items.update(update_items)
     
-    return len(rankings), talents, essences, primary, role, defensive, hsc, rings, trinkets, weapons, spells, items
+    return len(rankings), max(key_levels), min(key_levels), talents, essences, primary, role, defensive, hsc, gear, spells, items
    
 
 def localized_time(last_updated):
@@ -1134,93 +1156,11 @@ def render_affixes(affixes, prefix=""):
                                last_updated = localized_time(last_updated))
     return rendered
 
-def render_dungeon(affixes, dungeon, prefix=""):
-    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts  = generate_counts(affixes, dungeon)
-    affixes_slug = slugify.slugify(unicode(affixes))
-    dungeon_slug = slugify.slugify(unicode(dungeon))
-
-    affixes_slug_special = affixes_slug
-    if affixes == current_affixes():
-        affixes_slug_special = "index"
-
-    dungeons_report = gen_dungeon_report(dungeon_counts)
-    specs_report = gen_spec_report(spec_counts)
-    set_report = gen_set_report(set_counts)
-    th_report = gen_set_report(th_counts)
-    dps_report = gen_set_report(dps_counts)
-
-
-    title = "%s: %s" % (dungeon, affixes)
-    
-    template = env.get_template('by-dungeon.html')
-    rendered = template.render(title=title,
-                               prefix=prefix,
-                               affixes=affixes,
-                               affixes_slug=affixes_slug,
-                               affixes_slug_special=affixes_slug_special,
-                               dungeon=dungeon,
-                               dungeon_slug=dungeon_slug,
-                               dungeons=dungeons_report,
-                               role_package=specs_report,
-                               sets=set_report,
-                               sets_th=th_report,
-                               sets_dps=dps_report,
-                               known_dungeons = known_dungeon_links(prefix=prefix,
-                                                                    affixes_slug=affixes_slug),
-                               known_affixes = known_affixes_links(prefix=prefix),
-                               last_updated = localized_time(last_updated))
-    return rendered
-
-def render_spec(affixes, dungeon, spec, prefix=""):
-    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts = generate_counts(affixes, dungeon, spec)
-    affixes_slug = slugify.slugify(unicode(affixes))
-    affixes_slug_index = affixes_slug
-    if affixes == current_affixes():
-        affixes_slug_index = "index"
-    dungeon_slug = slugify.slugify(unicode(dungeon))
-    spec_slug = slugify.slugify(unicode(spec))
-    
-    dungeons_report = gen_dungeon_report(dungeon_counts)
-    specs_report = gen_spec_report(spec_counts)
-    set_report = gen_set_report(set_counts)
-    th_report = gen_set_report(th_counts)
-    dps_report = gen_set_report(dps_counts)
-
-    if dungeon == "all":
-        title = "%s: %s" % (spec, affixes)
-        dungeon = ""
-        dungeon_slug = ""
-    else:
-        title = "%s: %s: %s" % (spec, dungeon, affixes)
-
-    dungeon_blob = sorted(known_dungeon_links(affixes_slug=affixes_slug)) + [["All Dungeons", "all"]] 
-    
-    template = env.get_template('by-spec.html')
-    rendered = template.render(title=title,
-                               prefix=prefix,
-                               affixes=affixes,
-                               affixes_slug=affixes_slug,
-                               affixes_slug_index=affixes_slug_index,
-                               spec = spec,
-                               spec_slug = spec_slug,
-                               dungeon=dungeon,
-                               dungeon_slug=dungeon_slug,
-                               dungeons=dungeons_report,
-                               sets = set_report,
-                               sets_th=th_report,
-                               sets_dps=dps_report,
-                               role_package=specs_report,
-                               known_dungeons = dungeon_blob,
-                               known_affixes = known_affixes_links(use_index=False),
-                               last_updated = localized_time(last_updated))
-
-    return rendered
-
 
 def render_wcl_spec(spec, prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, talents, essences, primary, role, defensive, hsc, rings, trinkets, weapons, spells, items = gen_wcl_spec_report(spec)
+    n_parses, key_max, key_min, talents, essences, primary, role, defensive, hsc, gear, spells, items = gen_wcl_spec_report(spec)
     
     template = env.get_template('spec.html')
     rendered = template.render(title = spec,
@@ -1233,12 +1173,12 @@ def render_wcl_spec(spec, prefix=""):
                                role = role,
                                defensive = defensive,
                                hsc = hsc,
-                               rings = rings,
-                               trinkets = trinkets,
-                               weapons = weapons,
+                               gear = gear,
                                spells = spells,
                                items = items,
                                n_parses = n_parses,
+                               key_max = key_max,
+                               key_min = key_min,
                                prefix=prefix,
                                known_tanks = known_specs_subset_links(tanks, prefix=prefix),
                                known_healers = known_specs_subset_links(healers, prefix=prefix),
@@ -1384,9 +1324,13 @@ def test_view(destination):
 
 ## wcl querying
 def _rankings(encounterId, class_id, spec, page=1, season=3):
-    # filter=date.1577854800000.1578821006982 (timestamp * 10000)
-    # last month? (see how many we actually have)
-    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&class=%d&spec=%d&page=%d&api_key=%s" % (encounterId, season, class_id, spec, page, api_key)
+    # filter to the last 4 weeks
+    now = datetime.datetime.now()
+    wcl_date = "date."
+    wcl_date += "%d000" % (time.mktime(now.timetuple())-4*7*60*60*24 )
+    wcl_date += "." + "%d000" % (time.mktime(now.timetuple()))
+    
+    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&class=%d&spec=%d&page=%d&filter=%s&api_key=%s" % (encounterId, season, class_id, spec, page, wcl_date, api_key)
     result = urlfetch.fetch(url)
     data = json.loads(result.content)
     return data

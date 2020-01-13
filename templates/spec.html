@@ -8,217 +8,45 @@
   <div class="row">
 <div class="col-12 py-3">
 <h1><img src="images/specs/{{spec_slug}}.jpg" /> {{spec}}</h1>
-<i>Based on data from the top {{n_parses}} {{spec}} parses in Mythic+ dungeons of at least +16 difficulty.</i>
+<i>Based on data from the top {{n_parses}} {{spec}} M+ logs from the past 4 weeks, ranging in difficulty from +{{key_min}} to +{{key_max}}.</i>
 </div>
   </div>
   <div class="row">
 
-    <div class="col-xl-4 col-lg-6 py-3">
-<h3>Talent Builds</h3>
-<table class="table table-striped">
-<tr>
-  <th>Talents</th>
-  <th>Overall %</th>
-</tr>
-{% for (frequency, build) in talents %}
-<tr>
-  <td>
-    {% for spell in build %}
-    <a href="https://www.wowhead.com/spell={{spells[spell][0]}}"></a>
-    {% endfor %}
-  </td>
-  <td>
-    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
-  </td>
-</tr>
-{% endfor %}
-</table>
-    </div>
-    
-    <div class="col-xl-4 col-lg-6 py-3">
-<h3>Essences</h3>
-<table class="table table-striped">
-<tr>
-  <th>Major + Minors</th>
-  <th>Overall %</th>
-</tr>
-{% for (frequency, build) in essences %}
-<tr>
-  <td>
-    {% for spell in build %}
-    <a href="https://www.wowhead.com/spell={{spells[spell][0]}}"></a>
-    {% if loop.index0 == 0 %}
-    &nbsp;
-    {% endif %}
-    {% endfor %}
-  </td>
-  <td>
-    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
-  </td>
-</tr>
-{% endfor %}
-</table>
-    </div>
-    
-    <div class="col-xl-4 col-lg-6 py-3">
-<h3>Primary Azerite</h3>
 
-<table class="table table-striped">
-<tr>
-  <th>Azerite Powers</th>
-  <th>Overall %</th>
-</tr>
-{% for (frequency, build) in primary %}
-<tr>
-  <td>
-    {% for spell in build %}
-    <a href="https://www.wowhead.com/spell={{spells[spell][0]}}"></a>
-    {% endfor %}
-  </td>
-  <td>
-    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
-  </td>
-</tr>
-{% endfor %}
-</table>
-    </div>
-    
-    <div class="col-xl-4 col-lg-6 py-3">
-<h3>Role Azerite</h3>
-<table class="table table-striped">
-<tr>
-  <th>Azerite Powers</th>
-  <th>Overall %</th>
-</tr>
-{% for (frequency, build) in role %}
-<tr>
-  <td>
-    {% for spell in build %}
-    <a href="https://www.wowhead.com/spell={{spells[spell][0]}}"></a>
-    {% endfor %}
-  </td>
-  <td>
-    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
-  </td>
-</tr>
-{% endfor %}
-</table>
-    </div>
-    
-    <div class="col-xl-4 col-lg-6 py-3">
-<h3>Defensive Azerite</h3>
+{% import 'spec_overview_table.html' as spec_overview_table %}
 
-<table class="table table-striped">
-<tr>
-  <th>Azerite Powers</th>
-  <th>Overall %</th>
-</tr>
-{% for (frequency, build) in defensive %}
-<tr>
-  <td>
-    {% for spell in build %}
-    <a href="https://www.wowhead.com/spell={{spells[spell][0]}}"></a>
-    {% endfor %}
-  </td>
-  <td>
-    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
-  </td>
-</tr>
-{% endfor %}
-</table>
-    </div>
+{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-7", "Talent Builds", "Talents", talents, spells, "spell", n_parses) }}
     
-    <div class="col-xl-4 col-lg-6 py-3">
-<h3>Helm / Shoulder / Chest</h3>
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Essence Builds", "Major + Minors", essences, spells, "spell", n_parses, offset_first="&nbsp;") }}
 
-<table class="table table-striped">
-<tr>
-  <th>Helm / Shoulder / Chest</th>
-  <th>Overall %</th>
-</tr>
-{% for (frequency, build) in hsc %}
-<tr>
-  <td>
-    {% for item in build %}
-    <a href="https://www.wowhead.com/item={{items[item][0]}}"></a>
-    {% endfor %}
-  </td>
-  <td>
-    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
-  </td>
-</tr>
-{% endfor %}
-</table>
-    </div>
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Azerite Gear", "Helm, Shoulder, Chest", hsc, items, "item", n_parses) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-8", "Primary Azerite", "Azerite Traits", primary, spells, "spell", n_parses) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Role Azerite", "Azerite Traits", role, spells, "spell", n_parses) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Defensive Azerite", "Azerite Traits", defensive, spells, "spell", n_parses) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Weapons", "Item(s)", gear["weapons"], items, "item", n_parses) }}   
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Trinkets", "Items", gear["trinkets"], items, "item", n_parses) }}
+
+{# season 3 only since evreyone will have legendary cloak #}
+{# maybe replace with corruption level? #}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Cloaks", "Item", gear["cloaks"], items, "item", n_parses) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Rings", "Items", gear["rings"], items, "item", n_parses) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Helms", "Item", gear["helms"], items, "item", n_parses) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Shoulders", "Item", gear["shoulders"], items, "item", n_parses) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Chests", "Item", gear["chests"], items, "item", n_parses) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Belts", "Item", gear["belts"], items, "item", n_parses) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Legs", "Item", gear["legs"], items, "item", n_parses) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Feet", "Item", gear["feet"], items, "item", n_parses) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Wrists", "Item", gear["wrists"], items, "item", n_parses) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Gloves", "Item", gear["gloves"], items, "item", n_parses) }}
+
     
-    <div class="col-xl-3 col-lg-4 py-3">
-<h3>Rings</h3>
-
-<table class="table table-striped">
-<tr>
-  <th>Rings</th>
-  <th>Overall %</th>
-</tr>
-{% for (frequency, build) in rings %}
-<tr>
-  <td>
-    {% for item in build %}
-    <a href="https://www.wowhead.com/item={{items[item][0]}}"></a>
-    {% endfor %}
-  </td>
-  <td>
-    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
-  </td>
-</tr>
-{% endfor %}
-</table>
-    </div>
-    
-    <div class="col-xl-3 col-lg-4 py-3">
-<h3>Trinkets</h3>
-
-<table class="table table-striped">
-<tr>
-  <th>Trinkets</th>
-  <th>Overall %</th>
-</tr>
-{% for (frequency, build) in trinkets %}
-<tr>
-  <td>
-    {% for item in build %}
-    <a href="https://www.wowhead.com/item={{items[item][0]}}"></a>
-    {% endfor %}
-  </td>
-  <td>
-    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
-  </td>
-</tr>
-{% endfor %}
-</table>
-    </div>
-    
-    <div class="col-xl-3 col-lg-4 py-3">
-<h3>Weapons</h3>
-
-<table class="table table-striped">
-<tr>
-  <th>Weapons</th>
-  <th>Overall %</th>
-</tr>
-{% for (frequency, build) in weapons %}
-<tr>
-  <td>
-    {% for item in build %}
-    <a href="https://www.wowhead.com/item={{items[item][0]}}"></a>
-    {% endfor %}
-  </td>
-  <td>
-    {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
-  </td>
-</tr>
-{% endfor %}
-</table>
-    </div>
   </div>
 </div>
 
