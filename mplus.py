@@ -108,7 +108,12 @@ def parse_response(data, dungeon, affixes, region, page):
 
 
 # update
-def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-3", page=0):
+
+## @@season update
+## also in templates/max_link
+## also in wcl_
+
+def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-3-post", page=0):
     dungeon_slug = slugify.slugify(unicode(dungeon))
     affixes_slug = slugify.slugify(unicode(affixes))
 
@@ -1323,6 +1328,7 @@ def test_view(destination):
 
 
 ## wcl querying
+# @@season update
 def _rankings(encounterId, class_id, spec, page=1, season=3):
     # filter to the last 4 weeks
     now = datetime.datetime.now()
