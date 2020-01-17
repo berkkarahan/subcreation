@@ -3,7 +3,13 @@
 {% extends "base.html" %}
 {% block content %}
 
+{% set current_season = "season-bfa-3" %}
+{% if active_page == "index" %}
+ {% set current_season = "season-bfa-3-post" %}
+{% endif %}
+
 {% import 'tier_list.html' as tier_list %}
+{% import 'max_link.html' as max_link %}
 
 <div class="container-fluid">
   <div class="row">
@@ -24,7 +30,6 @@
   <summary>Detailed statistical analysis (by affixes)</summary>
 <div class="container-fluid">
 
-{% import 'max_link.html' as max_link %}
 <table class="sort table table-striped " id="table-afdd">
 <tr data-sort-method='none'>
 <th>lb_ci</th>
@@ -38,7 +43,7 @@
 <td>{{score}}</td>
 <td>{{indiv_affix}}</td>
 <td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id, max_level) }}
+{{ max_link.max_link(max_f, max_id, max_level, season=current_season) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
@@ -66,7 +71,6 @@
 <details>
    <summary>Detailed statistical analysis (by dungeon)</summary>
 <div class="container-fluid">
-{% import 'max_link.html' as max_link %}
 <table class="sort table table-striped" id="table-rdd">
 <tr data-sort-method='none'>
 <th>lb_ci</th>
@@ -80,7 +84,7 @@
 <td>{{score}}</td>
 <td>{{dungeon}}</td>
 <td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id, max_level) }}
+{{ max_link.max_link(max_f, max_id, max_level, season=current_season) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
@@ -127,7 +131,7 @@
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id, max_level) }}
+{{ max_link.max_link(max_f, max_id, max_level, season=current_season) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
@@ -163,7 +167,7 @@
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id, max_level) }}
+{{ max_link.max_link(max_f, max_id, max_level, season=current_season) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
@@ -199,7 +203,7 @@
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id, max_level) }}
+{{ max_link.max_link(max_f, max_id, max_level, season=current_season) }}
 <td>{{n}}</td>
 </tr>
 {% endfor %}
