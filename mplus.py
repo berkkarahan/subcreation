@@ -28,8 +28,7 @@ from t_interval import t_interval
 from models import Run, DungeonAffixRegion, KnownAffixes
 from old_models import Pull, AffixSet, Run as OldRun
 
-# season 3 only
-from warcraft import beguiling_weeks
+from warcraft import awakened_weeks as affix_rotation_weeks
 
 # wcl handling
 from models import SpecRankings
@@ -110,10 +109,10 @@ def parse_response(data, dungeon, affixes, region, page):
 # update
 
 ## @@season update
-## also in templates/max_link
-## also in wcl_
+## also in templates/max_link and templates/by-affix
+## also in wcl_ (also marked with @@)
 
-def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-3-post", page=0):
+def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-4", page=0):
     dungeon_slug = slugify.slugify(unicode(dungeon))
     affixes_slug = slugify.slugify(unicode(affixes))
 
@@ -304,8 +303,7 @@ def gen_spec_tier_list(specs_report, role, prefix=""):
 
 
 def icon_affix(dname, size=28):
-    # season 3 only
-    dname = beguiling_affixes(dname)
+    dname = affix_rotation_affixes(dname)
     dslug = slugify.slugify(unicode(dname))
     
     def miniaffix(aname, aslug, size):
@@ -614,14 +612,14 @@ def known_affixes_links(prefix="", use_index=True):
     for k in known_affixes_list:
         if use_index:
             if k == current_affixes():
-                known_affixes_report += [[beguiling_affixes(k), prefix+"index",
+                known_affixes_report += [[affix_rotation_affixes(k), prefix+"index",
                                           icon_affix(k)]]
             else:
-                known_affixes_report += [[beguiling_affixes(k), prefix+slugify.slugify(unicode(k)),
+                known_affixes_report += [[affix_rotation_affixes(k), prefix+slugify.slugify(unicode(k)),
                                           icon_affix(k)]]
             
         else:
-            known_affixes_report += [[beguiling_affixes(k), prefix+slugify.slugify(unicode(k)),
+            known_affixes_report += [[affix_rotation_affixes(k), prefix+slugify.slugify(unicode(k)),
                                       icon_affix(k)]]
             
     known_affixes_report.reverse()
@@ -674,11 +672,10 @@ def current_affixes():
 
 ##   generating common reports
 
-# season 3 only
-def beguiling_affixes(affixes):
-    global beguiling_weeks
-    if affixes in beguiling_weeks:
-        return affixes + " (%s)" % beguiling_weeks[affixes]
+def affix_rotation_affixes(affixes):
+    global affix_rotation_weeks
+    if affixes in affix_rotation_weeks:
+        return affixes + " (%s)" % affix_rotation_weeks[affixes]
     return affixes
 
 # given a list of affixes, return a pretty affix string
@@ -687,8 +684,7 @@ def pretty_affixes(affixes, size=16):
     if affixes=="All Affixes":
         return "All Affixes"
 
-    # season 3 only  
-    output_string = icon_affix(affixes, size=size) + " %s" % beguiling_affixes(affixes)
+    output_string = icon_affix(affixes, size=size) + " %s" % affix_rotation_affixes(affixes)
     return output_string
         
 
@@ -762,7 +758,7 @@ def gen_affix_report(affix_counts):
     for x in affixes_overall:
 
         affix_output += [[str("%.2f" % x[4][0]),
-                            beguiling_affixes(x[0]),
+                            affix_rotation_affixes(x[0]),
                             str("%.2f" % x[1]),
                             str(x[3]),
                             slugify.slugify(unicode(x[0])),
@@ -1329,7 +1325,7 @@ def test_view(destination):
 
 ## wcl querying
 # @@season update
-def _rankings(encounterId, class_id, spec, page=1, season=3):
+def _rankings(encounterId, class_id, spec, page=1, season=4):
     # filter to the last 4 weeks
     now = datetime.datetime.now()
     wcl_date = "date."
@@ -1357,7 +1353,7 @@ def update_wcl_rankings(spec, dungeon, page):
     stopFlag = False
     rankings = _rankings(dungeon_id, wcl_specs[spec][0], wcl_specs[spec][1], page=page)
     for k in rankings["rankings"]:
-        if int(k["keystoneLevel"]) >= 16:
+        if int(k["keystoneLevel"]) >= 10: # reducing this to from +16 to +10 early in the season
             aggregate += [k]
         else:
             stopFlag = True

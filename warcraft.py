@@ -9,7 +9,10 @@ dungeons = ["Atal'dazar",
             "Tol Dagor",
             "Waycrest Manor",
             "Siege of Boralus",
-            "Shrine of the Storm"]
+            "Shrine of the Storm",
+            "Operation: Mechagon Junkyard",
+            "Operation: Mechagon Workshop",]
+
 
 dungeon_slugs = []
 for d in dungeons:
@@ -80,4 +83,29 @@ beguiling_weeks["Tyrannical, Teeming, Volcanic, Beguiling"] = "Void"
 beguiling_weeks["Fortified, Sanguine, Grievous, Beguiling"] = "Enchanted"
 beguiling_weeks["Tyrannical, Raging, Explosive, Beguiling"] = "Tides"
 beguiling_weeks["Fortified, Bolstering, Grievous, Beguiling"] = "Void"
+
+# season 4 only
+awakened_weeks = {}
+awakened_weeks["Fortified, Bolstering, Skittish, Awakened"] = "A"
+awakened_weeks["Tyrannical, Bursting, Necrotic, Awakened"] = "B"
+awakened_weeks["Fortified, Sanguine, Quaking, Awakened"] = "B"
+awakened_weeks["Tyrannical, Bolstering, Explosive, Awakened"] =  "A"
+awakened_weeks["Fortified, Bursting, Volcanic, Awakened"] = "A"
+awakened_weeks["Tyrannical, Raging, Necrotic, Awakened"] = "B"
+awakened_weeks["Fortified, Teeming, Quaking, Awakened"] = "B"
+awakened_weeks["Tyrannical, Bursting, Skittish, Awakened"] = "A"
+awakened_weeks["Fortified, Bolstering, Grievous, Awakened"] = "A"
+awakened_weeks["Tyrannical, Raging, Explosive, Awakened"] = "B"
+awakened_weeks["Fortified, Sanguine, Grievous, Awakened"] = "B"
+awakened_weeks["Tyrannical, Teeming, Volcanic, Awakened"] = "A"
+
+
+
+
+
+
+
+
+
+
 
