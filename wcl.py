@@ -48,6 +48,7 @@ dungeon_encounters["The MOTHERLODE!!"] = 11594
 dungeon_encounters["The Underrot"] = 11841
 dungeon_encounters["Tol Dagor"] = 11771
 dungeon_encounters["Waycrest Manor"] = 11862
-# todo for season 4: mechagon junkyard
-# todo for season 4: mechagon workshop
+dungeon_encounters["Operation: Mechagon Junkyard"] = 12097
+dungeon_encounters["Operation: Mechagon Workshop"] = 12098
+
 
