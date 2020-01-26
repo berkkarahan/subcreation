@@ -1,0 +1,20 @@
+{% extends "base-raid.html" %}
+{% set page_type = "raid-index" %}
+
+{% block content %}
+{% import 'raid_role.html' as raid_role %}
+
+<div class="container-fluid">
+  <div class="row">
+
+    {{raid_role.raid_role("Tanks", known_tanks, prefix)}}
+    {{raid_role.raid_role("Healers", known_healers, prefix)}}
+    {{raid_role.raid_role("Melee", known_melee, prefix)}}
+    {{raid_role.raid_role("Ranged", known_ranged, prefix)}}
+
+  </div>
+</div>
+
+
+{% endblock content %}
+

@@ -13,3 +13,10 @@ cron:
     job_retry_limit: 1
     job_age_limit: 5m
 
+- description: "wcl raid update"
+  url: /update_wcl_raid
+  schedule: every 24 hours from 03:45 to 07:45
+  retry_parameters:
+    job_retry_limit: 1
+    job_age_limit: 5m
+

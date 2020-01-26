@@ -49,3 +49,17 @@ class SpecRankings(ndb.Model):
     last_updated = ndb.DateTimeProperty(auto_now_add=True)
 
 
+    
+# new: for storing rankings from wcl's api for raids
+class SpecRankingsRaid(ndb.Model):
+    # which spec
+    spec = ndb.StringProperty()
+    encounter = ndb.StringProperty()
+    difficulty = ndb.StringProperty()
+    page = ndb.IntegerProperty()
+    rankings = ndb.JsonProperty()
+
+    # when were these data last updated
+    last_updated = ndb.DateTimeProperty(auto_now_add=True)
+
+

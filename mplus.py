@@ -31,9 +31,14 @@ from old_models import Pull, AffixSet, Run as OldRun
 from warcraft import awakened_weeks as affix_rotation_weeks
 
 # wcl handling
-from models import SpecRankings
+from models import SpecRankings, SpecRankingsRaid
 from auth import api_key
 from wcl import wcl_specs, dungeon_encounters
+
+from wcl import nyalotha_encounters as raid_encounters
+from raid import nyalotha_nox_notes_slugs as nox_notes_slugs
+from raid import nyalotha_canonical_order as raid_canonical_order
+from raid import nyalotha_short_names as raid_short_names
 
 ## raider.io handling
 
@@ -453,6 +458,10 @@ def gen_affix_tier_list_small(affixes_report):
     
     return dtl
 
+
+# for background on the analytical approach of using the lower bound of a confidence interval:
+# https://www.evanmiller.org/how-not-to-sort-by-average-rating.html
+# https://www.evanmiller.org/ranking-items-with-star-ratings.html 
 
 def construct_analysis(counts):
     overall = []
@@ -1031,7 +1040,7 @@ def wcl_top10(d):
 
 
 def gen_wcl_spec_report(spec):
-    wcl_query = SpecRankings.query(SpecRankings.spec==spec)
+    wcl_query = SpecRankings.query(SpecRankings.spec==spec) ##temp
     results = wcl_query.fetch()
 
     global last_updated
@@ -1100,11 +1109,83 @@ def gen_wcl_spec_report(spec):
         items.update(update_items)
     
     return len(rankings), max(key_levels), min(key_levels), talents, essences, primary, role, defensive, hsc, gear, spells, items
+
+def gen_wcl_raid_spec_report(spec, encounter="all", difficulty="Heroic"):
+    if encounter == "all":
+        wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
+                                           SpecRankingsRaid.difficulty==difficulty)
+    else:
+        wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
+                                           SpecRankingsRaid.encounter==encounter,
+                                           SpecRankingsRaid.difficulty==difficulty)
+    results = wcl_query.fetch()
+
+    global last_updated
+
+    n_parses = 0
+
+    rankings = []
+    
+    for k in results:
+        if last_updated == None:
+            last_updated = k.last_updated
+        if k.last_updated > last_updated:
+            last_updated = k.last_updated
+
+        latest = json.loads(k.rankings)
+        rankings += latest
+
+    t, spells = wcl_talents(rankings)
+    talents = wcl_top10(t)
+
+    e, espells = wcl_essences(rankings)
+    essences = wcl_top10(e)
+    spells.update(espells) 
+
+
+    p, pspells = wcl_primary(rankings)
+    primary = wcl_top10(p)
+    spells.update(pspells) 
+
+
+    r, rspells = wcl_role(rankings)
+    role = wcl_top10(r)
+    spells.update(rspells) 
+
+    
+    d, dspells = wcl_defensive(rankings)
+    defensive = wcl_top10(d)
+    spells.update(dspells) 
+
+    gear = {}
+
+    h, items = wcl_hsc(rankings)
+    hsc = wcl_top10(h)
+
+    gear_slots = []
+    gear_slots += [["helms", [0]]]
+    gear_slots += [["shoulders", [2]]]
+    gear_slots += [["chests", [4]]]
+    gear_slots += [["belts", [5]]]
+    gear_slots += [["legs", [6]]]
+    gear_slots += [["feet", [7]]]
+    gear_slots += [["wrists", [8]]]
+    gear_slots += [["gloves", [9]]]
+    gear_slots += [["rings", [10, 11]]]
+    gear_slots += [["trinkets", [12, 13]]]
+    gear_slots += [["cloaks", [14]]]
+    gear_slots += [["weapons", [15, 16]]]
+
+    for (slot_name, slots) in gear_slots:
+        gear[slot_name], update_items = wcl_gear(rankings, slots)
+        items.update(update_items)
+    
+    return len(rankings), talents, essences, primary, role, defensive, hsc, gear, spells, items
    
 
 def localized_time(last_updated):
     if last_updated == None:
-        return "N/A"
+        return pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
     return pytz.utc.localize(last_updated).astimezone(pytz.timezone("America/New_York"))
 
 def render_affixes(affixes, prefix=""):
@@ -1190,6 +1271,82 @@ def render_wcl_spec(spec, prefix=""):
 
     return rendered
 
+def render_raid_index(prefix=""):
+    template = env.get_template("raid-index.html")
+    rendered = template.render(prefix=prefix,
+                               active_page = "raid-index",
+                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
+                               known_healers = known_specs_subset_links(healers, prefix=prefix),
+                               known_melee = known_specs_subset_links(melee, prefix=prefix),
+                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
+                               known_affixes = known_affixes_links(prefix=prefix),
+                               last_updated = localized_time(last_updated))
+
+
+    return rendered
+
+def render_wcl_raid_spec(spec, encounter="all", difficulty="Heroic", prefix=""):
+    spec_slug = slugify.slugify(unicode(spec))
+    affixes = "N/A"
+    n_parses, talents, essences, primary, role, defensive, hsc, gear, spells, items = gen_wcl_raid_spec_report(spec, encounter, difficulty)
+
+    encounter_pretty = encounter
+    if encounter_pretty == "all":
+        encounter_pretty = "Ny'alotha"
+
+    encounter_slugs = {}
+    for e in raid_canonical_order:
+        encounter_slugs[e] = slugify.slugify(unicode(e))
+
+    encounter_slug = slugify.slugify(unicode(encounter))
+    difficulty_slug = slugify.slugify(unicode(difficulty))
+
+    nox_role = "dps"
+    if spec in tanks:
+        nox_role = "tank"
+    if spec in healers:
+        nox_role = "healer"
+    
+    if encounter != "all":
+        nox_slug = nox_notes_slugs[encounter]
+
+    nox_link = ""
+    if encounter != "all":
+        nox_link += nox_slug + "/" + nox_role
+        
+    template = env.get_template('spec-raid.html')
+    rendered = template.render(title = spec + " (%s %s)" % (difficulty, encounter_pretty),
+                               spec = spec,
+                               spec_slug = spec_slug,
+                               active_page = spec_slug + "-" + encounter_slug + "-" + difficulty_slug,
+                               talents = talents,
+                               affixes = affixes,
+                               essences = essences,
+                               primary = primary,
+                               defensive = defensive,
+                               role = role,
+                               hsc = hsc,
+                               gear = gear,
+                               nox_link = nox_link,
+                               spells = spells,
+                               items = items,
+                               raid_canonical_order = raid_canonical_order,
+                               encounter_slugs = encounter_slugs,
+                               raid_short_names = raid_short_names,
+                               n_parses = n_parses,
+                               encounter = encounter,
+                               encounter_pretty = encounter_pretty,
+                               difficulty = difficulty,
+                               prefix=prefix,
+                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
+                               known_healers = known_specs_subset_links(healers, prefix=prefix),
+                               known_melee = known_specs_subset_links(melee, prefix=prefix),
+                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
+                               known_affixes = known_affixes_links(prefix=prefix),
+                               last_updated = localized_time(last_updated))
+
+    return rendered
+
 
 ## end html generation
     
@@ -1206,6 +1363,17 @@ env = Environment(
 
 def write_to_storage(filename, content):
     bucket_name = 'mplus.subcreation.net'
+    
+    filename = "/%s/%s" % (bucket_name, filename)
+    write_retry_params = gcs.RetryParams(backoff_factor=1.1)
+    gcs_file = gcs.open(filename,
+                        'w', content_type='text/html',
+                        retry_params=write_retry_params)
+    gcs_file.write(str(content))
+    gcs_file.close()
+
+def raid_write_to_storage(filename, content):
+    bucket_name = 'nyalotha.subcreation.net'
     
     filename = "/%s/%s" % (bucket_name, filename)
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
@@ -1247,13 +1415,34 @@ def create_spec_overview(s):
     filename = "%s.html" % (spec_slug)
     options = TaskRetryOptions(task_retry_limit = 1)        
     deferred.defer(write_to_storage, filename, rendered,
-                       _retry_options=options)     
+                       _retry_options=options)
+
+def create_raid_index():
+    rendered = render_raid_index()
+    filename = "index.html" 
+    options = TaskRetryOptions(task_retry_limit = 1)        
+    deferred.defer(raid_write_to_storage, filename, rendered,
+                       _retry_options=options)
+    
+def create_raid_spec_overview(s, e="all"):
+    spec_slug = slugify.slugify(unicode(s))
+    rendered = render_wcl_raid_spec(s, encounter=e)
+    if e == "all":
+        filename = "%s.html" % (spec_slug)
+    else:
+        encounter_slug = slugify.slugify(unicode(e))
+        filename = "%s-%s.html" % (spec_slug, encounter_slug)
+    options = TaskRetryOptions(task_retry_limit = 1)        
+    deferred.defer(raid_write_to_storage, filename, rendered,
+                       _retry_options=options)
+
+    
         
 def write_spec_overviews():
     for s in specs:
         options = TaskRetryOptions(task_retry_limit = 1)        
         deferred.defer(create_spec_overview, s,
-                       _retry_options=options)   
+                       _retry_options=options)
   
         
         # no longer doing dungeons
@@ -1283,8 +1472,24 @@ def write_spec_overviews():
             #     filename = "%s-%s-%s.html" % (spec_slug, dungeon_slug, affix_slug)
             #     deferred.defer(write_to_storage, filename, rendered)   
 
+            
 
-
+def write_raid_spec_overviews():
+    # write the index page
+    options = TaskRetryOptions(task_retry_limit = 1)        
+    deferred.defer(create_raid_index,
+                   _retry_options=options)   
+    
+    for s in specs:
+        options = TaskRetryOptions(task_retry_limit = 1)        
+        deferred.defer(create_raid_spec_overview, s,
+                       _retry_options=options)
+        
+        for k, v in raid_encounters.iteritems():
+            options = TaskRetryOptions(task_retry_limit = 1)        
+            deferred.defer(create_raid_spec_overview, s, k,
+                           _retry_options=options)
+            
 ##
 
 def test_view(destination):
@@ -1323,6 +1528,34 @@ def test_view(destination):
     return render_affixes(affixes, prefix=prefix)
 
 
+def test_raid_view(destination):
+    affixes = current_affixes()
+    spec = "all"
+    encounter = "all"
+    prefix = "raid?goto="
+    difficulty = "Heroic"
+    
+    for s in specs:
+        if slugify.slugify(unicode(s)) in destination:
+            spec = s
+
+    for e in raid_canonical_order:
+        if slugify.slugify(unicode(e)) in destination:
+            encounter = e
+
+#  @@ todo mythic
+#    if "mythic" in destination:
+#        difficulty = "Mythic"
+
+
+    if "index" in destination:
+        return render_raid_index(prefix=prefix)
+            
+
+    return render_wcl_raid_spec(spec, encounter=encounter,
+                                difficulty = difficulty, prefix=prefix)
+
+
 ## wcl querying
 # @@season update
 def _rankings(encounterId, class_id, spec, page=1, season=4):
@@ -1336,7 +1569,6 @@ def _rankings(encounterId, class_id, spec, page=1, season=4):
     result = urlfetch.fetch(url)
     data = json.loads(result.content)
     return data
-
 
 
 def update_wcl_rankings(spec, dungeon, page):
@@ -1368,6 +1600,55 @@ def update_wcl_rankings(spec, dungeon, page):
     
     return stopFlag
 
+# 4 - heroic
+# 5 - mythic
+def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=4):
+    # filter to the last 4 weeks
+    now = datetime.datetime.now()
+    wcl_date = "date."
+    wcl_date += "%d000" % (time.mktime(now.timetuple())-4*7*60*60*24 )
+    wcl_date += "." + "%d000" % (time.mktime(now.timetuple()))
+    
+    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?difficulty=%d&class=%d&spec=%d&page=%d&filter=%s&api_key=%s" % (encounterId, difficulty, class_id, spec, page, wcl_date, api_key)
+    
+    result = urlfetch.fetch(url)
+    data = json.loads(result.content)
+    return data
+
+
+def update_wcl_raid_rankings(spec, encounter, page, difficulty = "Heroic"):
+    if spec not in wcl_specs:
+        return "invalid spec [%s]" % spec
+    spec_key = slugify.slugify(unicode(spec))
+    if encounter not in raid_encounters:
+        return "invalid encounter [%s]" % encounter
+    encounter_id = raid_encounters[encounter]
+    encounter_slug = slugify.slugify(unicode(encounter))
+
+    aggregate = []
+    
+    stopFlag = False
+    difficulty_code = 4
+    if difficulty == "Heroic":
+        difficulty_code = 4
+    if difficulty == "Mythic":
+        difficulty_code = 5
+    
+    rankings = _rankings_raid(encounter_id, wcl_specs[spec][0], wcl_specs[spec][1], difficulty_code, page=page)
+    for k in rankings["rankings"]:
+        aggregate += [k]
+    
+    key = ndb.Key('SpecRankingsRaid', "%s-%s-%d" % (spec_key, encounter_slug, page))
+    sr = SpecRankingsRaid(key=key)
+    sr.spec = spec
+    sr.encounter = encounter
+    sr.difficulty = difficulty
+    sr.page = page
+    sr.rankings = json.dumps(aggregate)
+    sr.put()
+    
+    return True
+
     
 def update_wcl_spec(spec):
     if spec not in wcl_specs:
@@ -1381,24 +1662,45 @@ def update_wcl_spec(spec):
     return spec, spec_key,  wcl_specs[spec]
 
 
-# get the data
+
+# get the data for dungeons
 def update_wcl_update():
     for i, s in enumerate(specs):
         options = TaskRetryOptions(task_retry_limit = 1)
         deferred.defer(update_wcl_spec, s, _countdown=15*i, _retry_options=options)
-    
-    
 
-# update all the wcl
+
+def update_wcl_raid_spec(spec):
+    if spec not in wcl_specs:
+        return "invalid spec [%s]" % spec
+    spec_key = slugify.slugify(unicode(spec))
+
+    aggregate = []
+    for k, v in raid_encounters.iteritems():
+        stopFlag = update_wcl_raid_rankings(spec, k, 1)
+
+    return spec, spec_key,  wcl_specs[spec]
+        
+# update wcl for raids
+def update_wcl_raid_update():
+    options = TaskRetryOptions(task_retry_limit = 1)    
+    for i, s in enumerate(specs):
+        deferred.defer(update_wcl_raid_spec, s, _countdown=15*i, _retry_options=options)
+
+def update_wcl_raid_all():
+    update_wcl_raid_update()
+
+    options = TaskRetryOptions(task_retry_limit = 1)
+    deferred.defer(write_raid_spec_overviews, _countdown=40*15,
+                   _retry_options=options)
+    
+# update all the wcl for dungeons
 def update_wcl_all():
     update_wcl_update()
 
     options = TaskRetryOptions(task_retry_limit = 1)
     deferred.defer(write_spec_overviews, _countdown=40*15,
                    _retry_options=options)
-
-
-
 
 ## handlers
 
@@ -1436,6 +1738,12 @@ class TestView(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/html'
         destination = self.request.get("goto", "index.html")
         self.response.write(test_view(destination))
+
+class TestRaidView(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        destination = self.request.get("goto", "index.html")
+        self.response.write(test_raid_view(destination))
         
 
 class KnownAffixesShow(webapp2.RequestHandler):
@@ -1450,12 +1758,25 @@ class WCLGetRankings(webapp2.RequestHandler):
         self.response.write("Queueing updates...\n")
         update_wcl_all()
 
+class WCLGetRankingsRaid(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Queueing updates...\n")
+        update_wcl_raid_all()
+
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Writing WCL HTML...\n")
         options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(write_spec_overviews, _retry_options=options)        
+        deferred.defer(write_spec_overviews, _retry_options=options)
+
+class WCLRaidGenHTML(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Writing WCL HTML...\n")
+        options = TaskRetryOptions(task_retry_limit = 1)
+        deferred.defer(write_raid_spec_overviews, _retry_options=options)   
         
 
 app = webapp2.WSGIApplication([
@@ -1463,7 +1784,10 @@ app = webapp2.WSGIApplication([
         ('/generate_html', GenerateHTML),
         ('/only_generate_html', OnlyGenerateHTML),
         ('/view', TestView),
+        ('/raid', TestRaidView),    
         ('/known_affixes', KnownAffixesShow),
         ('/update_wcl', WCLGetRankings),
         ('/generate_wcl_html', WCLGenHTML),
+        ('/update_wcl_raid', WCLGetRankingsRaid),
+        ('/generate_wcl_raid_html', WCLRaidGenHTML),
         ], debug=True)

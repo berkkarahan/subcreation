@@ -189,4 +189,96 @@ a.class-color:hover {
     text-decoration: underline;
     color: #007bff;
 }
-    
+
+.raid-role {
+    text-align: center;
+    vertical-align: top;
+    display:inline-block;
+    width: 130px;
+    font-size: 0.85em;
+}
+
+
+/* ty to sanoks for the boss map */
+
+.boss-map-container {
+    position: relative;
+}
+.boss-map-container .modal-content, .boss-map-big-container .card-body {
+    background-color: transparent !important;
+    border: none !important;
+}
+.boss-map-container .boss-map {
+    max-height: 100px;
+    box-shadow: 1px 1px 0px 1px rgba(0,0,0,0.4);
+    border-radius: 5px;
+    cursor: pointer;
+}
+.boss-map-big-container .boss-map-big {
+    margin: -.3rem 10px 0px;
+    border-radius: 5px;
+    max-width: 100%;
+}
+.boss-title {
+    clear: right;
+}
+.raid-title {
+    margin-top: 75px;
+}
+.boss-nav li {
+}
+.boss-nav li .boss-icon {
+}
+.boss-nav li img {
+    border-radius: 5px;
+}
+.boss-nav li {
+}
+.boss-nav li.active img, .boss-nav li:hover img {
+    box-shadow: 0px 0px 5px 4px rgba(255,255,255,0.4);
+}
+.boss-nav li a.active, .boss-nav li a:hover {
+}
+.boss-nav li span {
+}
+.boss-tabs {
+    position: relative;
+    margin-top: 20px;
+}
+.boss-tabs .nav-tabs {
+    border:none;
+}
+.boss-tabs .nav-tabs a {
+    color: #bfbfbf!important;
+    margin-right: 5px;
+    border-color: #212121;
+    background-color: rgba(48,48,48,0.6) !important;
+    border-top-right-radius: .25rem;
+}
+.boss-tabs .nav-tabs a.active, .boss-tabs .nav-tabs a:hover {
+    color: #f8f9fa!important;
+    background-color: #303030!important;
+    border-top-right-radius: .25rem;
+}
+.toggle-map-btn {
+    position: absolute;
+    right: 15px;
+    z-index: 1;
+}
+.bosses .container {
+    border-radius: 5px;
+    padding: 15px;
+    box-shadow: 0px 0px 2px 2px rgba(0,0,0,0.4);
+}
+.bosses .spec-cards {
+    min-width: 50%;
+}
+.bosses .card {
+    border: none;
+    border-radius: 0;
+    min-width: 30%;
+}
+.bosses .card-body {
+    padding: 1.25rem 0;
+    border-radius: 0;
+}

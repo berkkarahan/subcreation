@@ -1,0 +1,73 @@
+{% extends "base-raid.html" %}
+{% set page_type = "raid-spec" %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+<div class="col-12 py-3">
+<h1><img src="images/specs/{{spec_slug}}.jpg" /> {{spec}} ({{difficulty}} {{encounter_pretty}})</h1>
+<i>Top talents, essences, azerite, and gear based on data from the top {{n_parses}} {{difficulty}} {{encounter_pretty}} logs from the past 4 weeks.</i>
+</div>
+  </div>
+
+        <nav class="boss-nav navbar navbar-expand">
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+              <ul class="nav mx-auto justify-content-center text-center text-light">
+                <li class="nav-item{{ ' active' if encounter == "all" else '' }}">
+                        <a class="nav-link" href="{{prefix}}{{spec_slug}}.html"><img src="images/bosses/nyalotha/nyalotha.jpg" alt="Heroic" title="All Bosses (Heroic)"></a><span>Heroic</span>
+                    </li>
+
+                {% for e in raid_canonical_order %}
+                    <li class="nav-item{{ ' active' if encounter_slugs[e] in active_page else '' }}">
+                        <a class="nav-link" href="{{prefix}}{{spec_slug}}-{{encounter_slugs[e]}}.html"><img src="images/bosses/nyalotha/{{encounter_slugs[e]}}.jpg" alt="{{e}}" title="{{e}}"></a><span>{{raid_short_names[e]}}</span>
+                    </li>
+                {% endfor %}
+
+                </ul>
+            </div>
+        </nav>
+  
+  <div class="row">
+
+
+{% import 'spec_overview_table.html' as spec_overview_table %}
+
+{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-7", "Talent Builds", "Talents", talents, spells, "spell", n_parses) }}
+    
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Essence Builds", "Major + Minors", essences, spells, "spell", n_parses, offset_first="&nbsp;") }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Azerite Gear", "Helm, Shoulder, Chest", hsc, items, "item", n_parses) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-8", "Primary Azerite", "Azerite Traits", primary, spells, "spell", n_parses) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Role Azerite", "Azerite Traits", role, spells, "spell", n_parses) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Defensive Azerite", "Azerite Traits", defensive, spells, "spell", n_parses) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Weapons", "Item(s)", gear["weapons"], items, "item", n_parses) }}   
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Trinkets", "Items", gear["trinkets"], items, "item", n_parses) }}
+
+{# season 3 only since evreyone will have legendary cloak #}
+{# maybe replace with corruption level? #}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Cloaks", "Item", gear["cloaks"], items, "item", n_parses) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Rings", "Items", gear["rings"], items, "item", n_parses) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Helms", "Item", gear["helms"], items, "item", n_parses) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Shoulders", "Item", gear["shoulders"], items, "item", n_parses) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Chests", "Item", gear["chests"], items, "item", n_parses) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Belts", "Item", gear["belts"], items, "item", n_parses) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Legs", "Item", gear["legs"], items, "item", n_parses) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Feet", "Item", gear["feet"], items, "item", n_parses) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Wrists", "Item", gear["wrists"], items, "item", n_parses) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-4", "Gloves", "Item", gear["gloves"], items, "item", n_parses) }}
+
+    
+  </div>
+</div>
+
+
+{% endblock content %}

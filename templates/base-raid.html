@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>{% if active_page == "raid-index" %}Subcreation Ny'alotha: Top Talents, Essences, Azerite, and Gear for Ny'alotha{% else %}{{title}} - Subcreation Ny'alotha{% endif %}</title>
+<meta name=description content="Subcreation Ny'alotha provides summaries of the top talents, essences, azerite, and gear used in Ny'alotha, using the Warcraft Logs API.">
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+<link href="https://bootswatch.com/4/darkly/bootstrap.min.css" rel="stylesheet">
+<link href='css/subc-bs.css' rel='stylesheet' type="text/css">
+<link href='css/tablesort.css' rel='stylesheet' type="text/css">
+
+<script src='js/tablesort.js'></script>
+<script src='js/sorts/tablesort.number.js'></script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-272864-14"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-272864-14');
+</script>
+{% if page_type == "spec" or page_type=="raid-spec" %}
+<script>var whTooltips = {colorLinks: true, iconizeLinks: true, renameLinks: false, iconSize: 'medium'};</script>
+<script src="https://wow.zamimg.com/widgets/power.js"></script>
+{% endif %}
+</head>
+<body>
+
+ <nav class="navbar navbar-expand-lg navbar-light bg-dark">
+  <a class="navbar-brand" href="{{prefix}}index.html"><img src="https://nyalotha.subcreation.net/apple-touch-icon.png" height="26" width="26" style="vertical-align: top"/>&nbsp; Subcreation Ny'alotha</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle{% if page_type == "spec" %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	  Top Talents, Essences, Azerite, and Gear
+        </a>
+        <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
+          {% for (name, slug, icon) in known_tanks %}
+          <a class="dropdown-item{{ ' active' if active_page == slug else '' }}" href="{{prefix}}{{slug}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+          {% endfor %}
+
+	        <div class="dropdown-divider w-100"></div>	            
+          {% for (name, slug, icon) in known_healers %}
+          <a class="dropdown-item{{ ' active' if active_page == slug else '' }}" href="{{prefix}}{{slug}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+          {% endfor %}
+          <div class="dropdown-divider w-100"></div>
+          {% for (name, slug, icon) in known_melee %}
+          <a class="dropdown-item{{ ' active' if active_page == slug else '' }}" href="{{prefix}}{{slug}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+          {% endfor %}
+          <div class="dropdown-divider w-100"></div>
+          {% for (name, slug, icon) in known_ranged %}
+          <a class="dropdown-item{{ ' active' if active_page == slug else '' }}" href="{{prefix}}{{slug}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+          {% endfor %}
+        </div>
+      </li>
+    </ul>
+    <ul class="navbar-nav justify-content-end">
+      <!-- TODO: link to the exact fight / role -->
+      <li class="nav-item">
+        {% if active_page == "raid-index" %}
+        <a class="nav-link" href="https://notes.noxguild.us/">Nox Notes for Ny'alotha</a>
+        {% else %}
+        <a class="nav-link" href="https://notes.noxguild.us/{{nox_link}}">Nox Notes for {{ encounter_pretty }}</a>
+        {% endif %}
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="https://mplus.subcreation.net">Subcreation Mythic+</a>
+      </li>
+    </ul>
+  </div>
+ </nav>
+  {% block content %}{% endblock %}
+
+    <footer class="bd-footer text-muted">
+      <div class="container-fluid p-3 p-md-5">
+        <ul class="bd-footer-links">
+          <li><a href="https://discord.gg/X8dyq67">Discord</a></li>
+          <li><a href="https://github.com/alcaras/mplus.subcreation.net">GitHub</a></li>
+          <li><a href="https://www.patreon.com/bePatron?u=10541594">Patreon</a></li>
+        </ul>
+        <p class="py-1">
+          <a href="index.html">Subcreation Ny'alotha</a> provides summaries of the top talents, essences, azerite, and gear used in the Ny'alotha raid in the World of Warcraft, using the <a href="https://www.warcraftlogs.com/">Warcraft Logs</a> API</i>. Item and ability tooltips by <a href="https://www.wowhead.com/tooltips">Wowhead</a>. All images copyright Blizzard Entertainment.
+</p>
+<p class="py-1">Subcreation Ny'alotha every 24 hours for top talents, essences, azerite, and gear (via Warcraft Logs).
+</p>
+<p class="py-1">
+  This page last updated: {{last_updated}}.
+</p>
+</div>
+</footer>
+
+<!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+</body>
+</html>

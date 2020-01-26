@@ -52,3 +52,17 @@ dungeon_encounters["Operation: Mechagon Junkyard"] = 12097
 dungeon_encounters["Operation: Mechagon Workshop"] = 12098
 
 
+nyalotha_encounters = {}
+nyalotha_encounters["Wrathion"] = 2329
+nyalotha_encounters["Maut"] = 2327
+nyalotha_encounters["Prophet Skitra"] = 2334
+nyalotha_encounters["Dark Inquisitor Xanesh"] = 2328
+nyalotha_encounters["The Hivemind"] = 2333
+nyalotha_encounters["Shad'har the Insatiable"] = 2335
+nyalotha_encounters["Drest'agath"] = 2343
+nyalotha_encounters["Vexiona"] = 2336
+nyalotha_encounters["Ra-den the Despoiled"] = 2331
+nyalotha_encounters["Il'gynoth, Corruption Reborn"] = 2345
+nyalotha_encounters["Carapace of N'Zoth"] = 2337
+nyalotha_encounters["N'Zoth the Corruptor"] = 2344
+
