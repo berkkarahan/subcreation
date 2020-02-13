@@ -16,12 +16,12 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
               <ul class="nav mx-auto justify-content-center text-center text-light">
-                <li class="nav-item{{ ' active' if encounter == "all" else '' }}">
+                <li class="nav-item{{ ' active' if encounter == "all" and difficulty == "Heroic" else '' }}">
                         <a class="nav-link" href="{{prefix}}{{spec_slug}}.html"><img src="images/bosses/nyalotha/nyalotha.jpg" alt="Heroic" title="All Bosses (Heroic)"></a><span>Heroic</span>
                     </li>
 
                 {% for e in raid_canonical_order %}
-                    <li class="nav-item{{ ' active' if encounter_slugs[e] in active_page else '' }}">
+                    <li class="nav-item{{ ' active' if encounter_slugs[e] in active_page and difficulty == "Heroic" else '' }}">
                         <a class="nav-link" href="{{prefix}}{{spec_slug}}-{{encounter_slugs[e]}}.html"><img src="images/bosses/nyalotha/{{encounter_slugs[e]}}.jpg" alt="{{e}}" title="{{e}}"></a><span>{{raid_short_names[e]}}</span>
                     </li>
                 {% endfor %}
@@ -29,7 +29,29 @@
                 </ul>
             </div>
         </nav>
+            <nav class="boss-nav navbar navbar-expand">
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+              <ul class="nav mx-auto justify-content-center text-center text-light">
+                <li class="nav-item{{ ' active' if encounter == "all" and difficulty == "Mythic" else '' }}">
+                        <a class="nav-link" href="{{prefix}}{{spec_slug}}-mythic.html"><img src="images/bosses/nyalotha/mythic.jpg" alt="Mythic" title="All Bosses (Mythic)"></a><span>Mythic</span>
+                    </li>
+
+                {% for e in raid_canonical_order %}
+                    <li class="nav-item{{ ' active' if encounter_slugs[e] in active_page and difficulty == "Mythic" else '' }}">
+                        <a class="nav-link" href="{{prefix}}{{spec_slug}}-{{encounter_slugs[e]}}-mythic.html"><img src="images/bosses/nyalotha/{{encounter_slugs[e]}}.jpg" alt="{{e}}" title="{{e}}"></a><span>{{raid_short_names[e]}}</span>
+                    </li>
+                {% endfor %}
+
+                </ul>
+            </div>
+        </nav>
   
+{% if n_parses > 0 %}
+
+
   <div class="row">
 
 
@@ -69,5 +91,14 @@
   </div>
 </div>
 
+{% else %}
+
+<div class="alert alert-warning">
+<h3>
+  No public parses available yet for {{spec}} ({{difficulty}} {{encounter_pretty}})
+</h3>
+</div>
+
+{% endif %}
 
 {% endblock content %}

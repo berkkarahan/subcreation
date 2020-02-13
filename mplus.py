@@ -256,10 +256,16 @@ def gen_spec_tier_list(specs_report, role, prefix=""):
     scores = []
     for i in range(0, 4):
         for k in specs_report[role_titles[i]]:
-            if int(k[3]) < 20: # ignore specs with less than 20 runs as they would skew the buckets; we'll add them to F later
+            if int(k[3]) < 20: # ignore specs with fewer than 20 runs as they would skew the buckets; we'll add them to F later
                 continue
             scores += [float(k[0])]
-    
+
+    if len(scores) < 6: # relax the fewer than 20 rule (early scans early in season)
+        scores = []
+        for i in range(0, 4):
+            for k in specs_report[role_titles[i]]:
+                scores += [float(k[0])]
+        
     buckets = ckmeans(scores, 6)
             
 
@@ -1424,14 +1430,20 @@ def create_raid_index():
     deferred.defer(raid_write_to_storage, filename, rendered,
                        _retry_options=options)
     
-def create_raid_spec_overview(s, e="all"):
+def create_raid_spec_overview(s, e="all", difficulty="Heroic"):
     spec_slug = slugify.slugify(unicode(s))
-    rendered = render_wcl_raid_spec(s, encounter=e)
+    rendered = render_wcl_raid_spec(s, encounter=e, difficulty=difficulty)
     if e == "all":
-        filename = "%s.html" % (spec_slug)
+        if difficulty == "Mythic":
+            filename = "%s-mythic.html" % (spec_slug)
+        else:        
+            filename = "%s.html" % (spec_slug)
     else:
         encounter_slug = slugify.slugify(unicode(e))
-        filename = "%s-%s.html" % (spec_slug, encounter_slug)
+        if difficulty == "Mythic":
+            filename = "%s-%s-mythic.html" % (spec_slug, encounter_slug)
+        else:        
+            filename = "%s-%s.html" % (spec_slug, encounter_slug)
     options = TaskRetryOptions(task_retry_limit = 1)        
     deferred.defer(raid_write_to_storage, filename, rendered,
                        _retry_options=options)
@@ -1482,13 +1494,18 @@ def write_raid_spec_overviews():
     
     for s in specs:
         options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(create_raid_spec_overview, s,
+        deferred.defer(create_raid_spec_overview, s, "all", "Heroic",
+                       _retry_options=options)
+        deferred.defer(create_raid_spec_overview, s, "all", "Mythic",
                        _retry_options=options)
         
         for k, v in raid_encounters.iteritems():
             options = TaskRetryOptions(task_retry_limit = 1)        
-            deferred.defer(create_raid_spec_overview, s, k,
+            deferred.defer(create_raid_spec_overview, s, k, "Heroic",
                            _retry_options=options)
+            deferred.defer(create_raid_spec_overview, s, k, "Mythic",
+                           _retry_options=options)
+
             
 ##
 
@@ -1543,10 +1560,9 @@ def test_raid_view(destination):
         if slugify.slugify(unicode(e)) in destination:
             encounter = e
 
-#  @@ todo mythic
-#    if "mythic" in destination:
-#        difficulty = "Mythic"
 
+    if "mythic" in destination:
+        difficulty = "Mythic"
 
     if "index" in destination:
         return render_raid_index(prefix=prefix)
@@ -1616,7 +1632,7 @@ def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=4):
     return data
 
 
-def update_wcl_raid_rankings(spec, encounter, page, difficulty = "Heroic"):
+def update_wcl_raid_rankings(spec, encounter, page=1, difficulty = "Heroic"):
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
     spec_key = slugify.slugify(unicode(spec))
@@ -1635,10 +1651,15 @@ def update_wcl_raid_rankings(spec, encounter, page, difficulty = "Heroic"):
         difficulty_code = 5
     
     rankings = _rankings_raid(encounter_id, wcl_specs[spec][0], wcl_specs[spec][1], difficulty_code, page=page)
+
+    # no datas yet!
+    if "rankings" not in rankings:
+        return False
+    
     for k in rankings["rankings"]:
         aggregate += [k]
     
-    key = ndb.Key('SpecRankingsRaid', "%s-%s-%d" % (spec_key, encounter_slug, page))
+    key = ndb.Key('SpecRankingsRaid', "%s-%s-%s-%d" % (spec_key, encounter_slug, difficulty, page))
     sr = SpecRankingsRaid(key=key)
     sr.spec = spec
     sr.encounter = encounter
@@ -1670,28 +1691,30 @@ def update_wcl_update():
         deferred.defer(update_wcl_spec, s, _countdown=15*i, _retry_options=options)
 
 
-def update_wcl_raid_spec(spec):
+def update_wcl_raid_spec(spec, difficulty="Heroic"):
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
     spec_key = slugify.slugify(unicode(spec))
 
     aggregate = []
     for k, v in raid_encounters.iteritems():
-        stopFlag = update_wcl_raid_rankings(spec, k, 1)
+        stopFlag = update_wcl_raid_rankings(spec, k, page=1, difficulty=difficulty)
 
     return spec, spec_key,  wcl_specs[spec]
         
 # update wcl for raids
 def update_wcl_raid_update():
-    options = TaskRetryOptions(task_retry_limit = 1)    
     for i, s in enumerate(specs):
-        deferred.defer(update_wcl_raid_spec, s, _countdown=15*i, _retry_options=options)
+        options = TaskRetryOptions(task_retry_limit = 1)    
+        deferred.defer(update_wcl_raid_spec, s, "Heroic", _countdown=30*i, _retry_options=options)
+        options = TaskRetryOptions(task_retry_limit = 1)    
+        deferred.defer(update_wcl_raid_spec, s, "Mythic", _countdown=30*i+15, _retry_options=options)
 
 def update_wcl_raid_all():
     update_wcl_raid_update()
 
     options = TaskRetryOptions(task_retry_limit = 1)
-    deferred.defer(write_raid_spec_overviews, _countdown=40*15,
+    deferred.defer(write_raid_spec_overviews, _countdown=40*30,
                    _retry_options=options)
     
 # update all the wcl for dungeons
@@ -1764,6 +1787,12 @@ class WCLGetRankingsRaid(webapp2.RequestHandler):
         self.response.write("Queueing updates...\n")
         update_wcl_raid_all()
 
+class WCLGetRankingsRaidOnly(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Queueing updates...\n")
+        update_wcl_raid_update() 
+
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
@@ -1789,5 +1818,6 @@ app = webapp2.WSGIApplication([
         ('/update_wcl', WCLGetRankings),
         ('/generate_wcl_html', WCLGenHTML),
         ('/update_wcl_raid', WCLGetRankingsRaid),
+        ('/only_update_wcl_raid', WCLGetRankingsRaidOnly),
         ('/generate_wcl_raid_html', WCLRaidGenHTML),
         ], debug=True)
