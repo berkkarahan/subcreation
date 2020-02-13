@@ -8,6 +8,8 @@
 {% import 'tier_list.html' as tier_list %}
 {% import 'max_link.html' as max_link %}
 
+{% import 'link_popover.html' as lp %}
+
 <div class="container-fluid">
   <div class="row">
     <div class="col-12 py-3">
@@ -35,13 +37,13 @@
 <th>max</th>
 <th>n</th>
 </tr>
-{% for (score, indiv_affix, mean, n, dungeon_slug, max_f, max_id, max_level) in affixes_report %}
+{% for (score, indiv_affix, mean, n, dungeon_slug, max_f, max_id, max_level, all_runs) in affixes_report %}
 <tr>
 <td>{{score}}</td>
 <td>{{indiv_affix}}</td>
 <td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id, max_level, season=current_season) }}
-<td>{{n}}</td>
+{{ max_link.max_link(max_f, max_id, max_level, current_season) }}
+{{ lp.link_popover(all_runs, n, "Top Runs for " + indiv_affix, current_season) }}
 </tr>
 {% endfor %}
 </table>
@@ -76,13 +78,13 @@
 <th>max</th>
 <th>n</th>
 </tr>
-{% for (score, dungeon, mean, n, dungeon_slug, max_f, max_id, max_level) in dungeons %}
+{% for (score, dungeon, mean, n, dungeon_slug, max_f, max_id, max_level, all_runs) in dungeons %}
 <tr>
 <td>{{score}}</td>
 <td>{{dungeon}}</td>
 <td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id, max_level, season=current_season) }}
-<td>{{n}}</td>
+{{ max_link.max_link(max_f, max_id, max_level, current_season) }}
+{{ lp.link_popover(all_runs, n, "Top Runs for " + dungeon, current_season) }}
 </tr>
 {% endfor %}
 </table>
@@ -99,10 +101,10 @@
 
 
 {% import 'spec_tier_list.html' as spec_tier_list %}
-{{ spec_tier_list.spec_tier_list("Tanks", "Tank", "tanks", tankstl, pretty_affixes, role_package, prefix, affixes_slug) }}
-{{ spec_tier_list.spec_tier_list("Healers", "Healer", "healers", healerstl, pretty_affixes, role_package, prefix, affixes_slug) }}
-{{ spec_tier_list.spec_tier_list("Melee", "Melee", "melee", meleetl, pretty_affixes, role_package, prefix, affixes_slug) }}
-{{ spec_tier_list.spec_tier_list("Ranged", "Ranged", "ranged", rangedtl, pretty_affixes, role_package, prefix, affixes_slug) }}
+{{ spec_tier_list.spec_tier_list("Tanks", "Tank", "tanks", tankstl, pretty_affixes, role_package, prefix, affixes_slug, current_season) }}
+{{ spec_tier_list.spec_tier_list("Healers", "Healer", "healers", healerstl, pretty_affixes, role_package, prefix, affixes_slug, current_season) }}
+{{ spec_tier_list.spec_tier_list("Melee", "Melee", "melee", meleetl, pretty_affixes, role_package, prefix, affixes_slug, current_season) }}
+{{ spec_tier_list.spec_tier_list("Ranged", "Ranged", "ranged", rangedtl, pretty_affixes, role_package, prefix, affixes_slug, current_season) }}
 
 
 <div class="col-12 py-3">
@@ -123,13 +125,13 @@
 <th>max</th>
 <th>n</th>
 </tr>
-{% for (score, comp, mean, n, max_f, max_id, max_level) in sets %}
+{% for (score, comp, mean, n, max_f, max_id, max_level, all_runs) in sets %}
 <tr>
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id, max_level, season=current_season) }}
-<td>{{n}}</td>
+{{ max_link.max_link(max_f, max_id, max_level, current_season) }}
+{{ lp.link_popover(all_runs, n, "Top Runs", current_season) }}
 </tr>
 {% endfor %}
 </table>
@@ -159,13 +161,13 @@
 <th>max</th>
 <th>n</th>
 </tr>
-{% for (score, comp, mean, n, max_f, max_id, max_level) in sets_th %}
+{% for (score, comp, mean, n, max_f, max_id, max_level, all_runs) in sets_th %}
 <tr>
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id, max_level, season=current_season) }}
-<td>{{n}}</td>
+{{ max_link.max_link(max_f, max_id, max_level, current_season) }}
+{{ lp.link_popover(all_runs, n, "Top Runs", current_season) }}
 </tr>
 {% endfor %}
 </table>
@@ -195,13 +197,13 @@
 <th>max</th>
 <th>n</th>
 </tr>
-{% for (score, comp, mean, n, max_f, max_id, max_level) in sets_dps %}
+{% for (score, comp, mean, n, max_f, max_id, max_level, all_runs) in sets_dps %}
 <tr>
 <td>{{score}}</td>
 {{comp}}
 <td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id, max_level, season=current_season) }}
-<td>{{n}}</td>
+{{ max_link.max_link(max_f, max_id, max_level, current_season) }}
+{{ lp.link_popover(all_runs, n, "Top Runs", current_season) }}
 </tr>
 {% endfor %}
 </table>

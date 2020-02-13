@@ -1,4 +1,6 @@
-{% macro spec_table(role_name, role_scores, prefix, affixes_slug, dungeon_slug) -%}
+{% macro spec_table(role_name, role_scores, prefix, affixes_slug, dungeon_slug, current_season) -%}
+{% import 'link_popover.html' as lp %}
+
 <table class="sort table table-striped" id="table-{{role_name}}">
 <tr data-sort-method='none'>
 <th>lb_ci</th>
@@ -7,14 +9,14 @@
 <th>max</th>
 <th>n</th>
 </tr>
-{% for (lb_ci, spec, mean, n, slug, max_f, max_id, max_level) in role_scores %}
+{% for (lb_ci, spec, mean, n, slug, max_f, max_id, max_level, all_runs) in role_scores %}
 <tr>
 <td>{{lb_ci}}</td>
 <td class="{{spec}}"><a href="{{prefix}}{{slug}}.html" class="class-color">{{spec}}</a></td>
 <td>{{mean}}</td>
 {% import 'max_link.html' as ml %}
-{{ ml.max_link(max_f, max_id, max_level) }}
-<td>{{n}}</td>
+{{ ml.max_link(max_f, max_id, max_level, current_season) }}
+{{ lp.link_popover(all_runs, n, "Top Runs for " + spec, current_season) }}
 </tr>
 {% endfor %}
 </table>

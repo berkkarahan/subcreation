@@ -1,0 +1,4 @@
+{% macro link_popover(all_runs, n, title, season) -%}
+{% import 'runs_popover.html' as runs_popover %}
+<td><button type="button" class="btn btn-secondary" data-trigger="focus" data-toggle="popover" title="{{title}}" data-placement="bottom" data-html="true" data-content="{{runs_popover.runs_popover(all_runs[:100], season)}}">{{n}}</button></td>
+{%- endmacro %}

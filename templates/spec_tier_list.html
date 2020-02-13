@@ -1,4 +1,4 @@
-{% macro spec_tier_list(n, ns, nlc, t, pretty_affixes, role_package, prefix, affixes_slug) -%}
+{% macro spec_tier_list(n, ns, nlc, t, pretty_affixes, role_package, prefix, affixes_slug, current_season) -%}
 {% import 'tier_list.html' as tier_list %}
 {% import 'spec_table.html' as st %}
 <div class="col-xl-4 col-lg-6 py-3">
@@ -11,7 +11,7 @@
 <details>
    <summary>Detailed statistical analysis (for {{nlc}})</summary>
    <div class="container-fluid">
-     {{ st.spec_table(n, role_package[n], prefix, affixes_slug, "") }}
+     {{ st.spec_table(n, role_package[n], prefix, affixes_slug, "", current_season) }}
      <p>
        <i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For specs, higher is better.</i>
      </p>

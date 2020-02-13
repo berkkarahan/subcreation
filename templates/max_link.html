@@ -1,6 +1,6 @@
-{% macro max_link(max_f, max_id, max_level, season="season-bfa-4") -%}
+{% macro max_link(max_f, max_id, max_level, season) -%}
 {% if max_id != "" %}
-<td><a href="https://raider.io/mythic-plus/{{season}}/runs/{{max_id}}">{{max_f}} (+{{max_level}})</a></td>
+<td><a href="https://raider.io/mythic-plus/{{season}}/runs/{{max_id}}" target="_blank">{{max_f}} (+{{max_level}})</a></td>
 {% else %}
 <td>{{max_f}} (+{{max_level}})</td>
 {% endif %}

@@ -482,25 +482,28 @@ def construct_analysis(counts):
         max_found = 0 
         max_id = ""
         max_level = 0
+        all_runs = []
         for r in runs:
             data += [r.score]
+            all_runs += [[r.score, r.mythic_level, r.keystone_run_id]]
             if r.score >= max_found:
                 max_found = r.score
                 max_id = r.keystone_run_id
                 max_level = r.mythic_level
         n = len(data)
         if n == 0:
-            overall += [[name, 0, 0, n, [0, 0], [0, "", 0]]]
+            overall += [[name, 0, 0, n, [0, 0], [0, "", 0], []]]
             continue
         mean = average(data)
         if n <= 1:
-            overall += [[name, mean, 0, n, [0, 0], [max_found, max_id, max_level]]]
+            overall += [[name, mean, 0, n, [0, 0], [max_found, max_id, max_level], all_runs]]
             continue
         stddev = std(data, ddof=1)
         t_bounds = t_interval(n)
         ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
         maxi = [max_found, max_id, max_level]
-        overall += [[name, mean, stddev, n, ci, maxi]]
+        all_runs = sorted(all_runs, key=lambda x: x[0], reverse=True)
+        overall += [[name, mean, stddev, n, ci, maxi, all_runs]]
 
 
     overall = sorted(overall, key=lambda x: x[4][0], reverse=True)
@@ -744,6 +747,7 @@ def gen_set_report(set_counts):
                             str("%.2f" % x[5][0]), # maximum run
                             x[5][1],
                             x[5][2], # level of the max run
+                            x[6], # all runs info
                         ]]
 
     return set_output[:50]
@@ -762,6 +766,7 @@ def gen_dungeon_report(dungeon_counts):
                             str("%.2f" % x[5][0]), # maximum run
                             x[5][1], # id of the maximum run
                             x[5][2], # level of the max run
+                            x[6], # all runs info
                             ]] 
 
     return dungeon_output
@@ -778,9 +783,10 @@ def gen_affix_report(affix_counts):
                             str(x[3]),
                             slugify.slugify(unicode(x[0])),
                             str("%.2f" % x[5][0]), # maximum run
-                            x[5][1],
-                            x[5][2], # level of the max run 
-                            ]] # id of the maximum run
+                            x[5][1], # id of the maximum run
+                            x[5][2], # level of the max run
+                            x[6], # all runs info
+                            ]] 
 
     return affix_output
 
@@ -803,6 +809,7 @@ def gen_spec_report(spec_counts):
                                 str("%.2f" % k[5][0]), # maximum run
                                 k[5][1], # id of the maximum run
                                 k[5][2], # level of the max run
+                                k[6], # all runs info
                                 ]]
         role_package[role_titles[i]] = role_score
     return role_package
@@ -1113,8 +1120,10 @@ def gen_wcl_spec_report(spec):
     for (slot_name, slots) in gear_slots:
         gear[slot_name], update_items = wcl_gear(rankings, slots)
         items.update(update_items)
-    
-    return len(rankings), max(key_levels), min(key_levels), talents, essences, primary, role, defensive, hsc, gear, spells, items
+
+    if len(key_levels) > 0:
+        return len(rankings), max(key_levels), min(key_levels), talents, essences, primary, role, defensive, hsc, gear, spells, items
+    return 0, 0, 0, talents, essences, primary, role, defensive, hsc, gear, spells, items
 
 def gen_wcl_raid_spec_report(spec, encounter="all", difficulty="Heroic"):
     if encounter == "all":
