@@ -1041,6 +1041,7 @@ def wcl_gear(rankings, slots):
 
 
 def wcl_top10(d):
+    # need to also expore these ... k["reportId"] + k["keystoneLevel"]    
     dv = sorted(d.items(), key=operator.itemgetter(1), reverse=True)
     output = []
     for i, (s, n) in enumerate(dv):
@@ -1072,6 +1073,7 @@ def gen_wcl_spec_report(spec):
 
         latest = json.loads(k.rankings)
         rankings += latest
+
 
     for k in rankings:
         key_levels += [k["keystoneLevel"]]
@@ -1700,6 +1702,12 @@ def update_wcl_update():
         deferred.defer(update_wcl_spec, s, _countdown=15*i, _retry_options=options)
 
 
+def update_wcl_update_subset(subset):
+    for i, s in enumerate(subset):
+        options = TaskRetryOptions(task_retry_limit = 1)
+        deferred.defer(update_wcl_spec, s, _countdown=15*i, _retry_options=options)
+        
+
 def update_wcl_raid_spec(spec, difficulty="Heroic"):
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
@@ -1719,6 +1727,14 @@ def update_wcl_raid_update():
         options = TaskRetryOptions(task_retry_limit = 1)    
         deferred.defer(update_wcl_raid_spec, s, "Mythic", _countdown=30*i+15, _retry_options=options)
 
+def update_wcl_raid_update_subset(subset):
+    for i, s in enumerate(subset):
+        options = TaskRetryOptions(task_retry_limit = 1)    
+        deferred.defer(update_wcl_raid_spec, s, "Heroic", _countdown=30*i, _retry_options=options)
+        options = TaskRetryOptions(task_retry_limit = 1)    
+        deferred.defer(update_wcl_raid_spec, s, "Mythic", _countdown=30*i+15, _retry_options=options)
+
+        
 def update_wcl_raid_all():
     update_wcl_raid_update()
 
@@ -1790,6 +1806,12 @@ class WCLGetRankings(webapp2.RequestHandler):
         self.response.write("Queueing updates...\n")
         update_wcl_all()
 
+class TestWCLGetRankings(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Queueing updates...\n")
+        update_wcl_update_subset(["Outlaw Rogue"])
+
 class WCLGetRankingsRaid(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
@@ -1800,7 +1822,13 @@ class WCLGetRankingsRaidOnly(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
-        update_wcl_raid_update() 
+        update_wcl_raid_update()
+
+class TestWCLGetRankingsRaid(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Queueing updates...\n")
+        update_wcl_raid_update_subset(["Assassination Rogue"]) 
 
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):
@@ -1829,4 +1857,6 @@ app = webapp2.WSGIApplication([
         ('/update_wcl_raid', WCLGetRankingsRaid),
         ('/only_update_wcl_raid', WCLGetRankingsRaidOnly),
         ('/generate_wcl_raid_html', WCLRaidGenHTML),
+        ('/test/update_wcl', TestWCLGetRankings),
+        ('/test/update_wcl_raid', TestWCLGetRankingsRaid),
         ], debug=True)
