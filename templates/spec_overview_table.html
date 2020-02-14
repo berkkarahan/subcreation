@@ -3,12 +3,16 @@
 <div class="{{sizing}} py-3">
   <h3>{{title}}</h3>
   
-  <table class="table table-striped">
-    <tr>
-      <th>{{heading}}</th>
-      <th>Overall % (n)</th>
-    </tr>
-    {% for (frequency, build) in data %}
+  <table class="table table-striped sort" id="table-spec-{{title[4:]}}">
+    <thead>
+      <tr>
+        <th data-sort-method-"none">{{heading}}</th>
+        <th>max</th>
+        <th>Overall % (n)</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for (frequency, build, popover) in data %}
     <tr>
       <td>
         {% for k in build %}
@@ -19,11 +23,21 @@
         {% endfor %}
       </td>
       <td>
-        {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
+        {% set report_id = popover[0][3] %}
+        {% set link_text = popover[0][2] %}
+ <a href='https://www.warcraftlogs.com/reports/{{report_id}}' target='_blank'>{{link_text}}</a>         
       </td>
+{% import 'logs_popover.html' as logs_popover %}
+<td><button type="button" class="btn btn-secondary" data-toggle="popover" title="Top Logs" data-placement="right" data-html="true" data-content="{{logs_popover.logs_popover(popover, season)}}">{{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}</button></td>        
+       
+
     </tr>
     {% endfor %}
+    </tbody>
   </table>
+  <script>
+    new Tablesort(document.getElementById('table-spec-{{title[4:]}}'))
+  </script>
 </div>
 
 {%- endmacro %}

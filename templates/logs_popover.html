@@ -1,0 +1,17 @@
+{% macro logs_popover(logs, season) -%}
+<ul>
+{% set clvl = 10000 %}
+{% for (sort_value, level, link_text, report_id) in logs %}
+{% if level < clvl %}
+     {% if clvl != 10000 %}
+            </li>
+      {% endif %}
+<li><b>{% if "+" in link_text %}+{% endif %}{{level}}{% if "k" in link_text %}k+{% endif %}</b>:
+  {% set clvl = level %}
+{% endif %}
+ <a href='https://www.warcraftlogs.com/reports/{{report_id}}' target='_blank'>{{link_text}}</a> 
+{% endfor %}
+    </ul>
+{%- endmacro %}
+
+

@@ -825,6 +825,7 @@ def can_tuple(elements):
 def wcl_talents(rankings):
     groupings = {}
     shadow = []
+    popover = {}
     
     for k in rankings:
         talents = []
@@ -836,18 +837,37 @@ def wcl_talents(rankings):
     
         if add_this not in groupings:
             groupings[add_this] = 0
+            popover[add_this] = []
         groupings[add_this] += 1
+        
+        link_text = ""
+        sort_value = 0
+        band_value = 0
+        if "keystoneLevel" in k:
+            link_text = "+%d" % k["keystoneLevel"]
+            sort_value = int(k["keystoneLevel"])
+            band_value = int(k["keystoneLevel"])
+        elif "total" in k:
+            link_text = "%.2fk" % (float(k["total"])/1000)
+            sort_value = (float(k["total"])/1000)
+            band_value = int((float(k["total"])/10000))*10
+
+        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
 
 
     shdw = {}
     for x in shadow:
         shdw[x["name"]] = [x["id"], x["icon"]]
 
-    return groupings, shdw
+    for k, v in popover.iteritems():
+        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
+
+    return groupings, shdw, popover
 
 def wcl_essences(rankings):
     groupings = {}
     shadow = []
+    popover = {}
     
     for k in rankings:
         if "essencePowers" not in k:
@@ -868,18 +888,37 @@ def wcl_essences(rankings):
     
         if add_this not in groupings:
             groupings[add_this] = 0
+            popover[add_this] = []
         groupings[add_this] += 1
+
+        link_text = ""
+        sort_value = 0
+        band_value = 0
+        if "keystoneLevel" in k:
+            link_text = "+%d" % k["keystoneLevel"]
+            sort_value = int(k["keystoneLevel"])
+            band_value = int(k["keystoneLevel"])
+        elif "total" in k:
+            link_text = "%.2fk" % (float(k["total"])/1000)
+            sort_value = (float(k["total"])/1000)
+            band_value = int((float(k["total"])/10000))*10        
+
+        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
 
 
     shdw = {}
     for x in shadow:
         shdw[x["name"]] = [x["id"], x["icon"]]
 
-    return groupings, shdw
+    for k, v in popover.iteritems():
+        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
+
+    return groupings, shdw, popover
 
 def wcl_primary(rankings):
     groupings = {}
     shadow = []
+    popover = {}
     
     for k in rankings:
 
@@ -896,18 +935,37 @@ def wcl_primary(rankings):
     
         if add_this not in groupings:
             groupings[add_this] = 0
+            popover[add_this] = []
         groupings[add_this] += 1
+
+        link_text = ""
+        sort_value = 0
+        band_value = 0
+        if "keystoneLevel" in k:
+            link_text = "+%d" % k["keystoneLevel"]
+            sort_value = int(k["keystoneLevel"])
+            band_value = int(k["keystoneLevel"])
+        elif "total" in k:
+            link_text = "%.2fk" % (float(k["total"])/1000)
+            sort_value = (float(k["total"])/1000)
+            band_value = int((float(k["total"])/10000))*10
+
+        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
 
 
     shdw = {}
     for x in shadow:
         shdw[x["name"]] = [x["id"], x["icon"]]
 
-    return groupings, shdw
+    for k, v in popover.iteritems():
+        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
+        
+    return groupings, shdw, popover
 
 def wcl_role(rankings):
     groupings = {}
     shadow = []
+    popover = {}
     
     for k in rankings:
 
@@ -924,18 +982,37 @@ def wcl_role(rankings):
     
         if add_this not in groupings:
             groupings[add_this] = 0
+            popover[add_this] = []
         groupings[add_this] += 1
+
+        link_text = ""
+        sort_value = 0
+        band_value = 0
+        if "keystoneLevel" in k:
+            link_text = "+%d" % k["keystoneLevel"]
+            sort_value = int(k["keystoneLevel"])
+            band_value = int(k["keystoneLevel"])
+        elif "total" in k:
+            link_text = "%.2fk" % (float(k["total"])/1000)
+            sort_value = (float(k["total"])/1000)
+            band_value = int((float(k["total"])/10000))*10
+
+        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
 
 
     shdw = {}
     for x in shadow:
         shdw[x["name"]] = [x["id"], x["icon"]]
 
-    return groupings, shdw
+    for k, v in popover.iteritems():
+        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
+        
+    return groupings, shdw, popover
 
 def wcl_defensive(rankings):
     groupings = {}
     shadow = []
+    popover = {}
     
     for k in rankings:
 
@@ -952,19 +1029,38 @@ def wcl_defensive(rankings):
     
         if add_this not in groupings:
             groupings[add_this] = 0
+            popover[add_this] = []
         groupings[add_this] += 1
+
+        link_text = ""
+        sort_value = 0
+        band_value = 0
+        if "keystoneLevel" in k:
+            link_text = "+%d" % k["keystoneLevel"]
+            sort_value = int(k["keystoneLevel"])
+            band_value = int(k["keystoneLevel"])
+        elif "total" in k:
+            link_text = "%.2fk" % (float(k["total"])/1000)
+            sort_value = (float(k["total"])/1000)
+            band_value = int((float(k["total"])/10000))*10
+
+        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
 
 
     shdw = {}
     for x in shadow:
         shdw[x["name"]] = [x["id"], x["icon"]]
 
-    return groupings, shdw
+    for k, v in popover.iteritems():
+        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
+        
+    return groupings, shdw, popover
 
 
 def wcl_hsc(rankings):
     groupings = {}
     shadow = []
+    popover = {}
     
     for k in rankings:
 
@@ -978,18 +1074,37 @@ def wcl_hsc(rankings):
     
         if add_this not in groupings:
             groupings[add_this] = 0
+            popover[add_this] = []
         groupings[add_this] += 1
+
+        link_text = ""
+        sort_value = 0
+        band_value = 0
+        if "keystoneLevel" in k:
+            link_text = "+%d" % k["keystoneLevel"]
+            sort_value = int(k["keystoneLevel"])
+            band_value = int(k["keystoneLevel"])
+        elif "total" in k:
+            link_text = "%.2fk" % (float(k["total"])/1000)
+            sort_value = (float(k["total"])/1000)
+            band_value = int((float(k["total"])/10000))*10
+
+        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
 
 
     shdw = {}
     for x in shadow:
         shdw[x["name"]] = [x["id"], x["icon"]]
 
-    return groupings, shdw
+    for k, v in popover.iteritems():
+        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
+        
+    return groupings, shdw, popover
 
 def wcl_rings(rankings):
     groupings = {}
     shadow = []
+    popover = {}
     
     for k in rankings:
 
@@ -1003,20 +1118,39 @@ def wcl_rings(rankings):
     
         if add_this not in groupings:
             groupings[add_this] = 0
+            popover[add_this] = []
         groupings[add_this] += 1
+
+        link_text = ""
+        sort_value = 0
+        band_value = 0
+        if "keystoneLevel" in k:
+            link_text = "+%d" % k["keystoneLevel"]
+            sort_value = int(k["keystoneLevel"])
+            band_value = int(k["keystoneLevel"])
+        elif "total" in k:
+            link_text = "%.2fk" % (float(k["total"])/1000)
+            sort_value = (float(k["total"])/1000)
+            band_value = int((float(k["total"])/10000))*10
+
+        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
 
 
     shdw = {}
     for x in shadow:
         shdw[x["name"]] = [x["id"], x["icon"]]
 
-    return groupings, shdw
+    for k, v in popover.iteritems():
+        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
+        
+    return groupings, shdw, popover
 
 
 
 def wcl_gear(rankings, slots):
     groupings = {}
     shadow = []
+    popover = {}
     
     for k in rankings:
 
@@ -1030,24 +1164,45 @@ def wcl_gear(rankings, slots):
     
         if add_this not in groupings:
             groupings[add_this] = 0
+            popover[add_this] = []
         groupings[add_this] += 1
+
+        link_text = ""
+        sort_value = 0
+        band_value = 0
+        if "keystoneLevel" in k:
+            link_text = "+%d" % k["keystoneLevel"]
+            sort_value = int(k["keystoneLevel"])
+            band_value = int(k["keystoneLevel"])
+        elif "total" in k:
+            link_text = "%.2fk" % (float(k["total"])/1000)
+            sort_value = (float(k["total"])/1000)
+            band_value = int((float(k["total"])/10000))*10
+
+        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
 
 
     shdw = {}
     for x in shadow:
         shdw[x["name"]] = [x["id"], x["icon"]]
 
-    return wcl_top10(groupings), shdw
+    for k, v in popover.iteritems():
+        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
+        
+    return wcl_top10(groupings, popover), shdw
 
 
-def wcl_top10(d):
+def wcl_top10(d, pop=None):
     # need to also expore these ... k["reportId"] + k["keystoneLevel"]    
     dv = sorted(d.items(), key=operator.itemgetter(1), reverse=True)
     output = []
     for i, (s, n) in enumerate(dv):
         if i >= 10:
             break
-        output += [[n, s]]
+        if pop == None:
+            output += [[n, s, []]]
+        else:
+            output += [[n, s, pop[s]]]
 
     return output
     
@@ -1077,33 +1232,33 @@ def gen_wcl_spec_report(spec):
 
     for k in rankings:
         key_levels += [k["keystoneLevel"]]
-        
-    t, spells = wcl_talents(rankings)
-    talents = wcl_top10(t)
 
-    e, espells = wcl_essences(rankings)
-    essences = wcl_top10(e)
+    t, spells, pop = wcl_talents(rankings)
+    talents = wcl_top10(t, pop)
+
+    e, espells, pop = wcl_essences(rankings)
+    essences = wcl_top10(e, pop)
     spells.update(espells) 
 
 
-    p, pspells = wcl_primary(rankings)
-    primary = wcl_top10(p)
+    p, pspells, pop = wcl_primary(rankings)
+    primary = wcl_top10(p, pop)
     spells.update(pspells) 
 
 
-    r, rspells = wcl_role(rankings)
-    role = wcl_top10(r)
+    r, rspells, pop = wcl_role(rankings)
+    role = wcl_top10(r, pop)
     spells.update(rspells) 
 
     
-    d, dspells = wcl_defensive(rankings)
-    defensive = wcl_top10(d)
+    d, dspells, pop = wcl_defensive(rankings)
+    defensive = wcl_top10(d, pop)
     spells.update(dspells) 
 
     gear = {}
 
-    h, items = wcl_hsc(rankings)
-    hsc = wcl_top10(h)
+    h, items, pop = wcl_hsc(rankings)
+    hsc = wcl_top10(h, pop)
 
     gear_slots = []
     gear_slots += [["helms", [0]]]
@@ -1120,7 +1275,7 @@ def gen_wcl_spec_report(spec):
     gear_slots += [["weapons", [15, 16]]]
 
     for (slot_name, slots) in gear_slots:
-        gear[slot_name], update_items = wcl_gear(rankings, slots)
+        gear[slot_name], update_items = wcl_gear(rankings, slots) #popover is built into this function
         items.update(update_items)
 
     if len(key_levels) > 0:
@@ -1152,32 +1307,32 @@ def gen_wcl_raid_spec_report(spec, encounter="all", difficulty="Heroic"):
         latest = json.loads(k.rankings)
         rankings += latest
 
-    t, spells = wcl_talents(rankings)
-    talents = wcl_top10(t)
+    t, spells, pop = wcl_talents(rankings)
+    talents = wcl_top10(t, pop)
 
-    e, espells = wcl_essences(rankings)
-    essences = wcl_top10(e)
+    e, espells, pop = wcl_essences(rankings)
+    essences = wcl_top10(e, pop)
     spells.update(espells) 
 
 
-    p, pspells = wcl_primary(rankings)
-    primary = wcl_top10(p)
+    p, pspells, pop = wcl_primary(rankings)
+    primary = wcl_top10(p, pop)
     spells.update(pspells) 
 
 
-    r, rspells = wcl_role(rankings)
-    role = wcl_top10(r)
+    r, rspells, pop = wcl_role(rankings)
+    role = wcl_top10(r, pop)
     spells.update(rspells) 
 
     
-    d, dspells = wcl_defensive(rankings)
-    defensive = wcl_top10(d)
+    d, dspells, pop = wcl_defensive(rankings)
+    defensive = wcl_top10(d, pop)
     spells.update(dspells) 
 
     gear = {}
 
-    h, items = wcl_hsc(rankings)
-    hsc = wcl_top10(h)
+    h, items, pop = wcl_hsc(rankings)
+    hsc = wcl_top10(h, pop)
 
     gear_slots = []
     gear_slots += [["helms", [0]]]
@@ -1194,7 +1349,7 @@ def gen_wcl_raid_spec_report(spec, encounter="all", difficulty="Heroic"):
     gear_slots += [["weapons", [15, 16]]]
 
     for (slot_name, slots) in gear_slots:
-        gear[slot_name], update_items = wcl_gear(rankings, slots)
+        gear[slot_name], update_items = wcl_gear(rankings, slots) #popover built in
         items.update(update_items)
     
     return len(rankings), talents, essences, primary, role, defensive, hsc, gear, spells, items
