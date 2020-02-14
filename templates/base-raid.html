@@ -58,19 +58,21 @@
           {% endfor %}
         </div>
       </li>
-    </ul>
-    <ul class="navbar-nav justify-content-end">
-      <!-- TODO: link to the exact fight / role -->
       <li class="nav-item">
         {% if active_page == "raid-index" %}
-        <a class="nav-link" href="https://notes.noxguild.us/">Nox Notes for Ny'alotha</a>
+        <a class="nav-link" target="_blank" href="https://notes.noxguild.us/">Nox Notes for Ny'alotha</a>
         {% else %}
-        <a class="nav-link" href="https://notes.noxguild.us/{{nox_link}}">Nox Notes for {{ encounter_pretty }}</a>
+        <a class="nav-link" target="_blank" href="https://notes.noxguild.us/{{nox_link}}">Nox Notes for {{ encounter_pretty }}</a>
         {% endif %}
       </li>
       <li class="nav-item">
-        <a class="nav-link" href="https://mplus.subcreation.net">Subcreation Mythic+</a>
+        <a class="nav-link" target="_blank" href="https://mplus.subcreation.net">Subcreation Mythic+</a>
       </li>
+    </ul>
+    <ul class="navbar-nav justify-content-end">
+      <li class="nav-item">
+        <a class="nav-link" target="_blank" href="https://www.patreon.com/bePatron?u=10541594">&#10084;&#65039; Support the site on Patreon</a>
+      </li>      
     </ul>
   </div>
  </nav>
@@ -79,10 +81,10 @@
     <footer class="bd-footer text-muted">
       <div class="container-fluid p-3 p-md-5">
         <ul class="bd-footer-links">
-          <li><a href="https://discord.gg/X8dyq67">Discord</a></li>
-          <li><a href="https://github.com/alcaras/mplus.subcreation.net">GitHub</a></li>
-          <li><a href="https://twitter.com/subcreation/">Twitter</a>
-          <li><a href="https://www.patreon.com/bePatron?u=10541594">Patreon</a></li>
+          <li><a target="_blank" href="https://discord.gg/X8dyq67">Discord</a></li>
+          <li><a target="_blank" href="https://github.com/alcaras/mplus.subcreation.net">GitHub</a></li>
+          <li><a target="_blank" href="https://twitter.com/subcreation/">Twitter</a>
+          <li><a target="_blank" href="https://www.patreon.com/bePatron?u=10541594">Patreon</a></li>
         </ul>
         <p class="py-1">
           <a href="index.html">Subcreation Ny'alotha</a> provides summaries of the top talents, essences, azerite, and gear used in the Ny'alotha raid in the World of Warcraft, using the <a href="https://www.warcraftlogs.com/">Warcraft Logs</a> API</i>. Item and ability tooltips by <a href="https://www.wowhead.com/tooltips">Wowhead</a>. All images copyright Blizzard Entertainment.
