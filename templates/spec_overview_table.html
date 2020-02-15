@@ -28,7 +28,7 @@
  <a href='https://www.warcraftlogs.com/reports/{{report_id}}' target='_blank'>{{link_text}}</a>         
       </td>
 {% import 'logs_popover.html' as logs_popover %}
-<td><button type="button" class="btn btn-secondary" data-toggle="popover" title="Top Logs" data-placement="right" data-html="true" data-content="{{logs_popover.logs_popover(popover, season)}}">{{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}</button></td>        
+<td><a tabindex="0" class="btn btn-secondary" data-toggle="popover" data-trigger="focus" title="Top Logs" data-placement="right" data-html="true" data-content="{{logs_popover.logs_popover(popover, season)}}">{{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}</button></td>        
        
 
     </tr>
