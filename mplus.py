@@ -821,6 +821,72 @@ def can_tuple(elements):
         new_list += [tuple((k))]
     return tuple(new_list)
 
+# talents, essences, azerite combo
+def wcl_tea(rankings):
+    groupings = {}
+    shadow = []
+    popover = {}
+    
+    for k in rankings:
+        if "essencePowers" not in k:
+            continue
+        
+        talents = []
+        for i, j in enumerate(k["talents"]):
+            talents += [j["name"]]
+            shadow += [j]
+
+        
+        essences = []
+        for i, j in enumerate(k["essencePowers"]):
+            if i != 1: # skip the major's minor
+                essences += [j["name"]]
+                shadow += [j]
+
+        major = essences[0]
+        minors = sorted(essences[1:])
+        essences = [major] + minors
+
+        primary = []
+        # ignoring empowered traits
+        for i, j in enumerate(k["azeritePowers"]):
+            if i % 5 == 0 or i % 5 == 1: 
+                primary += [j["name"]]
+                shadow += [j]
+
+        primary = sorted(primary)
+
+        add_this = tuple(talents + essences + primary)
+    
+        if add_this not in groupings:
+            groupings[add_this] = 0
+            popover[add_this] = []
+        groupings[add_this] += 1
+        
+        link_text = ""
+        sort_value = 0
+        band_value = 0
+        if "keystoneLevel" in k:
+            link_text = "+%d" % k["keystoneLevel"]
+            sort_value = int(k["keystoneLevel"])
+            band_value = int(k["keystoneLevel"])
+        elif "total" in k:
+            link_text = "%.2fk" % (float(k["total"])/1000)
+            sort_value = (float(k["total"])/1000)
+            band_value = int((float(k["total"])/10000))*10
+
+        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
+
+
+    shdw = {}
+    for x in shadow:
+        shdw[x["name"]] = [x["id"], x["icon"]]
+
+    for k, v in popover.iteritems():
+        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
+
+    return groupings, shdw, popover
+
 
 def wcl_talents(rankings):
     groupings = {}
@@ -834,7 +900,7 @@ def wcl_talents(rankings):
             shadow += [j]
 
         add_this = tuple(talents)
-    
+        
         if add_this not in groupings:
             groupings[add_this] = 0
             popover[add_this] = []
@@ -1159,8 +1225,12 @@ def wcl_gear(rankings, slots):
             if i in slots:
                 gear += [j["name"]]
                 shadow += [j]
-        
-        add_this = tuple(sorted(gear))
+
+        # do NOT sort if weapon (we want the mainhand/offhand distinction)
+        if 15 in slots:
+            add_this = tuple((gear))
+        else:
+            add_this = tuple(sorted(gear))
     
         if add_this not in groupings:
             groupings[add_this] = 0
@@ -1192,12 +1262,12 @@ def wcl_gear(rankings, slots):
     return wcl_top10(groupings, popover), shdw
 
 
-def wcl_top10(d, pop=None):
+def wcl_top10(d, pop=None, top_n = 10):
     # need to also expore these ... k["reportId"] + k["keystoneLevel"]    
     dv = sorted(d.items(), key=operator.itemgetter(1), reverse=True)
     output = []
     for i, (s, n) in enumerate(dv):
-        if i >= 10:
+        if i >= top_n:
             break
         if pop == None:
             output += [[n, s, []]]
@@ -1233,24 +1303,25 @@ def gen_wcl_spec_report(spec):
     for k in rankings:
         key_levels += [k["keystoneLevel"]]
 
-    t, spells, pop = wcl_talents(rankings)
+    tea, spells, pop = wcl_tea(rankings)
+    tea = wcl_top10(tea, pop, top_n = 25)
+        
+    t, tspells, pop = wcl_talents(rankings)
     talents = wcl_top10(t, pop)
+    spells.update(tspells) 
 
     e, espells, pop = wcl_essences(rankings)
     essences = wcl_top10(e, pop)
     spells.update(espells) 
 
-
     p, pspells, pop = wcl_primary(rankings)
     primary = wcl_top10(p, pop)
     spells.update(pspells) 
-
 
     r, rspells, pop = wcl_role(rankings)
     role = wcl_top10(r, pop)
     spells.update(rspells) 
 
-    
     d, dspells, pop = wcl_defensive(rankings)
     defensive = wcl_top10(d, pop)
     spells.update(dspells) 
@@ -1279,8 +1350,8 @@ def gen_wcl_spec_report(spec):
         items.update(update_items)
 
     if len(key_levels) > 0:
-        return len(rankings), max(key_levels), min(key_levels), talents, essences, primary, role, defensive, hsc, gear, spells, items
-    return 0, 0, 0, talents, essences, primary, role, defensive, hsc, gear, spells, items
+        return len(rankings), max(key_levels), min(key_levels), tea, talents, essences, primary, role, defensive, hsc, gear, spells, items
+    return 0, 0, 0, tea, talents, essences, primary, role, defensive, hsc, gear, spells, items
 
 def gen_wcl_raid_spec_report(spec, encounter="all", difficulty="Heroic"):
     if encounter == "all":
@@ -1307,8 +1378,12 @@ def gen_wcl_raid_spec_report(spec, encounter="all", difficulty="Heroic"):
         latest = json.loads(k.rankings)
         rankings += latest
 
-    t, spells, pop = wcl_talents(rankings)
+    tea, spells, pop = wcl_tea(rankings)
+    tea = wcl_top10(tea, pop, top_n=25)
+
+    t, tspells, pop = wcl_talents(rankings)
     talents = wcl_top10(t, pop)
+    spells.update(tspells) 
 
     e, espells, pop = wcl_essences(rankings)
     essences = wcl_top10(e, pop)
@@ -1352,7 +1427,7 @@ def gen_wcl_raid_spec_report(spec, encounter="all", difficulty="Heroic"):
         gear[slot_name], update_items = wcl_gear(rankings, slots) #popover built in
         items.update(update_items)
     
-    return len(rankings), talents, essences, primary, role, defensive, hsc, gear, spells, items
+    return len(rankings), tea, talents, essences, primary, role, defensive, hsc, gear, spells, items
    
 
 def localized_time(last_updated):
@@ -1414,12 +1489,13 @@ def render_affixes(affixes, prefix=""):
 def render_wcl_spec(spec, prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, key_max, key_min, talents, essences, primary, role, defensive, hsc, gear, spells, items = gen_wcl_spec_report(spec)
+    n_parses, key_max, key_min, tea, talents, essences, primary, role, defensive, hsc, gear, spells, items = gen_wcl_spec_report(spec)
     
     template = env.get_template('spec.html')
     rendered = template.render(title = spec,
                                spec = spec,
                                spec_slug = spec_slug,
+                               tea = tea,
                                talents = talents,
                                affixes = affixes,
                                essences = essences,
@@ -1460,7 +1536,7 @@ def render_raid_index(prefix=""):
 def render_wcl_raid_spec(spec, encounter="all", difficulty="Heroic", prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, talents, essences, primary, role, defensive, hsc, gear, spells, items = gen_wcl_raid_spec_report(spec, encounter, difficulty)
+    n_parses, tea, talents, essences, primary, role, defensive, hsc, gear, spells, items = gen_wcl_raid_spec_report(spec, encounter, difficulty)
 
     encounter_pretty = encounter
     if encounter_pretty == "all":
@@ -1491,6 +1567,7 @@ def render_wcl_raid_spec(spec, encounter="all", difficulty="Heroic", prefix=""):
                                spec = spec,
                                spec_slug = spec_slug,
                                active_page = spec_slug + "-" + encounter_slug + "-" + difficulty_slug,
+                               tea = tea,
                                talents = talents,
                                affixes = affixes,
                                essences = essences,

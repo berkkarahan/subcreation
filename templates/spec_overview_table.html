@@ -1,12 +1,12 @@
-{% macro spec_overview_table(sizing, title, heading, data, lookup, lookup_type, n_parses, offset_first="") -%}
+{% macro spec_overview_table(sizing, title, heading, data, lookup, lookup_type, n_parses, offset_first="", offset_at = [0], anchor_id="") -%}
     
 <div class="{{sizing}} py-3">
-  <h3>{{title}}</h3>
+  <h3 {% if anchor_id != "" %}id="{{anchor_id}}{% endif %}">{{title}}</h3>
   
   <table class="table table-striped sort" id="table-spec-{{title[4:]}}">
     <thead>
       <tr>
-        <th data-sort-method-"none">{{heading}}</th>
+        <th>{{heading}}</th>
         <th>max</th>
         <th>Overall % (n)</th>
       </tr>
@@ -17,7 +17,7 @@
       <td>
         {% for k in build %}
         <a href="https://www.wowhead.com/{{lookup_type}}={{lookup[k][0]}}"></a>
-        {% if loop.index0 == 0 %}
+        {% if loop.index0 in offset_at %}
         {{offset_first}}
         {% endif %}
         {% endfor %}
@@ -28,7 +28,7 @@
  <a href='https://www.warcraftlogs.com/reports/{{report_id}}' target='_blank'>{{link_text}}</a>         
       </td>
 {% import 'logs_popover.html' as logs_popover %}
-<td><a tabindex="0" class="btn btn-secondary" data-toggle="popover" data-trigger="focus" title="Top Logs" data-placement="right" data-html="true" data-content="{{logs_popover.logs_popover(popover, season)}}">{{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}</button></td>        
+<td><a tabindex="0" class="btn btn-secondary" data-toggle="popover" data-trigger="focus" title="Top Logs" data-placement="right" data-html="true" data-content="{{logs_popover.logs_popover(popover, season)}}">{{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}</a></td>        
        
 
     </tr>
