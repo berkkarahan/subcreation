@@ -1,9 +1,9 @@
 {% macro spec_overview_table(sizing, title, heading, data, lookup, lookup_type, n_parses, offset_first="", offset_at = [0], anchor_id="") -%}
     
 <div class="{{sizing}} py-3">
-  <h3 {% if anchor_id != "" %}id="{{anchor_id}}{% endif %}">{{title}}</h3>
+  <h3 id="{{anchor_id}}">{{title}}</h3>
   
-  <table class="table table-striped sort" id="table-spec-{{title[4:]}}">
+  <table class="table table-striped sort" id="table-spec-{{anchor_id}}">
     <thead>
       <tr>
         <th>{{heading}}</th>
@@ -36,7 +36,7 @@
     </tbody>
   </table>
   <script>
-    new Tablesort(document.getElementById('table-spec-{{title[4:]}}'))
+    new Tablesort(document.getElementById('table-spec-{{anchor_id}}'))
   </script>
 </div>
 
