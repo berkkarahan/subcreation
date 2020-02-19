@@ -2072,23 +2072,27 @@ class WCLGenHTML(webapp2.RequestHandler):
 class WCLRaidGenHTML(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write("Writing WCL HTML...\n")
+        self.response.write("Writing WCL Raid HTML...\n")
         options = TaskRetryOptions(task_retry_limit = 1)
         deferred.defer(write_raid_spec_overviews, _retry_options=options)   
         
 
 app = webapp2.WSGIApplication([
-        ('/update_current_dungeons', UpdateCurrentDungeons),
         ('/generate_html', GenerateHTML),
-        ('/only_generate_html', OnlyGenerateHTML),
-        ('/view', TestView),
-        ('/raid', TestRaidView),    
-        ('/known_affixes', KnownAffixesShow),
         ('/update_wcl', WCLGetRankings),
-        ('/generate_wcl_html', WCLGenHTML),
         ('/update_wcl_raid', WCLGetRankingsRaid),
-        ('/only_update_wcl_raid', WCLGetRankingsRaidOnly),
-        ('/generate_wcl_raid_html', WCLRaidGenHTML),
+    
+        ('/refresh_data/dungeons', UpdateCurrentDungeons),
+        ('/refresh_data/raids', WCLGetRankingsRaidOnly),
+    
+        ('/gen_html/affixes', OnlyGenerateHTML),
+        ('/gen_html/specs', WCLGenHTML),
+        ('/gen_html/raids', WCLRaidGenHTML),
+
+        ('/view', TestView),
+        ('/raid', TestRaidView),
+
+        ('/test/known_affixes', KnownAffixesShow),
         ('/test/update_wcl', TestWCLGetRankings),
         ('/test/update_wcl_raid', TestWCLGetRankingsRaid),
         ], debug=True)
