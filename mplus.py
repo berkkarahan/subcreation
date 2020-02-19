@@ -755,6 +755,12 @@ def gen_set_report(set_counts):
 def gen_dungeon_report(dungeon_counts):
     dungeons_overall = construct_analysis(dungeon_counts)
 
+    stats = {}
+
+    min_key = None
+    max_key = None
+    n_runs = 0 
+    
     dungeon_output = []
     for x in dungeons_overall:
 
@@ -767,13 +773,39 @@ def gen_dungeon_report(dungeon_counts):
                             x[5][1], # id of the maximum run
                             x[5][2], # level of the max run
                             x[6], # all runs info
-                            ]] 
+                            ]]
 
-    return dungeon_output
+        n_runs += len(x[6])
+
+        for k in x[6]:
+            if min_key == None:
+                min_key = k[1]
+            else:
+                if min_key > k[1]:
+                    min_key = k[1]
+
+        if max_key == None:
+            max_key = x[5][2]
+        else:
+            if max_key < x[5][2]:
+                max_key = x[5][2]
+
+
+    stats["min"] = min_key
+    stats["max"] = max_key
+    stats["n"] = n_runs
+    
+    return dungeon_output, stats
 
 def gen_affix_report(affix_counts):
     affixes_overall = construct_analysis(affix_counts)
+    
+    stats = {}
 
+    min_key = None
+    max_key = None
+    n_runs = 0     
+    
     affix_output = []
     for x in affixes_overall:
 
@@ -786,19 +818,48 @@ def gen_affix_report(affix_counts):
                             x[5][1], # id of the maximum run
                             x[5][2], # level of the max run
                             x[6], # all runs info
-                            ]] 
+                            ]]
 
-    return affix_output
+        n_runs += len(x[6])
+
+        for k in x[6]:
+            if min_key == None:
+                min_key = k[1]
+            else:
+                if min_key > k[1]:
+                    min_key = k[1]
+
+        if max_key == None:
+            max_key = x[5][2]
+        else:
+            if max_key < x[5][2]:
+                max_key = x[5][2]
+
+
+    stats["min"] = min_key
+    stats["max"] = max_key
+    stats["n"] = n_runs
+
+    return affix_output, stats
 
 def gen_spec_report(spec_counts):
     global role_titles, specs
 
     role_package = {}
+    
+    stats = {}
 
     spec_overall = construct_analysis(spec_counts)
 
     for i, display in enumerate([tanks, healers, melee, ranged]):
         role_score = []
+        stats[role_titles[i]] = {}
+
+        min_key = None
+        max_key = None
+        n_runs = 0
+        ids = []
+        
         for k in sorted(spec_overall, key=lambda x: x[4][0], reverse=True):
             if k[0] in display:
                 role_score += [[str("%.2f" % k[4][0]),
@@ -811,8 +872,31 @@ def gen_spec_report(spec_counts):
                                 k[5][2], # level of the max run
                                 k[6], # all runs info
                                 ]]
+                for j in k[6]:
+                    if j[2] not in ids:
+                        ids += [j[2]]
+                        
+                for j in k[6]:
+                    if min_key == None:
+                        min_key = j[1]
+                    else:
+                        if min_key > j[1]:
+                            min_key = j[1]
+
+                if max_key == None:
+                    max_key = k[5][2]
+                else:
+                    if max_key < k[5][2]:
+                        max_key = k[5][2]
+
+        n_runs = len(ids)
+
+        stats[role_titles[i]]["min"] = min_key
+        stats[role_titles[i]]["max"] = max_key
+        stats[role_titles[i]]["n"] = n_runs
+                
         role_package[role_titles[i]] = role_score
-    return role_package
+    return role_package, stats
 
 
 def can_tuple(elements):
@@ -1442,12 +1526,12 @@ def render_affixes(affixes, prefix=""):
     if affixes == current_affixes():
         affixes_slug_special = "index"
     
-    dungeons_report = gen_dungeon_report(dungeon_counts)
-    specs_report = gen_spec_report(spec_counts)
+    dungeons_report, dungeon_stats = gen_dungeon_report(dungeon_counts)
+    specs_report, spec_stats = gen_spec_report(spec_counts)
     set_report = gen_set_report(set_counts)
     th_report = gen_set_report(th_counts)
     dps_report = gen_set_report(dps_counts)
-    affixes_report = gen_affix_report(affix_counts)
+    affixes_report, affix_stats = gen_affix_report(affix_counts)
 
 
     dtl = gen_dungeon_tier_list(dungeons_report)
@@ -1466,7 +1550,9 @@ def render_affixes(affixes, prefix=""):
                                affixes_slug=affixes_slug,
                                affixes_slug_special=affixes_slug_special,
                                dungeons=dungeons_report,
+                               dungeon_stats = dungeon_stats,
                                affixes_report=affixes_report,
+                               affix_stats = affix_stats,
                                aftl = aftl,
                                dtl = dtl,
                                tankstl = tankstl,
@@ -1474,6 +1560,7 @@ def render_affixes(affixes, prefix=""):
                                meleetl = meleetl,
                                rangedtl = rangedtl,
                                role_package=specs_report,
+                               spec_stats = spec_stats,
                                sets=set_report,
                                sets_th=th_report,
                                sets_dps=dps_report,
