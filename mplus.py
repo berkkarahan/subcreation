@@ -102,11 +102,11 @@ def parse_response(data, dungeon, affixes, region, page):
             spec_class = ch["spec"]["name"] + " " + ch["class"]["name"]
             roster += [spec_class]
            
-            
-        dar.runs += [Run(score=score, roster=roster, keystone_run_id=ksrid,
-                         completed_at=completed_at, clear_time_ms=clear_time_ms,
-                         mythic_level=mythic_level, num_chests=num_chests,
-                         keystone_time_ms=keystone_time_ms, faction=faction)]
+        if mythic_level >= 10: # only track runs at +10 or above
+            dar.runs += [Run(score=score, roster=roster, keystone_run_id=ksrid,
+                             completed_at=completed_at, clear_time_ms=clear_time_ms,
+                             mythic_level=mythic_level, num_chests=num_chests,
+                             keystone_time_ms=keystone_time_ms, faction=faction)]
 
     return dar
 
@@ -552,6 +552,9 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
                         last_updated = dar.last_updated
 
                     for run in dar.runs:
+                        if run.mythic_level < 10: # don't count runs under a +10
+                            continue
+                        
                         if dung not in dungeon_counts:
                             dungeon_counts[dung] = []
                         dungeon_counts[dung] += [run]
@@ -2169,12 +2172,12 @@ app = webapp2.WSGIApplication([
         ('/update_wcl', WCLGetRankings),
         ('/update_wcl_raid', WCLGetRankingsRaid),
     
-        ('/refresh_data/dungeons', UpdateCurrentDungeons),
-        ('/refresh_data/raids', WCLGetRankingsRaidOnly),
+        ('/refresh/dungeons', UpdateCurrentDungeons),
+        ('/refresh/raids', WCLGetRankingsRaidOnly),
     
-        ('/gen_html/affixes', OnlyGenerateHTML),
-        ('/gen_html/specs', WCLGenHTML),
-        ('/gen_html/raids', WCLRaidGenHTML),
+        ('/generate/affixes', OnlyGenerateHTML),
+        ('/generate/specs', WCLGenHTML),
+        ('/generate/raids', WCLRaidGenHTML),
 
         ('/view', TestView),
         ('/raid', TestRaidView),
