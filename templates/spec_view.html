@@ -7,16 +7,19 @@
 
 {{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Primary Azerite", "Azerite Traits", primary, spells, "spell", n_parses, anchor_id="primary", expanded="true") }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Role Azerite", "Azerite Traits", role, spells, "spell", n_parses, anchor_id="role") }}
+{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Trinkets", "Items", gear["trinkets"], items, "item", n_parses, anchor_id="trinkets", expanded="true") }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Role Azerite", "Azerite Traits", role, spells, "spell", n_parses, anchor_id="role") }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Defensive Azerite", "Azerite Traits", defensive, spells, "spell", n_parses, anchor_id="defensive") }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Azerite Gear", "Helm, Shoulder, Chest", hsc, items, "item", n_parses, anchor_id="azerite") }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Weapons", "Item(s)", gear["weapons"], items, "item", n_parses, anchor_id="weapons", expanded="true") }}   
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Trinkets", "Items", gear["trinkets"], items, "item", n_parses, anchor_id="trinkets", expanded="true") }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Helms", "Item", gear["helms"], items, "item", n_parses, anchor_id="helms") }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Shoulders", "Item", gear["shoulders"], items, "item", n_parses, anchor_id="shoulders") }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Chests", "Item", gear["chests"], items, "item", n_parses, anchor_id="chests") }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Azerite Gear", "Helm, Shoulder, Chest", hsc, items, "item", n_parses, anchor_id="azerite") }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Weapons", "Item(s)", gear["weapons"], items, "item", n_parses, anchor_id="weapons", expanded="false") }}   
 
 {# season 3 only since evreyone will have legendary cloak #}
 {# maybe replace with corruption level? #}
@@ -24,9 +27,6 @@
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Rings", "Items", gear["rings"], items, "item", n_parses, anchor_id="rings") }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Helms", "Item", gear["helms"], items, "item", n_parses, anchor_id="helms") }}
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Shoulders", "Item", gear["shoulders"], items, "item", n_parses, anchor_id="shoulders") }}
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Chests", "Item", gear["chests"], items, "item", n_parses, anchor_id="chests") }}
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Belts", "Item", gear["belts"], items, "item", n_parses, anchor_id="belts") }}
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Legs", "Item", gear["legs"], items, "item", n_parses, anchor_id="legs") }}
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Feet", "Item", gear["feet"], items, "item", n_parses, anchor_id="feet") }}

@@ -5,9 +5,21 @@
 <div class="container-fluid">
   <div class="row">
 <div class="col-12 py-3">
-<h1><img src="images/specs/{{spec_slug}}.jpg" /> {{spec}} ({{difficulty}} {{encounter_pretty}})</h1>
-<i>Top talents, essences, azerite, and gear based on data from the top {{n_parses}} {{difficulty}} {{encounter_pretty}} logs from the past 4 weeks. <button class="btn btn-primary btn-sm" type="button" data-toggle="collapse" data-target=".multi-collapse" aria-controls="multi-collapse" aria-expanded="true">Toggle All</button></i>
+  <h1><img src="images/specs/{{spec_slug}}.jpg" /> {{spec}} ({{difficulty}} {{encounter_pretty}})</h1>
+  <p>
+    <i>Top talents, essences, azerite, and gear based on data from the top {{n_parses}} {{difficulty}} {{encounter_pretty}} logs from the past 4 weeks.</i>  <button class="btn btn-primary btn-sm" type="button" onClick="showAll()">Show All</button> <button class="btn btn-primary btn-sm" type="button" onClick="hideAll()">Hide All</button>
+    </p>
 </div>
+
+<script>
+  function hideAll() {
+      $('.multi-collapse').hide();
+  }
+
+  function showAll() {
+      $('.multi-collapse').show();
+  }
+</script>
   </div>
 
         <nav class="boss-nav navbar navbar-expand">

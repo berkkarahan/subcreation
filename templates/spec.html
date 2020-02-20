@@ -7,9 +7,21 @@
 <div class="container-fluid">
   <div class="row">
 <div class="col-12 py-3">
-<h1><img src="images/specs/{{spec_slug}}.jpg" /> {{spec}}</h1>
-<i>Based on data from the top {{n_parses}} {{spec}} M+ logs from the past 4 weeks, ranging in difficulty from +{{key_min}} to +{{key_max}}.</i> <button class="btn btn-primary btn-sm" type="button" data-toggle="collapse" data-target=".multi-collapse" aria-controls="multi-collapse" aria-expanded="true">Toggle All</button>
+  <h1><img src="images/specs/{{spec_slug}}.jpg" /> {{spec}}</h1>
+  <p>
+    <i>Based on data from the top {{n_parses}} {{spec}} M+ logs from the past 4 weeks, ranging in difficulty from +{{key_min}} to +{{key_max}}.</i> <button class="btn btn-primary btn-sm" type="button" onClick="showAll()">Show All</button> <button class="btn btn-primary btn-sm" type="button" onClick="hideAll()">Hide All</button>
+    </p>
 </div>
+
+<script>
+  function hideAll() {
+      $('.multi-collapse').hide();
+  }
+
+  function showAll() {
+      $('.multi-collapse').show();
+  }
+</script>
   </div>
   <div class="row">
 
