@@ -2,20 +2,23 @@ cron:
 - description: "data pull + generate html"
   url: /generate_html
   schedule: every 8 hours from 00:45 to 23:45
+  timezone: America/New_York
   retry_parameters:
     job_retry_limit: 1
     job_age_limit: 5m
 
 - description: "wcl update"
   url: /update_wcl
-  schedule: every 24 hours from 00:45 to 07:45
+  schedule: every 24 hours from 01:45 to 07:45
+  timezone: America/New_York
   retry_parameters:
     job_retry_limit: 1
     job_age_limit: 5m
 
 - description: "wcl raid update"
   url: /update_wcl_raid
-  schedule: every 24 hours from 03:45 to 07:45
+  schedule: every 24 hours from 02:45 to 07:45
+  timezone: America/New_York  
   retry_parameters:
     job_retry_limit: 1
     job_age_limit: 5m
