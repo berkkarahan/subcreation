@@ -2,7 +2,9 @@
 <html>
 <head>
 <title>{{title}} - Subcreation Mythic+</title>
-<meta name=description content="Subcreation Mythic+ provides statistical analysis of Mythic+ dungeons in World of Warcraft, using the raider.io API, and provides summaries of the top talents, essences, azerite, and gear used in Mythic+, using the Warcraft Logs API.">
+<meta name=description content="Subcreation Mythic+ provides statistical analysis of Mythic+ dungeons in World of Warcraft, using the raider.io API, and provides summaries of the top talents, essences, azerite, corruption, and gear used in Mythic+, using the Warcraft Logs API.">
+
+<!-- enchants, gems, -->
 
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -60,7 +62,7 @@
       </li>
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle{% if page_type == "spec" %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-	  Top Talents, Essences, Azerite, and Gear
+	  Top Builds per Spec
         </a>
         <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
           {% for (name, slug, icon) in known_tanks %}
@@ -103,9 +105,9 @@
           <li><a target="_blank" href="https://www.patreon.com/bePatron?u=10541594">Patreon</a></li>
         </ul>
         <p class="py-1">
-          <a href="index.html">Subcreation Mythic+</a> provides statistical analysis of Mythic+ dungeons in World of Warcraft, using the <a href="http://raider.io">raider.io</a> API, and provides summaries of the top talents, essences, azerite, and gear used in Mythic+, using the <a href="https://www.warcraftlogs.com/">Warcraft Logs</a> API</i>. Item and ability tooltips by <a href="https://www.wowhead.com/tooltips">Wowhead</a>. All images copyright Blizzard Entertainment.
+          <a href="index.html">Subcreation Mythic+</a> provides statistical analysis of Mythic+ dungeons in World of Warcraft, using the <a href="http://raider.io">raider.io</a> API, and provides summaries of the top talents, essences, azerite, corruption, <!-- enchants, gems, --> and gear used in Mythic+, using the <a href="https://www.warcraftlogs.com/">Warcraft Logs</a> API</i>. Item and ability tooltips by <a href="https://www.wowhead.com/tooltips">Wowhead</a>. All images copyright Blizzard Entertainment.
 </p>
-<p class="py-1">Subcreation Mythic+ updates every eight hours for top M+ runs (via raider.io) and every 24 hours for top talents, essences, azerite, and gear (via Warcraft Logs).
+<p class="py-1">Subcreation Mythic+ updates every eight hours for top M+ runs (via raider.io) and every 24 hours for top talents, essences, azerite, corruption, <!-- enchants, gems, --> and gear (via Warcraft Logs).
 </p>
 <p class="py-1">
   This page last updated: {{last_updated}}.

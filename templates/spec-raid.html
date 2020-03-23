@@ -7,7 +7,7 @@
 <div class="col-12 py-3">
   <h1><img src="images/specs/{{spec_slug}}.jpg" /> {{spec}} ({{difficulty}} {{encounter_pretty}})</h1>
   <p>
-    <i>Top talents, essences, azerite, and gear based on data from the top {{n_parses}} {{difficulty}} {{encounter_pretty}} logs from the past 4 weeks.</i>  <button class="btn btn-primary btn-sm" type="button" onClick="showAll()">Show All</button> <button class="btn btn-primary btn-sm" type="button" onClick="hideAll()">Hide All</button>
+    <i>Top talents, essences, azerite, corruption, <!--enchants, gems,--> and gear based on data from the top {{n_parses}} {{difficulty}} {{encounter_pretty}} logs (by <b>{{metric}}</b>) from the past 4 weeks.</i>  <button class="btn btn-primary btn-sm" type="button" onClick="showAll()">Show All</button> <button class="btn btn-primary btn-sm" type="button" onClick="hideAll()">Hide All</button>
     </p>
 </div>
 
@@ -67,7 +67,7 @@
   <div class="row">
 
 {% import 'spec_view.html' as spec_view %}
-{{ spec_view.spec_view(n_parses, tea, talents, essences, primary, role, defensive, hsc, gear, spells, items) }}
+{{ spec_view.spec_view(n_parses, tea, talents, essences, primary, role, defensive, hsc, gear, enchants, gems, gem_builds, corruption, corruption_builds, corruption_levels, spells, items, metric=metric) }}
 
   </div>
 </div>

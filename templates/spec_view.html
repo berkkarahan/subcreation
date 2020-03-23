@@ -1,37 +1,53 @@
-{% macro spec_view(n_parses, tea, talents, essences, primary, role, defensive, hsc, gear, spells, items) -%}
+{% macro spec_view(n_parses, tea, talents, essences, primary, role, defensive, hsc, gear, enchants, gems, gem_builds, corruption, corruption_builds, corruption_levels, spells, items, metric="dps") -%}
 {% import 'spec_overview_table.html' as spec_overview_table %}
 
-{{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Talent Builds", "Talents", talents, spells, "spell", n_parses, anchor_id="talents", expanded="true") }}
+{{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Talent Builds", "Talents", talents, spells, "spell", n_parses, anchor_id="talents", expanded="true", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Essence Builds", "Major + Minors", essences, spells, "spell", n_parses, offset_first="&nbsp;", offset_at = [0], anchor_id="essences", expanded="true") }}
+{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Essence Builds", "Major + Minors", essences, spells, "spell", n_parses, offset_first="&nbsp;", offset_at = [0], anchor_id="essences", expanded="true", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Primary Azerite", "Azerite Traits", primary, spells, "spell", n_parses, anchor_id="primary", expanded="true") }}
+{{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Primary Azerite", "Azerite Traits", primary, spells, "spell", n_parses, anchor_id="primary", expanded="true", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Trinkets", "Items", gear["trinkets"], items, "item", n_parses, anchor_id="trinkets", expanded="true") }}
+{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Trinkets", "Items", gear["trinkets"], items, "item", n_parses, anchor_id="trinkets", expanded="true", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Role Azerite", "Azerite Traits", role, spells, "spell", n_parses, anchor_id="role") }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-4", "Corruption", "Corruption", corruption, spells, "spell", n_parses, anchor_id="corruption", expanded="true", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Defensive Azerite", "Azerite Traits", defensive, spells, "spell", n_parses, anchor_id="defensive") }}
+{{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-8", "Corruption Builds", "Build", corruption_builds, spells, "spell", n_parses, anchor_id="corruption_builds", expanded="true", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Azerite Gear", "Helm, Shoulder, Chest", hsc, items, "item", n_parses, anchor_id="azerite") }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Corruption Levels", "Negative Effects", corruption_levels, spells, "spell", n_parses, anchor_id="corruption_levels", expanded="true", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Helms", "Item", gear["helms"], items, "item", n_parses, anchor_id="helms") }}
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Shoulders", "Item", gear["shoulders"], items, "item", n_parses, anchor_id="shoulders") }}
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Chests", "Item", gear["chests"], items, "item", n_parses, anchor_id="chests") }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Role Azerite", "Azerite Traits", role, spells, "spell", n_parses, anchor_id="role", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Weapons", "Item(s)", gear["weapons"], items, "item", n_parses, anchor_id="weapons", expanded="false") }}   
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Defensive Azerite", "Azerite Traits", defensive, spells, "spell", n_parses, anchor_id="defensive", metric=metric) }}
 
-{# season 3 only since evreyone will have legendary cloak #}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Azerite Gear", "Helm, Shoulder, Chest", hsc, items, "item", n_parses, anchor_id="azerite", metric=metric) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Helms", "Item", gear["helms"], items, "item", n_parses, anchor_id="helms", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Shoulders", "Item", gear["shoulders"], items, "item", n_parses, anchor_id="shoulders", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Chests", "Item", gear["chests"], items, "item", n_parses, anchor_id="chests", metric=metric) }}
+
+
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Weapons", "Item(s)", gear["weapons"], items, "item", n_parses, anchor_id="weapons", metric=metric) }}
+
+{# spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Weapon Enchants", "Enchant(s)", enchants["weapons"], spells, "spell", n_parses, anchor_id="weapon_enchants", metric=metric) #}
+
+
+{# season 3 only since everyone will have legendary cloak #}
 {# maybe replace with corruption level? #}
 {# spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Cloaks", "Item", gear["cloaks"], items, "item", n_parses) #}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Rings", "Items", gear["rings"], items, "item", n_parses, anchor_id="rings") }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Rings", "Items", gear["rings"], items, "item", n_parses, anchor_id="rings", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Belts", "Item", gear["belts"], items, "item", n_parses, anchor_id="belts") }}
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Legs", "Item", gear["legs"], items, "item", n_parses, anchor_id="legs") }}
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Feet", "Item", gear["feet"], items, "item", n_parses, anchor_id="feet") }}
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Wrists", "Item", gear["wrists"], items, "item", n_parses, anchor_id="wrists") }}
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Gloves", "Item", gear["gloves"], items, "item", n_parses, anchor_id="gloves") }}
+{# spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Ring Enchants", "Items", enchants["rings"], spells, "spell", n_parses, anchor_id="ring_enchants", metric=metric) #}
 
-{{ spec_overview_table.spec_overview_table("col-xl-12 col-lg-12", "Talent / Essence / Primary Azerite Combinations", "Combination", tea, spells, "spell", n_parses, offset_first="&nbsp;", offset_at = [6,10], anchor_id="tea") }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Belts", "Item", gear["belts"], items, "item", n_parses, anchor_id="belts", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Legs", "Item", gear["legs"], items, "item", n_parses, anchor_id="legs", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Feet", "Item", gear["feet"], items, "item", n_parses, anchor_id="feet", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Wrists", "Item", gear["wrists"], items, "item", n_parses, anchor_id="wrists", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Gloves", "Item", gear["gloves"], items, "item", n_parses, anchor_id="gloves", metric=metric) }}
+
+{# spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Gems", "Gem", gems, items, "item", n_parses, anchor_id="gems, metric=metric") #}
+
+{# spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Gem Builds", "Gem(s)", gem_builds, items, "item", n_parses, anchor_id="gem_builds", metric=metric) #}
+
+{{ spec_overview_table.spec_overview_table("col-xl-12 col-lg-12", "Talent / Essence / Primary Azerite Combinations", "Combination", tea, spells, "spell", n_parses, offset_first="&nbsp;", offset_at = [6,10], anchor_id="tea", metric=metric) }}
 {%- endmacro %}
