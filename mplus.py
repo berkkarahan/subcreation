@@ -1875,6 +1875,7 @@ def render_wcl_spec(spec, prefix=""):
                                n_parses = n_parses,
                                key_max = key_max,
                                key_min = key_min,
+                               metric = "key",
                                prefix=prefix,
                                known_tanks = known_specs_subset_links(tanks, prefix=prefix),
                                known_healers = known_specs_subset_links(healers, prefix=prefix),
