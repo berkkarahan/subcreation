@@ -1185,7 +1185,7 @@ def wcl_corruption_levels(rankings):
     popover = {}
 
     for k in rankings:
-
+        
         effective_corruption = 0
         cloakResist = 0
         corruptionFromPowers = 0
@@ -1241,18 +1241,21 @@ def wcl_corruption_levels(rankings):
         corruption_bracket = 0
         corruption_downsides = []
 
+        if effective_corruption >= 1:
+            corruption_bracket = 1
+            corruption_downsides += ["Grasping Tendrils"]
         if effective_corruption >= 20:
             corruption_bracket = 20
-            corruption_downsides += ["Grasping Tendrils"]
-        if effective_corruption >= 40:
-            corruption_bracket = 40
             corruption_downsides += ["Eye of Corruption"]            
-        if effective_corruption >= 60:            
-            corruption_bracket = 60
+        if effective_corruption >= 40:            
+            corruption_bracket = 40
             corruption_downsides += ["Grand Delusions"]
+        if effective_corruption >= 60:
+            corruption_bracket = 60
+            corruption_downsides += ["Cascading Disaster"]
         if effective_corruption >= 80:
             corruption_bracket = 80
-            corruption_downsides += ["Cascading Disaster"]
+            corruption_downsides += ["Inevitable Doom"]
 
         add_this = tuple(corruption_downsides) # not sorted, preserve order
         
@@ -1288,7 +1291,11 @@ def wcl_corruption_levels(rankings):
                            "name" : "Grand Delusions"}]
     corruption_spells += [{"id" : 315857,
                            "icon" : "inv_eyeofnzothpet.jpg",                           
-                           "name" : "Cascading Disaster"}]       
+                           "name" : "Cascading Disaster"}]
+    corruption_spells += [{"id" : 315179,
+                           "icon" : "inv_eyeofnzothpet.jpg",                           
+                           "name" : "Inevitable Doom"}]                          
+
 
     shadow = corruption_spells
     for x in shadow:
