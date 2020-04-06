@@ -2428,6 +2428,12 @@ class WCLGetRankings(webapp2.RequestHandler):
         self.response.write("Queueing updates...\n")
         update_wcl_all()
 
+class WCLGetRankingsOnly(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Queueing updates...\n")
+        update_wcl_update()        
+
 class TestWCLGetRankings(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
@@ -2472,11 +2478,12 @@ app = webapp2.WSGIApplication([
         ('/update_wcl', WCLGetRankings),
         ('/update_wcl_raid', WCLGetRankingsRaid),
     
-        ('/refresh/dungeons', UpdateCurrentDungeons),
+        ('/refresh/affixes', UpdateCurrentDungeons),
+        ('/refresh/dungeons', WCLGetRankingsOnly),
         ('/refresh/raids', WCLGetRankingsRaidOnly),
     
         ('/generate/affixes', OnlyGenerateHTML),
-        ('/generate/specs', WCLGenHTML),
+        ('/generate/dungeons', WCLGenHTML),
         ('/generate/raids', WCLRaidGenHTML),
 
         ('/view', TestView),
