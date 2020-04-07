@@ -1144,13 +1144,15 @@ def wcl_corruption(rankings):
                     corruptions += [jj["name"]]
                     shadow += [jj]                                    
 
-
+        added_this_round = []
         for corr in corruptions:
             add_this = tuple([corr])
             if add_this not in groupings:
                 groupings[add_this] = 0
                 popover[add_this] = []
-            groupings[add_this] += 1
+            if add_this not in added_this_round:
+                groupings[add_this] += 1
+                added_this_round += [add_this]
 
         link_text = ""
         sort_value = 0
@@ -1588,7 +1590,7 @@ def wcl_gear(rankings, slots):
 
 
 def wcl_top10(d, pop=None, top_n = 10):
-    # need to also expore these ... k["reportId"] + k["keystoneLevel"]    
+    # need to also explore these ... k["reportId"] + k["keystoneLevel"]    
     dv = sorted(d.items(), key=operator.itemgetter(1), reverse=True)
     output = []
     for i, (s, n) in enumerate(dv):
