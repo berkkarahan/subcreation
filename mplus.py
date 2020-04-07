@@ -552,7 +552,7 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
                         last_updated = dar.last_updated
 
                     for run in dar.runs:
-                        if run.mythic_level < 10: # don't count runs under a +10
+                        if run.mythic_level < 16: # don't count runs under a +16
                             continue
                         
                         if dung not in dungeon_counts:
@@ -876,8 +876,7 @@ def gen_spec_report(spec_counts):
                                 k[6], # all runs info
                                 ]]
                 for j in k[6]:
-                    if j[2] not in ids:
-                        ids += [j[2]]
+                    ids += [j[2]]
                         
                 for j in k[6]:
                     if min_key == None:
@@ -892,7 +891,7 @@ def gen_spec_report(spec_counts):
                     if max_key < k[5][2]:
                         max_key = k[5][2]
 
-        n_runs = len(ids)
+        n_runs = len(set(ids))
 
         stats[role_titles[i]]["min"] = min_key
         stats[role_titles[i]]["max"] = max_key
@@ -1907,6 +1906,15 @@ def render_raid_index(prefix=""):
 
     return rendered
 
+
+def render_main_index(prefix=""):
+    template = env.get_template("main-index.html")
+    rendered = template.render(prefix=prefix,
+                               active_page = "main-index")
+
+
+    return rendered
+
 def render_wcl_raid_spec(spec, encounter="all", difficulty="Heroic", prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
@@ -2041,6 +2049,15 @@ def write_overviews():
         options = TaskRetryOptions(task_retry_limit = 1)        
         deferred.defer(render_and_write, af,
                        _retry_options=options)
+
+def write_all_affixes():
+    affixes_to_write = []
+    affixes_to_write += ["All Affixes"]
+
+    for af in affixes_to_write:
+        options = TaskRetryOptions(task_retry_limit = 1)        
+        deferred.defer(render_and_write, af,
+                       _retry_options=options)   
 
 
 def create_spec_overview(s):
@@ -2199,6 +2216,11 @@ def test_raid_view(destination):
     return render_wcl_raid_spec(spec, encounter=encounter,
                                 difficulty = difficulty, prefix=prefix)
 
+
+def test_main_view(destination):
+    prefix = "main?goto="
+    if "index" in destination:
+        return render_main_index(prefix=prefix)
 
 ## wcl querying
 # @@season update
@@ -2391,7 +2413,15 @@ class OnlyGenerateHTML(webapp2.RequestHandler):
         self.response.write("Writing templates to cloud storage...")
         options = TaskRetryOptions(task_retry_limit = 1)
         deferred.defer(write_overviews, _countdown=20,
-                       _retry_options=options)        
+                       _retry_options=options)
+
+class OnlyGenerateAllAffixesHTML(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Writing templates to cloud storage...")
+        options = TaskRetryOptions(task_retry_limit = 1)
+        deferred.defer(write_all_affixes, _countdown=20,
+                       _retry_options=options)          
 
 class GenerateHTML(webapp2.RequestHandler):
     def get(self):
@@ -2414,6 +2444,12 @@ class TestRaidView(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/html'
         destination = self.request.get("goto", "index.html")
         self.response.write(test_raid_view(destination))
+
+class TestMainView(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        destination = self.request.get("goto", "index.html")
+        self.response.write(test_main_view(destination))        
         
 
 class KnownAffixesShow(webapp2.RequestHandler):
@@ -2483,11 +2519,13 @@ app = webapp2.WSGIApplication([
         ('/refresh/raids', WCLGetRankingsRaidOnly),
     
         ('/generate/affixes', OnlyGenerateHTML),
+        ('/generate/all_affixes', OnlyGenerateAllAffixesHTML),
         ('/generate/dungeons', WCLGenHTML),
         ('/generate/raids', WCLRaidGenHTML),
 
         ('/view', TestView),
         ('/raid', TestRaidView),
+        ('/main', TestMainView),    
 
         ('/test/known_affixes', KnownAffixesShow),
         ('/test/update_wcl', TestWCLGetRankings),
