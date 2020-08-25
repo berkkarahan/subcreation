@@ -17,7 +17,7 @@ cron:
 
 - description: "data pull for affixes (tuesday reset)"
   url: /refresh/affixes
-  schedule: every tuesday 11:15
+  schedule: every tuesday 12:00
   timezone: America/New_York
   retry_parameters:
     job_retry_limit: 1
@@ -25,7 +25,7 @@ cron:
 
 - description: "re-generate HTML for affixes (tuesday reset)"
   url: /generate/affixes
-  schedule: every tuesday 11:30
+  schedule: every tuesday 12:10
   timezone: America/New_York
   retry_parameters:
     job_retry_limit: 1
