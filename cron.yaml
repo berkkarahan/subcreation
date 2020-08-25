@@ -15,6 +15,22 @@ cron:
     job_retry_limit: 1
     job_age_limit: 5m
 
+- description: "data pull for affixes (tuesday reset)"
+  url: /refresh/affixes
+  schedule: every tuesday 11:15
+  timezone: America/New_York
+  retry_parameters:
+    job_retry_limit: 1
+    job_age_limit: 5m
+
+- description: "re-generate HTML for affixes (tuesday reset)"
+  url: /generate/affixes
+  schedule: every tuesday 11:30
+  timezone: America/New_York
+  retry_parameters:
+    job_retry_limit: 1
+    job_age_limit: 5m
+
 - description: "data pull for dungeons"
   url: /refresh/dungeons
   schedule: every 24 hours from 02:45 to 07:45
