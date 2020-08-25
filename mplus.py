@@ -1853,6 +1853,60 @@ def render_affixes(affixes, prefix=""):
                                last_updated = localized_time(last_updated))
     return rendered
 
+# render compositions as a separate page from affixes
+def render_compositions(affixes, prefix=""):
+    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts = generate_counts(affixes)
+    affixes_slug = slugify.slugify(unicode(affixes))
+    affixes_slug_special = affixes_slug
+    if affixes == current_affixes():
+        affixes_slug_special = "index"
+    
+    dungeons_report, dungeon_stats = gen_dungeon_report(dungeon_counts)
+    specs_report, spec_stats = gen_spec_report(spec_counts)
+    set_report = gen_set_report(set_counts)
+    th_report = gen_set_report(th_counts)
+    dps_report = gen_set_report(dps_counts)
+    affixes_report, affix_stats = gen_affix_report(affix_counts)
+
+
+    dtl = gen_dungeon_tier_list(dungeons_report)
+    tankstl = gen_spec_tier_list(specs_report, "Tanks", prefix=prefix)
+    healerstl = gen_spec_tier_list(specs_report, "Healers", prefix=prefix)
+    meleetl = gen_spec_tier_list(specs_report, "Melee", prefix=prefix)
+    rangedtl = gen_spec_tier_list(specs_report, "Ranged", prefix=prefix)
+    aftl = gen_affix_tier_list(affixes_report)
+    
+    template = env.get_template('compositions.html')
+    rendered = template.render(title=affixes,
+                               prefix=prefix,
+                               affixes=affixes,
+                               pretty_affixes=pretty_affixes(affixes),
+                               pretty_affixes_large=pretty_affixes(affixes, size=56),
+                               affixes_slug=affixes_slug,
+                               affixes_slug_special=affixes_slug_special,
+                               dungeons=dungeons_report,
+                               dungeon_stats = dungeon_stats,
+                               affixes_report=affixes_report,
+                               affix_stats = affix_stats,
+                               aftl = aftl,
+                               dtl = dtl,
+                               tankstl = tankstl,
+                               healerstl = healerstl,
+                               meleetl = meleetl,
+                               rangedtl = rangedtl,
+                               role_package=specs_report,
+                               spec_stats = spec_stats,
+                               sets=set_report,
+                               sets_th=th_report,
+                               sets_dps=dps_report,
+                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
+                               known_healers = known_specs_subset_links(healers, prefix=prefix),
+                               known_melee = known_specs_subset_links(melee, prefix=prefix),
+                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
+                               known_affixes = known_affixes_links(prefix=prefix),
+                               last_updated = localized_time(last_updated))
+    return rendered
+
 
 def render_wcl_spec(spec, prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
@@ -2041,6 +2095,17 @@ def render_and_write(af):
     options = TaskRetryOptions(task_retry_limit = 1)
     deferred.defer(write_to_storage, filename_slug + ".html", rendered,
                    _retry_options=options)
+
+def render_and_write_compositions(af):
+    rendered = render_affixes(af)
+    
+    filename_slug = slugify.slugify(unicode(af))
+
+    affix_slug = slugify.slugify(unicode(af))
+
+    options = TaskRetryOptions(task_retry_limit = 1)
+    deferred.defer(write_to_storage, "compositions-" + filename_slug + ".html", rendered,
+                   _retry_options=options)    
     
 def write_overviews():
     affixes_to_write = []
@@ -2051,6 +2116,11 @@ def write_overviews():
         options = TaskRetryOptions(task_retry_limit = 1)        
         deferred.defer(render_and_write, af,
                        _retry_options=options)
+
+    for af in affixes_to_write:
+        options = TaskRetryOptions(task_retry_limit = 1)        
+        deferred.defer(render_and_write_compositions, af,
+                       _retry_options=options)        
 
 def write_all_affixes():
     affixes_to_write = []
@@ -2189,6 +2259,9 @@ def test_view(destination):
                               dung,
                               prefix=prefix)
 
+    if "compositions" in destination:
+        return render_compositions(affixes, prefix=prefix)        
+    
     return render_affixes(affixes, prefix=prefix)
 
 

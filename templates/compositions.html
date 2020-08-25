@@ -1,0 +1,142 @@
+{% set page_type = "affixes" %}
+{% set active_page = affixes_slug_special %}
+{% extends "base.html" %}
+{% block content %}
+
+{% set current_season = "season-bfa-4" %}
+
+{% import 'tier_list.html' as tier_list %}
+{% import 'max_link.html' as max_link %}
+
+{% import 'link_popover.html' as lp %}
+
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-12 py-3">
+      <h1><a href="{{prefix}}{{affixes_slug_special}}.html">{{pretty_affixes_large}}</a></h1>      
+    </div>
+</div>
+
+
+  <div class="col-12 py-3">
+    
+    <h2>Compositions</h2>
+
+    <ul>
+      <li><a href="#full-group">Full group</a></li>
+      <li><a href="#tank-healer">Tank+Healer</a></li>
+      <li><a href="#dps">DPS</a>      </li>
+    </ul>
+
+    
+  <h3 id="full-group">Detailed composition analysis (full group)</h3>
+  
+<div>
+<table class="sort table table-striped" id="table-csd">
+<tr data-sort-method='none'>
+<th>lb_ci</th>
+<th>Tank</th>
+<th>Healer</th>
+<th>DPS</th>
+<th>DPS</th>
+<th>DPS</th>
+<th>x&#772;</th>
+<th>max</th>
+<th>n</th>
+</tr>
+{% for (score, comp, mean, n, max_f, max_id, max_level, all_runs) in sets %}
+<tr>
+<td>{{score}}</td>
+{{comp}}
+<td>{{mean}}</td>
+{{ max_link.max_link(max_f, max_id, max_level, current_season) }}
+{{ lp.link_popover(all_runs, n, "Top Runs", current_season) }}
+</tr>
+{% endfor %}
+</table>
+<script>
+  new Tablesort(document.getElementById('table-csd'));
+</script>
+</p>
+</div>
+
+<div>
+<p>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For comps, higher is better.</i>
+</p>
+</div>
+
+<h3 id="tank-healer">Detailed team composition analysis (tank+healer)</h3>
+  
+<div>
+<table class="sort table table-striped" id="table-thd">
+<tr data-sort-method='none'>
+<th>lb_ci</th>
+<th>Tank</th>
+<th>Healer</th>
+<th>x&#772;</th>
+<th>max</th>
+<th>n</th>
+</tr>
+{% for (score, comp, mean, n, max_f, max_id, max_level, all_runs) in sets_th %}
+<tr>
+<td>{{score}}</td>
+{{comp}}
+<td>{{mean}}</td>
+{{ max_link.max_link(max_f, max_id, max_level, current_season) }}
+{{ lp.link_popover(all_runs, n, "Top Runs", current_season) }}
+</tr>
+{% endfor %}
+</table>
+<script>
+  new Tablesort(document.getElementById('table-thd'));
+</script>
+</p>
+</div>
+
+<div>
+<p>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For comps, higher is better.</i>
+</p>
+</div>
+
+<h3 id="dps">Detailed team composition analysis (dps)</h3>
+  <div>
+<table class="sort table table-striped" id="table-dpsd">
+<tr data-sort-method='none'>
+<th>lb_ci</th>
+<th>DPS</th>
+<th>DPS</th>
+<th>DPS</th>
+<th>x&#772;</th>
+<th>max</th>
+<th>n</th>
+</tr>
+{% for (score, comp, mean, n, max_f, max_id, max_level, all_runs) in sets_dps %}
+<tr>
+<td>{{score}}</td>
+{{comp}}
+<td>{{mean}}</td>
+{{ max_link.max_link(max_f, max_id, max_level, current_season) }}
+{{ lp.link_popover(all_runs, n, "Top Runs", current_season) }}
+</tr>
+{% endfor %}
+</table>
+<script>
+  new Tablesort(document.getElementById('table-dpsd'));
+</script>
+</p>
+</div>
+
+
+<div>
+<p>
+<i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For comps, higher is better.</i>
+</p>
+</div>
+
+</div>
+</div>
+</div>
+
+{% endblock content %}
