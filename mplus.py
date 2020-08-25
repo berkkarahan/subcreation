@@ -2097,7 +2097,7 @@ def render_and_write(af):
                    _retry_options=options)
 
 def render_and_write_compositions(af):
-    rendered = render_affixes(af)
+    rendered = render_compositions(af)
     
     filename_slug = slugify.slugify(unicode(af))
 
