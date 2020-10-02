@@ -1588,6 +1588,98 @@ def wcl_gear(rankings, slots):
         
     return wcl_top10(groupings, popover), shdw
 
+def wcl_gems(rankings):
+    groupings = {}
+    popover = {}
+    shadow = []
+    
+    for k in rankings:
+
+        gems = []
+        for i, j in enumerate(k["gear"]):
+            if "gems" in j:
+                for q in j["gems"]:
+                    gems += [q["id"]]
+                    shadow += [q]
+
+        added_this_round = []                    
+        for gem in gems:
+            add_this = tuple([gem])
+            if add_this not in groupings:
+                groupings[add_this] = 0
+                popover[add_this] = []
+            if add_this not in added_this_round:
+                groupings[add_this] += 1
+                added_this_round += [add_this]
+
+        link_text = ""
+        sort_value = 0
+        band_value = 0
+        if "keystoneLevel" in k:
+            link_text = "+%d" % k["keystoneLevel"]
+            sort_value = int(k["keystoneLevel"])
+            band_value = int(k["keystoneLevel"])
+        elif "total" in k:
+            link_text = "%.2fk" % (float(k["total"])/1000)
+            sort_value = (float(k["total"])/1000)
+            band_value = int((float(k["total"])/10000))*10
+
+        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
+
+    shdw = {}
+    for x in shadow:
+        shdw[x["id"]] = [x["id"], ""]
+       
+    for k, v in popover.iteritems():
+        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
+
+       
+    return wcl_top10(groupings, popover), shdw
+
+def wcl_gem_builds(rankings):
+    groupings = {}
+    popover = {}
+    shadow = []
+    
+    for k in rankings:
+
+        gems = []
+        for i, j in enumerate(k["gear"]):
+            if "gems" in j:
+                for q in j["gems"]:
+                    gems += [q["id"]]
+                    shadow += [q]
+
+        add_this = tuple(sorted(gems))
+                    
+        if add_this not in groupings:
+            groupings[add_this] = 0
+            popover[add_this] = []
+        groupings[add_this] += 1
+
+        link_text = ""
+        sort_value = 0
+        band_value = 0
+        if "keystoneLevel" in k:
+            link_text = "+%d" % k["keystoneLevel"]
+            sort_value = int(k["keystoneLevel"])
+            band_value = int(k["keystoneLevel"])
+        elif "total" in k:
+            link_text = "%.2fk" % (float(k["total"])/1000)
+            sort_value = (float(k["total"])/1000)
+            band_value = int((float(k["total"])/10000))*10
+
+        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
+
+    shdw = {}
+    for x in shadow:
+        shdw[x["id"]] = [x["id"], ""]
+       
+    for k, v in popover.iteritems():
+        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
+        
+    return wcl_top10(groupings, popover), shdw
+
 
 def wcl_top10(d, pop=None, top_n = 10):
     # need to also explore these ... k["reportId"] + k["keystoneLevel"]    
@@ -1688,13 +1780,16 @@ def gen_wcl_spec_report(spec):
         gear[slot_name], update_items = wcl_gear(rankings, slots) #popover is built into this function
         items.update(update_items)
 
+    gems, update_items = wcl_gems(rankings)
+    items.update(update_items)
+            
+    gem_builds, update_items = wcl_gem_builds(rankings)
+    items.update(update_items)
+    
     enchants = {}
     enchants["weapons"] = []
     enchants["rings"] = []
-    
-    gems = []
-    gem_builds = []
-        
+            
     if len(key_levels) > 0:
         return len(rankings), max(key_levels), min(key_levels), tea, talents, essences, primary, role, defensive, hsc, gear, enchants, gems, gem_builds, corruption, corruption_builds, corruption_levels, spells, items
     return 0, 0, 0, tea, talents, essences, primary, role, defensive, hsc, gear, enchants, gems, gem_builds, corruption, corruption_builds, corruption_levels, spells, items
@@ -1785,12 +1880,15 @@ def gen_wcl_raid_spec_report(spec, encounter="all", difficulty="Heroic"):
         gear[slot_name], update_items = wcl_gear(rankings, slots) #popover built in
         items.update(update_items)
 
+    gems, update_items = wcl_gems(rankings)
+    items.update(update_items)
+        
+    gem_builds, update_items = wcl_gem_builds(rankings)
+    items.update(update_items)
+        
     enchants = {}
     enchants["weapons"] = []
     enchants["rings"] = []
-
-    gems = []
-    gem_builds = []
     
     return len(rankings), tea, talents, essences, primary, role, defensive, hsc, gear, enchants, gems, gem_builds, corruption, corruption_builds, corruption_levels, spells, items
    

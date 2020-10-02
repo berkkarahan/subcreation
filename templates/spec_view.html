@@ -45,9 +45,9 @@
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Wrists", "Item", gear["wrists"], items, "item", n_parses, anchor_id="wrists", metric=metric) }}
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Gloves", "Item", gear["gloves"], items, "item", n_parses, anchor_id="gloves", metric=metric) }}
 
-{# spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Gems", "Gem", gems, items, "item", n_parses, anchor_id="gems, metric=metric") #}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Gems", "Gem", gems, items, "item", n_parses, anchor_id="gems", metric=metric) }}
 
-{# spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Gem Builds", "Gem(s)", gem_builds, items, "item", n_parses, anchor_id="gem_builds", metric=metric) #}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Gem Builds", "Gem(s)", gem_builds, items, "item", n_parses, anchor_id="gem_builds", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-12 col-lg-12", "Talent / Essence / Primary Azerite Combinations", "Combination", tea, spells, "spell", n_parses, offset_first="&nbsp;", offset_at = [6,10], anchor_id="tea", metric=metric) }}
 {%- endmacro %}
