@@ -2211,15 +2211,15 @@ def write_raid_spec_overviews():
     
     for s in specs:
         options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(create_raid_spec_overview, s, "all", "Heroic",
-                       _retry_options=options)
+#        deferred.defer(create_raid_spec_overview, s, "all", "Heroic",
+#                       _retry_options=options)
         deferred.defer(create_raid_spec_overview, s, "all", "Mythic",
                        _retry_options=options)
         
         for k, v in raid_encounters.iteritems():
             options = TaskRetryOptions(task_retry_limit = 1)        
-            deferred.defer(create_raid_spec_overview, s, k, "Heroic",
-                           _retry_options=options)
+#            deferred.defer(create_raid_spec_overview, s, k, "Heroic",
+#                           _retry_options=options)
             deferred.defer(create_raid_spec_overview, s, k, "Mythic",
                            _retry_options=options)
 
@@ -2306,7 +2306,7 @@ def _rankings(encounterId, class_id, spec, page=1, season=4):
     wcl_date += "%d000" % (time.mktime(now.timetuple())-4*7*60*60*24 )
     wcl_date += "." + "%d000" % (time.mktime(now.timetuple()))
     
-    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&class=%d&spec=%d&page=%d&filter=%s&api_key=%s" % (encounterId, season, class_id, spec, page, wcl_date, api_key)
+    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&class=%d&spec=%d&page=%d&filter=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, season, class_id, spec, page, wcl_date, api_key)
     result = urlfetch.fetch(url)
     data = json.loads(result.content)
     return data
@@ -2350,7 +2350,7 @@ def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=4, 
     wcl_date += "%d000" % (time.mktime(now.timetuple())-4*7*60*60*24 )
     wcl_date += "." + "%d000" % (time.mktime(now.timetuple()))
     
-    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?difficulty=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&api_key=%s" % (encounterId, difficulty, class_id, spec, page, wcl_date, metric, api_key)
+    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?difficulty=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, difficulty, class_id, spec, page, wcl_date, metric, api_key)
     
     result = urlfetch.fetch(url)
     data = json.loads(result.content)
@@ -2418,13 +2418,13 @@ def update_wcl_spec(spec):
 def update_wcl_update():
     for i, s in enumerate(specs):
         options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(update_wcl_spec, s, _countdown=15*i, _retry_options=options)
+        deferred.defer(update_wcl_spec, s, _retry_options=options)
 
 
 def update_wcl_update_subset(subset):
     for i, s in enumerate(subset):
         options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(update_wcl_spec, s, _countdown=15*i, _retry_options=options)
+        deferred.defer(update_wcl_spec, s, _retry_options=options)
         
 
 def update_wcl_raid_spec(spec, difficulty="Heroic"):
@@ -2441,33 +2441,32 @@ def update_wcl_raid_spec(spec, difficulty="Heroic"):
 # update wcl for raids
 def update_wcl_raid_update():
     for i, s in enumerate(specs):
+        # stop updating heroic
+#        options = TaskRetryOptions(task_retry_limit = 1)    
+#        deferred.defer(update_wcl_raid_spec, s, "Heroic", _countdown=30*i, _retry_options=options)
         options = TaskRetryOptions(task_retry_limit = 1)    
-        deferred.defer(update_wcl_raid_spec, s, "Heroic", _countdown=30*i, _retry_options=options)
-        options = TaskRetryOptions(task_retry_limit = 1)    
-        deferred.defer(update_wcl_raid_spec, s, "Mythic", _countdown=30*i+15, _retry_options=options)
+        deferred.defer(update_wcl_raid_spec, s, "Mythic", _retry_options=options)
 
 def update_wcl_raid_update_subset(subset):
     for i, s in enumerate(subset):
+#        options = TaskRetryOptions(task_retry_limit = 1)    
+#        deferred.defer(update_wcl_raid_spec, s, "Heroic", _countdown=30*i, _retry_options=options)
         options = TaskRetryOptions(task_retry_limit = 1)    
-        deferred.defer(update_wcl_raid_spec, s, "Heroic", _countdown=30*i, _retry_options=options)
-        options = TaskRetryOptions(task_retry_limit = 1)    
-        deferred.defer(update_wcl_raid_spec, s, "Mythic", _countdown=30*i+15, _retry_options=options)
+        deferred.defer(update_wcl_raid_spec, s, "Mythic", _retry_options=options)
 
         
 def update_wcl_raid_all():
     update_wcl_raid_update()
 
     options = TaskRetryOptions(task_retry_limit = 1)
-    deferred.defer(write_raid_spec_overviews, _countdown=40*30,
-                   _retry_options=options)
+    deferred.defer(write_raid_spec_overviews, _retry_options=options)
     
 # update all the wcl for dungeons
 def update_wcl_all():
     update_wcl_update()
 
     options = TaskRetryOptions(task_retry_limit = 1)
-    deferred.defer(write_spec_overviews, _countdown=40*15,
-                   _retry_options=options)
+    deferred.defer(write_spec_overviews, _retry_options=options)
 
 ## handlers
 
@@ -2487,16 +2486,14 @@ class OnlyGenerateHTML(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Writing templates to cloud storage...")
         options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(write_overviews, _countdown=20,
-                       _retry_options=options)
+        deferred.defer(write_overviews, _retry_options=options)
 
 class OnlyGenerateAllAffixesHTML(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Writing templates to cloud storage...")
         options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(write_all_affixes, _countdown=20,
-                       _retry_options=options)          
+        deferred.defer(write_all_affixes, _retry_options=options)          
 
 class GenerateHTML(webapp2.RequestHandler):
     def get(self):
@@ -2505,8 +2502,7 @@ class GenerateHTML(webapp2.RequestHandler):
         update_current()
         self.response.write("Writing templates to cloud storage...\n")
         options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(write_overviews, _countdown=20,
-                       _retry_options=options)
+        deferred.defer(write_overviews, _retry_options=options)
 
 class TestView(webapp2.RequestHandler):
     def get(self):

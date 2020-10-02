@@ -5,7 +5,7 @@
 <div class="container-fluid">
   <div class="row">
 <div class="col-12 py-3">
-  <h1><img src="images/specs/{{spec_slug}}.jpg" /> {{spec}} ({{difficulty}} {{encounter_pretty}})</h1>
+  <h1><img src="images/specs/{{spec_slug}}.jpg" width="56" height="56"/> {{spec}} ({{difficulty}} {{encounter_pretty}})</h1>
   <p>
     <i>Top talents, essences, azerite, corruption, <!--enchants, gems,--> and gear based on data from the top {{n_parses}} {{difficulty}} {{encounter_pretty}} logs (by <b>{{metric}}</b>) from the past 4 weeks.</i>  <button class="btn btn-primary btn-sm" type="button" onClick="showAll()">Show All</button> <button class="btn btn-primary btn-sm" type="button" onClick="hideAll()">Hide All</button>
     </p>
@@ -22,38 +22,19 @@
 </script>
   </div>
 
-        <nav class="boss-nav navbar navbar-expand">
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-              <ul class="nav mx-auto justify-content-center text-center text-light">
-                <li class="nav-item{{ ' active' if encounter == "all" and difficulty == "Heroic" else '' }}">
-                        <a class="nav-link" href="{{prefix}}{{spec_slug}}.html"><img src="images/bosses/nyalotha/nyalotha.jpg" alt="Heroic" title="All Bosses (Heroic)"></a><span>Heroic</span>
-                    </li>
-
-                {% for e in raid_canonical_order %}
-                    <li class="nav-item{{ ' active' if encounter_slugs[e] in active_page and difficulty == "Heroic" else '' }}">
-                        <a class="nav-link" href="{{prefix}}{{spec_slug}}-{{encounter_slugs[e]}}.html"><img src="images/bosses/nyalotha/{{encounter_slugs[e]}}.jpg" alt="{{e}}" title="{{e}}"></a><span>{{raid_short_names[e]}}</span>
-                    </li>
-                {% endfor %}
-
-                </ul>
-            </div>
-        </nav>
             <nav class="boss-nav navbar navbar-expand">
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
               <ul class="nav mx-auto justify-content-center text-center text-light">
-                <li class="nav-item{{ ' active' if encounter == "all" and difficulty == "Mythic" else '' }}">
-                        <a class="nav-link" href="{{prefix}}{{spec_slug}}-mythic.html"><img src="images/bosses/nyalotha/mythic.jpg" alt="Mythic" title="All Bosses (Mythic)"></a><span>Mythic</span>
+                <li style="width: 100px; height: 100px; text-align: center;" class="nav-item{{ ' active' if encounter == "all" and difficulty == "Mythic" else '' }}">
+                        <a class="nav-link" href="{{prefix}}{{spec_slug}}-mythic.html"><img src="images/bosses/nyalotha/mythic.jpg" width="51" height="51" alt="Mythic" title="All Bosses (Mythic)"></a>Mythic
                     </li>
 
                 {% for e in raid_canonical_order %}
-                    <li class="nav-item{{ ' active' if encounter_slugs[e] in active_page and difficulty == "Mythic" else '' }}">
-                        <a class="nav-link" href="{{prefix}}{{spec_slug}}-{{encounter_slugs[e]}}-mythic.html"><img src="images/bosses/nyalotha/{{encounter_slugs[e]}}.jpg" alt="{{e}}" title="{{e}}"></a><span>{{raid_short_names[e]}}</span>
+                    <li style="width: 100px; height: 100px; text-align: center;" class="nav-item{{ ' active' if encounter_slugs[e] in active_page and difficulty == "Mythic" else '' }}">
+                        <a class="nav-link" href="{{prefix}}{{spec_slug}}-{{encounter_slugs[e]}}-mythic.html"><img src="images/bosses/nyalotha/{{encounter_slugs[e]}}.jpg" width="51" height="51" alt="{{e}}" title="{{e}}"></a>{{raid_short_names[e]}}
                     </li>
                 {% endfor %}
 
