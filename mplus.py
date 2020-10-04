@@ -1602,6 +1602,9 @@ def wcl_gems(rankings):
                     gems += [q["id"]]
                     shadow += [q]
 
+        if gems == []:
+            continue
+                    
         added_this_round = []                    
         for gem in gems:
             add_this = tuple([gem])
@@ -1625,7 +1628,9 @@ def wcl_gems(rankings):
             band_value = int((float(k["total"])/10000))*10
 
         popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
+        
 
+        
     shdw = {}
     for x in shadow:
         shdw[x["id"]] = [x["id"], ""]
