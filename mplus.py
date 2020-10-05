@@ -187,9 +187,12 @@ from ckmeans import ckmeans
 def gen_dungeon_tier_list(dungeons_report):
 
     scores = []
+    logging.info("debugging ckmeans in gen_dungeon_tier_list")
+    logging.info(dungeons_report)
     for k in dungeons_report:
         scores += [float(k[0])]
 
+    logging.info(scores)
     buckets = ckmeans(scores, 6)
    
     added = []
