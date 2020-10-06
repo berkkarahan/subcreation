@@ -40,6 +40,9 @@ from raid import nyalotha_nox_notes_slugs as nox_notes_slugs
 from raid import nyalotha_canonical_order as raid_canonical_order
 from raid import nyalotha_short_names as raid_short_names
 
+# cloudflare cache handling
+from auth import cloudflare_api_key, cloudflare_zone
+
 ## raider.io handling
 
 def update_known_affixes(affixes, affixes_slug):
@@ -2174,6 +2177,7 @@ env = Environment(
 
 def write_to_storage(filename, content):
     bucket_name = 'mplus.subcreation.net'
+    original_filename = filename
     
     filename = "/%s/%s" % (bucket_name, filename)
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
@@ -2184,8 +2188,11 @@ def write_to_storage(filename, content):
     gcs_file.write(str(content))
     gcs_file.close()
 
+    cloudflare_purge_cache(bucket_name, original_filename)
+
 def raid_write_to_storage(filename, content):
     bucket_name = 'nyalotha.subcreation.net'
+    original_filename = filename
     
     filename = "/%s/%s" % (bucket_name, filename)
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
@@ -2195,6 +2202,8 @@ def raid_write_to_storage(filename, content):
                         retry_params=write_retry_params)
     gcs_file.write(str(content))
     gcs_file.close()
+
+    cloudflare_purge_cache(bucket_name, original_filename)
 
 
 def render_and_write(af):
@@ -2338,7 +2347,32 @@ def write_raid_spec_overviews():
             deferred.defer(create_raid_spec_overview, s, k, "Mythic",
                            _retry_options=options)
 
-            
+
+## end cloud storage
+
+## cloudflare cache purge
+
+def cloudflare_purge_cache(bucket, filename):
+    url = "http://%s/%s" % (bucket, filename)
+    logging.info("cf purge cache: %s" % url)
+
+    cf_endpoint = "https://api.cloudflare.com/client/v4/zones/%s/purge_cache" % cloudflare_zone
+    headers = { }
+    headers["Content-Type"] = "application/json"
+    headers["Authorization"] = "Bearer %s" % cloudflare_api_key
+    data = {}
+    data["files"] = [url]
+    data = json.dumps(data)
+
+    result = urlfetch.fetch(cf_endpoint, payload=data,
+                            headers=headers, 
+                            method=urlfetch.POST)
+
+    logging.info("cf purge cache result: %s %s" % (json.loads(result.content)["success"], url))
+    return json.loads(result.content)["success"], url
+
+## end cloudflare cache purge
+
 ##
 
 def test_view(destination):
@@ -2692,7 +2726,15 @@ class WCLRaidGenHTML(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Writing WCL Raid HTML...\n")
         options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(write_raid_spec_overviews, _retry_options=options)   
+        deferred.defer(write_raid_spec_overviews, _retry_options=options)
+
+
+class TestCloudflarePurgeCache(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Testing cloudflare purge cache...\n")
+        options = TaskRetryOptions(task_retry_limit = 1)
+        self.response.write(cloudflare_purge_cache("mplus.subcreation.net", "index.html"))
         
 
 app = webapp2.WSGIApplication([
@@ -2716,4 +2758,5 @@ app = webapp2.WSGIApplication([
         ('/test/known_affixes', KnownAffixesShow),
         ('/test/update_wcl', TestWCLGetRankings),
         ('/test/update_wcl_raid', TestWCLGetRankingsRaid),
+        ('/test/cloudflare_purge', TestCloudflarePurgeCache),    
         ], debug=True)
