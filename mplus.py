@@ -2172,6 +2172,7 @@ def write_to_storage(filename, content):
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
     gcs_file = gcs.open(filename,
                         'w', content_type='text/html',
+                        options={"cache-control" : "public, max-age=28800"},
                         retry_params=write_retry_params)
     gcs_file.write(str(content))
     gcs_file.close()
@@ -2183,6 +2184,7 @@ def raid_write_to_storage(filename, content):
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
     gcs_file = gcs.open(filename,
                         'w', content_type='text/html',
+                        options={"cache-control" : "public, max-age=28800"},
                         retry_params=write_retry_params)
     gcs_file.write(str(content))
     gcs_file.close()
