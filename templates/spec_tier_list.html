@@ -14,7 +14,7 @@
    <div class="container-fluid">
      {{ st.spec_table(n, role_package[n], prefix, affixes_slug, "", current_season) }}
      <p>
-       <i>lb_ci = Lower bound of a 95% confidence interval of the average <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io score</a> for each spec, based on the top 100 runs for each dungeon, across all regions with these affixes. For specs, higher is better.</i>
+       {% include 'lb_ci-definition-dungeon.html' %}       
      </p>
    </div>
 </details>

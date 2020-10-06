@@ -187,12 +187,14 @@ from ckmeans import ckmeans
 def gen_dungeon_tier_list(dungeons_report):
 
     scores = []
-    logging.info("debugging ckmeans in gen_dungeon_tier_list")
-    logging.info(dungeons_report)
+
     for k in dungeons_report:
         scores += [float(k[0])]
 
+    logging.info("debugging ckmeans in gen_dungeon_tier_list")
+    logging.info(dungeons_report)        
     logging.info(scores)
+    
     buckets = ckmeans(scores, 6)
    
     added = []
@@ -530,9 +532,15 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
     th_counts = {} # tank healer
     dps_counts = {} # just dps
     affix_counts = {} # compare affixes to each other (
+    dung_spec_counts = {} # spec per dungeons
 
     for s in specs:
         spec_counts[s] = []
+    
+    for d in dungeons:
+        dung_spec_counts[d] = {}        
+        for s in specs:
+            dung_spec_counts[d][s] = []
 
     for affix in affixes_to_get:
         affixes_slug = slugify.slugify(unicode(affix))
@@ -582,33 +590,10 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
                                     dps_counts[canonical_order(run.roster)[-3:]] += [run]
 
                                     for ch in run.roster:
-                                        if ch not in spec_counts:
-                                            spec_counts[ch] = []
                                         spec_counts[ch] += [run]
-                                else:
-                                    if spec not in run.roster:
-                                        continue
-
-                                    if canonical_order(run.roster) not in set_counts:
-                                        set_counts[canonical_order(run.roster)] = []
-                                    set_counts[canonical_order(run.roster)] += [run]
-
-                                    if canonical_order(run.roster)[:2] not in th_counts:
-                                        th_counts[canonical_order(run.roster)[:2]] = []
-                                    th_counts[canonical_order(run.roster)[:2]] += [run]
-
-                                    if canonical_order(run.roster)[-3:] not in dps_counts:
-                                        dps_counts[canonical_order(run.roster)[-3:]] = []
-                                    dps_counts[canonical_order(run.roster)[-3:]] += [run]
-
-                                    rc = copy.copy(run.roster)
-                                    rc.remove(spec)
-                                    for ch in rc:
-                                        if ch not in spec_counts:
-                                            spec_counts[ch] = []
-                                        spec_counts[ch] += [run]
+                                        dung_spec_counts[dung][ch] += [run]
                             
-    return dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts
+    return dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts
 
 
 # known affixes
@@ -852,7 +837,6 @@ def gen_spec_report(spec_counts):
     global role_titles, specs
 
     role_package = {}
-    
     stats = {}
 
     spec_overall = construct_analysis(spec_counts)
@@ -868,11 +852,11 @@ def gen_spec_report(spec_counts):
         
         for k in sorted(spec_overall, key=lambda x: x[4][0], reverse=True):
             if k[0] in display:
-                role_score += [[str("%.2f" % k[4][0]),
-                                str(k[0]),
-                                str("%.2f" % k[1]),
-                                str("%d" % k[3]).rjust(4),
-                                slugify.slugify(unicode(str(k[0]))),
+                role_score += [[str("%.2f" % k[4][0]), # lower bound of ci
+                                str(k[0]), # name
+                                str("%.2f" % k[1]), # mean
+                                str("%d" % k[3]).rjust(4), # n
+                                slugify.slugify(unicode(str(k[0]))), # slug name
                                 str("%.2f" % k[5][0]), # maximum run
                                 k[5][1], # id of the maximum run
                                 k[5][2], # level of the max run
@@ -901,6 +885,56 @@ def gen_spec_report(spec_counts):
         stats[role_titles[i]]["n"] = n_runs
                 
         role_package[role_titles[i]] = role_score
+    return role_package, stats
+
+
+# this exists to deal with specs that are only good in one dungeon
+# or that appear only good -- e.g. fire mages going frost for the first pull of TD
+# of frost dks going unholy for the first pull for junkyard
+
+# instead of using an lb_ci for all runs that are in our top set
+# we instead take an average of the lb_ci for each dungeon
+# this reduces the prominence of 'first pull specs'
+# since they tend to be concentrated in a single dungeon and aren't applicable everywhere
+def gen_dung_spec_report(dung_spec_counts, spec_counts):
+    global specs, dungeons
+    
+    # start with the normal spec_report
+    role_package, stats = gen_spec_report(spec_counts)
+
+    # look at each dungeon for each spec --
+    # basically construct analysis on each, then average, including 0s
+    per_dungeon_overall = {}
+    for k, v in dung_spec_counts.iteritems():
+        per_dungeon_overall[k] = construct_analysis(v)
+
+    # for each spec, go through and grab the lb_cis for each dungeon
+    per_spec_lb_ci = {}
+    for s in specs:
+        per_spec_lb_ci[s] = []
+        for d in dungeons:
+            for k in per_dungeon_overall[d]:
+                if k[0] == s:
+                    per_spec_lb_ci[s] += [k[4][0]]
+
+
+    # recalculate CI based on the as the average of dungeon and adjust the role package
+    # we'll be adjusting [0] of the rolepackage, which is "%.2f" % lb_ci 
+    for k, v in role_package.iteritems():
+        for rp in v:
+            logging.info(rp[1])
+            logging.info(rp[0])
+            logging.info(per_spec_lb_ci[rp[1]])
+            mean = average(per_spec_lb_ci[rp[1]])
+            logging.info(mean)
+
+            # we're modifying role_package directly here
+            rp[0] = "%.2f" % mean
+
+    # lastly, we need to resort role package within each set
+    for k, v in role_package.iteritems():
+        role_package[k] = sorted(v, key=lambda x: float(x[0]), reverse=True)
+    
     return role_package, stats
 
 
@@ -1907,7 +1941,7 @@ def localized_time(last_updated):
     return pytz.utc.localize(last_updated).astimezone(pytz.timezone("America/New_York"))
 
 def render_affixes(affixes, prefix=""):
-    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts = generate_counts(affixes)
+    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
     affixes_slug = slugify.slugify(unicode(affixes))
     affixes_slug_special = affixes_slug
     if affixes == current_affixes():
@@ -1915,11 +1949,10 @@ def render_affixes(affixes, prefix=""):
     
     dungeons_report, dungeon_stats = gen_dungeon_report(dungeon_counts)
     specs_report, spec_stats = gen_spec_report(spec_counts)
-    set_report = gen_set_report(set_counts)
-    th_report = gen_set_report(th_counts)
-    dps_report = gen_set_report(dps_counts)
+    dung_spec_report, dung_spec_stats = gen_dung_spec_report(dung_spec_counts, spec_counts)    
     affixes_report, affix_stats = gen_affix_report(affix_counts)
 
+    specs_report = dung_spec_report # to balance out per dungeon anomalies
 
     dtl = gen_dungeon_tier_list(dungeons_report)
     tankstl = gen_spec_tier_list(specs_report, "Tanks", prefix=prefix)
@@ -1948,9 +1981,6 @@ def render_affixes(affixes, prefix=""):
                                rangedtl = rangedtl,
                                role_package=specs_report,
                                spec_stats = spec_stats,
-                               sets=set_report,
-                               sets_th=th_report,
-                               sets_dps=dps_report,
                                known_tanks = known_specs_subset_links(tanks, prefix=prefix),
                                known_healers = known_specs_subset_links(healers, prefix=prefix),
                                known_melee = known_specs_subset_links(melee, prefix=prefix),
@@ -1961,26 +1991,15 @@ def render_affixes(affixes, prefix=""):
 
 # render compositions as a separate page from affixes
 def render_compositions(affixes, prefix=""):
-    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts = generate_counts(affixes)
+    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
     affixes_slug = slugify.slugify(unicode(affixes))
     affixes_slug_special = affixes_slug
     if affixes == current_affixes():
         affixes_slug_special = "index"
     
-    dungeons_report, dungeon_stats = gen_dungeon_report(dungeon_counts)
-    specs_report, spec_stats = gen_spec_report(spec_counts)
     set_report = gen_set_report(set_counts)
     th_report = gen_set_report(th_counts)
     dps_report = gen_set_report(dps_counts)
-    affixes_report, affix_stats = gen_affix_report(affix_counts)
-
-
-    dtl = gen_dungeon_tier_list(dungeons_report)
-    tankstl = gen_spec_tier_list(specs_report, "Tanks", prefix=prefix)
-    healerstl = gen_spec_tier_list(specs_report, "Healers", prefix=prefix)
-    meleetl = gen_spec_tier_list(specs_report, "Melee", prefix=prefix)
-    rangedtl = gen_spec_tier_list(specs_report, "Ranged", prefix=prefix)
-    aftl = gen_affix_tier_list(affixes_report)
     
     template = env.get_template('compositions.html')
     rendered = template.render(title=affixes,
@@ -1990,18 +2009,6 @@ def render_compositions(affixes, prefix=""):
                                pretty_affixes_large=pretty_affixes(affixes, size=56),
                                affixes_slug=affixes_slug,
                                affixes_slug_special=affixes_slug_special,
-                               dungeons=dungeons_report,
-                               dungeon_stats = dungeon_stats,
-                               affixes_report=affixes_report,
-                               affix_stats = affix_stats,
-                               aftl = aftl,
-                               dtl = dtl,
-                               tankstl = tankstl,
-                               healerstl = healerstl,
-                               meleetl = meleetl,
-                               rangedtl = rangedtl,
-                               role_package=specs_report,
-                               spec_stats = spec_stats,
                                sets=set_report,
                                sets_th=th_report,
                                sets_dps=dps_report,
