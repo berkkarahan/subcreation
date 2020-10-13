@@ -26,7 +26,5 @@ handlers:
   login: admin
 
 libraries:
-- name: numpy
-  version: "1.6.1"
 - name: jinja2
   version: latest

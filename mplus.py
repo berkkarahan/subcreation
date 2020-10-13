@@ -71,8 +71,8 @@ def parse_response(data, dungeon, affixes, region, page):
 
     affixes_slug = slugify.slugify(unicode(affixes))
     update_known_affixes(affixes, affixes_slug)
-        
     
+
     key_string = dungeon_slug + "-" + affixes_slug + "-" + region + "-" + str(page)
     key = ndb.Key('DungeonAffixRegion',
                   key_string)
@@ -85,26 +85,26 @@ def parse_response(data, dungeon, affixes, region, page):
 
     for d in data:
         r = d["run"]
-        
+    
         score = d["score"]
         roster = []
         ksrid = ""
         completed_at = ""
         completed_at = datetime.datetime.strptime(r["completed_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
-        
+    
         clear_time_ms = r["clear_time_ms"]
         mythic_level = r["mythic_level"]
         num_chests = r["num_chests"]
         keystone_time_ms = r["keystone_time_ms"]
         faction = r["faction"]
-        
+    
         ksrid = str(r["keystone_run_id"])
 
         for c in r["roster"]:
             ch = c["character"]
             spec_class = ch["spec"]["name"] + " " + ch["class"]["name"]
             roster += [spec_class]
-           
+       
         if mythic_level >= 10: # only track runs at +10 or above
             dar.runs += [Run(score=score, roster=roster, keystone_run_id=ksrid,
                              completed_at=completed_at, clear_time_ms=clear_time_ms,
@@ -144,7 +144,7 @@ def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-4",
                                  dungeon, affixes, region, page)
             dar.put()
     except DeadlineExceededError:
-        logging.exception('deadline exception fetching url: ' + req_url)        
+        logging.exception('deadline exception fetching url: ' + req_url)    
         options = TaskRetryOptions(task_retry_limit = 1)
         deferred.defer(update_dungeon_affix_region, dungeon, affixes, region, season, page, _retry_options=options)
 
@@ -169,8 +169,38 @@ def update_current():
 
 ## data analysis start
 
-from numpy import average, std
+
+## replacements for numpy
+def average(data):
+    return mean(data)
+
+def mean(data):
+    """Return the sample arithmetic mean of data."""
+    n = len(data)
+    if n < 1:
+        raise ValueError('mean requires at least one data point')
+    return sum(data)/n # in Python 2 use sum(data)/float(n)
+
+def _ss(data):
+    """Return sum of square deviations of sequence data."""
+    c = mean(data)
+    ss = sum((x-c)**2 for x in data)
+    return ss
+
+def std(data, ddof=0):
+    """Calculates the population standard deviation
+    by default; specify ddof=1 to compute the sample
+    standard deviation."""
+    n = len(data)
+    if n < 2:
+        raise ValueError('variance requires at least two data points')
+    ss = _ss(data)
+    pvar = ss/(n-ddof)
+    return pvar**0.5
+
+
 from math import sqrt
+
 
 
 # new: spit out all measurements for boxplot fun
@@ -1744,12 +1774,14 @@ def wcl_top10(d, pop=None, top_n = 10):
 
 def gen_wcl_spec_report(spec):
     wcl_query = SpecRankings.query(SpecRankings.spec==spec) ##temp
+    ## can we split by dungeon? by affix?
+
     results = wcl_query.fetch()
 
     global last_updated
 
     key_levels = []
-    
+
     n_parses = 0
 
     rankings = []
@@ -2756,7 +2788,8 @@ app = webapp2.WSGIApplication([
         ('/main', TestMainView),    
 
         ('/test/known_affixes', KnownAffixesShow),
-        ('/test/update_wcl', TestWCLGetRankings),
-        ('/test/update_wcl_raid', TestWCLGetRankingsRaid),
+        ('/test/affixes', UpdateCurrentDungeons),
+        ('/test/dungeons', TestWCLGetRankings),
+        ('/test/raids', TestWCLGetRankingsRaid),
         ('/test/cloudflare_purge', TestCloudflarePurgeCache),    
         ], debug=True)

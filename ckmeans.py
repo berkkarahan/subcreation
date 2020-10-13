@@ -1,4 +1,21 @@
-import numpy as np
+
+def zeroes_float(size):
+    return [0.0]*size
+
+def zeroes_int(size):
+    return [0]*size
+
+def zeroes_float_array(size):
+    output = []
+    for i in range(size[0]):
+        output += [[0.0]*size[1]]
+    return output
+
+def zeroes_int_array(size):
+    output = []
+    for i in range(size[0]):
+        output += [[0]*size[1]]    
+    return output
 
 def ssq(j, i, sum_x, sum_x_sq):
     if (j > 0):
@@ -52,8 +69,8 @@ def fill_row_k(imin, imax, k, S, J, sum_x, sum_x_sq, N):
     fill_row_k(i+1, imax, k, S, J, sum_x, sum_x_sq, N)
 
 def fill_dp_matrix(data, S, J, K, N):
-    sum_x = np.zeros(N, dtype=np.float_)
-    sum_x_sq = np.zeros(N, dtype=np.float_)
+    sum_x = zeroes_float(N)
+    sum_x_sq = zeroes_float(N)
 
     # median. used to shift the values of x to improve numerical stability
     shift = data[N//2]
@@ -92,9 +109,9 @@ def ckmeans(data, n_clusters):
     data.sort()
     n = len(data)
 
-    S = np.zeros((n_clusters, n), dtype=np.float_)
+    S = zeroes_float_array((n_clusters, n))
 
-    J = np.zeros((n_clusters, n), dtype=np.uint64)
+    J = zeroes_int_array((n_clusters, n))
 
     fill_dp_matrix(data, S, J, n_clusters, n)
 
