@@ -120,7 +120,7 @@ def parse_response(data, dungeon, affixes, region, page):
 ## also in templates/max_link and templates/by-affix
 ## also in wcl_ (also marked with @@)
 
-def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-4", page=0):
+def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-4-post", page=0):
     dungeon_slug = slugify.slugify(unicode(dungeon))
     affixes_slug = slugify.slugify(unicode(affixes))
 
@@ -513,7 +513,11 @@ def construct_analysis(counts):
     for name, runs in counts.iteritems():
         for r in runs:
             all_data += [r.score]
-    master_stddev = std(all_data, ddof=1)
+
+    master_stddev = 1
+    if len(all_data) >= 2:
+        master_stddev = std(all_data, ddof=1)
+    
        
     for name, runs in counts.iteritems():
         data = []
@@ -2230,7 +2234,7 @@ def raid_write_to_storage(filename, content):
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
     gcs_file = gcs.open(filename,
                         'w', content_type='text/html',
-                        options={"cache-control" : "public, max-age=28800"},
+                        options={"cache-control" : "public, max-age=86400"},
                         retry_params=write_retry_params)
     gcs_file.write(str(content))
     gcs_file.close()
@@ -2405,6 +2409,15 @@ def cloudflare_purge_cache(bucket, filename):
 
 ## end cloudflare cache purge
 
+## test reset db
+
+def reset_db():
+    kind_list = [DungeonAffixRegion, KnownAffixes, SpecRankings, SpecRankingsRaid]
+    for a_kind in kind_list:
+        kind_keys = a_kind.gql("").fetch(keys_only=True)
+        ndb.delete_multi(kind_keys)
+    return "resetDB for " + str(kind_list)
+
 ##
 
 def test_view(destination):
@@ -2480,7 +2493,7 @@ def test_main_view(destination):
 
 ## wcl querying
 # @@season update
-def _rankings(encounterId, class_id, spec, page=1, season=4):
+def _rankings(encounterId, class_id, spec, page=1, season=5):
     # filter to the last 4 weeks
     now = datetime.datetime.now()
     wcl_date = "date."
@@ -2530,8 +2543,10 @@ def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=4, 
     wcl_date = "date."
     wcl_date += "%d000" % (time.mktime(now.timetuple())-4*7*60*60*24 )
     wcl_date += "." + "%d000" % (time.mktime(now.timetuple()))
+
+    partition = 4 # for prepatch
     
-    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?difficulty=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, difficulty, class_id, spec, page, wcl_date, metric, api_key)
+    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&difficulty=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, partition, difficulty, class_id, spec, page, wcl_date, metric, api_key)
     
     result = urlfetch.fetch(url)
     data = json.loads(result.content)
@@ -2767,6 +2782,13 @@ class TestCloudflarePurgeCache(webapp2.RequestHandler):
         self.response.write("Testing cloudflare purge cache...\n")
         options = TaskRetryOptions(task_retry_limit = 1)
         self.response.write(cloudflare_purge_cache("mplus.subcreation.net", "index.html"))
+
+class TestResetDB(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Clearing db\n")
+        options = TaskRetryOptions(task_retry_limit = 1)
+        self.response.write(reset_db())        
         
 
 app = webapp2.WSGIApplication([
@@ -2791,5 +2813,6 @@ app = webapp2.WSGIApplication([
         ('/test/affixes', UpdateCurrentDungeons),
         ('/test/dungeons', TestWCLGetRankings),
         ('/test/raids', TestWCLGetRankingsRaid),
-        ('/test/cloudflare_purge', TestCloudflarePurgeCache),    
+        ('/test/cloudflare_purge', TestCloudflarePurgeCache),
+        ('/test/reset_db', TestResetDB),    
         ], debug=True)

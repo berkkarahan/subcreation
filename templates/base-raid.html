@@ -2,7 +2,7 @@
 <html>
 <head>
 <title>{% if active_page == "raid-index" %}Subcreation Ny'alotha: Top Talents, Essences, Azerite, and Gear for Ny'alotha{% else %}{{title}} - Subcreation Ny'alotha{% endif %}</title>
-<meta name=description content="Subcreation Ny'alotha provides summaries of the top talents, essences, azerite, corruption, and gear used in Ny'alotha, using the Warcraft Logs API.">
+<meta name=description content="Subcreation Ny'alotha provides summaries of the top talents, essences, azerite, and gear used in Ny'alotha, using the Warcraft Logs API.">
 <!-- enchants, gems -->
 
 <meta charset="utf-8">
@@ -38,27 +38,49 @@
     <ul class="navbar-nav mr-auto">
       <li class="nav-item dropdown">
         <a class="nav-link dropdown-toggle{% if page_type == "spec" %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-	  Top Builds per Spec
+	  Tanks
         </a>
         <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
           {% for (name, slug, icon) in known_tanks %}
-          <a class="dropdown-item{{ ' active' if active_page == slug else '' }}" href="{{prefix}}{{slug}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
-          {% endfor %}
-
-	        <div class="dropdown-divider w-100"></div>	            
-          {% for (name, slug, icon) in known_healers %}
-          <a class="dropdown-item{{ ' active' if active_page == slug else '' }}" href="{{prefix}}{{slug}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
-          {% endfor %}
-          <div class="dropdown-divider w-100"></div>
-          {% for (name, slug, icon) in known_melee %}
-          <a class="dropdown-item{{ ' active' if active_page == slug else '' }}" href="{{prefix}}{{slug}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
-          {% endfor %}
-          <div class="dropdown-divider w-100"></div>
-          {% for (name, slug, icon) in known_ranged %}
-          <a class="dropdown-item{{ ' active' if active_page == slug else '' }}" href="{{prefix}}{{slug}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+          <a class="dropdown-item{{ ' active' if active_page == slug else '' }}" href="{{prefix}}{{slug}}-mythic.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
           {% endfor %}
         </div>
       </li>
+
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle{% if page_type == "spec" %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Healers
+        </a>
+        <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
+          {% for (name, slug, icon) in known_healers %}
+          <a class="dropdown-item{{ ' active' if active_page == slug else '' }}" href="{{prefix}}{{slug}}-mythic.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+          {% endfor %}
+        </div>
+      </li>
+
+            <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle{% if page_type == "spec" %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	  Melee
+        </a>
+        <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
+
+          {% for (name, slug, icon) in known_melee %}
+          <a class="dropdown-item{{ ' active' if active_page == slug else '' }}" href="{{prefix}}{{slug}}-mythic.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+          {% endfor %}
+        </div>
+            </li>
+
+        <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle{% if page_type == "spec" %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+   Ranged
+        </a>
+        <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
+          {% for (name, slug, icon) in known_ranged %}
+          <a class="dropdown-item{{ ' active' if active_page == slug else '' }}" href="{{prefix}}{{slug}}-mythic.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+          {% endfor %}
+        </div>
+      </li>
+      
       <li class="nav-item">
         {% if active_page == "raid-index" %}
         <a class="nav-link" target="_blank" href="https://notes.noxguild.us/">Nox Notes for Ny'alotha</a>
@@ -89,7 +111,7 @@
           <li><a href="https://subcreation.net/privacy.html">Privacy</a></li>                          
         </ul>
         <p class="py-1">
-          <a href="index.html">Subcreation Ny'alotha</a> provides summaries of the top talents, essences, azerite, corruption, <!-- enchants, gems, --> and gear used in the Ny'alotha raid in the World of Warcraft, using the <a href="https://www.warcraftlogs.com/">Warcraft Logs</a> API</i>. Item and ability tooltips by <a href="https://www.wowhead.com/tooltips">Wowhead</a>. All images copyright Blizzard Entertainment.
+          <a href="index.html">Subcreation Ny'alotha</a> provides summaries of the top talents, essences, azerite, <!-- enchants, gems, --> and gear used in the Ny'alotha raid in the World of Warcraft, using the <a href="https://www.warcraftlogs.com/">Warcraft Logs</a> API</i>. Item and ability tooltips by <a href="https://www.wowhead.com/tooltips">Wowhead</a>. All images copyright Blizzard Entertainment.
 </p>
 <p class="py-1">Subcreation Ny'alotha updates every 24 hours for top talents, essences, azerite, corruption, <!-- enchants, gems, --> and gear (via Warcraft Logs).
 </p>
