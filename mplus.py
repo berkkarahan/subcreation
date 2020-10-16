@@ -7,8 +7,9 @@ import operator
 import time
 import pdb
 
-from google.appengine.api import urlfetch
 from google.appengine.api import app_identity
+
+from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
 from google.appengine.ext import deferred
 from google.appengine.api.taskqueue import TaskRetryOptions
@@ -21,12 +22,12 @@ vendor.add('lib')
 import slugify
 import cloudstorage as gcs
 
+
 from warcraft import dungeons, dungeon_slugs, regions
 from warcraft import specs, tanks, healers, melee, ranged, role_titles
 from t_interval import t_interval
 
 from models import Run, DungeonAffixRegion, KnownAffixes
-from old_models import Pull, AffixSet, Run as OldRun
 
 from warcraft import awakened_weeks as affix_rotation_weeks
 
@@ -43,21 +44,59 @@ from raid import nyalotha_short_names as raid_short_names
 # cloudflare cache handling
 from auth import cloudflare_api_key, cloudflare_zone
 
-## raider.io handling
+## globals
+from config import RIO_MAX_PAGE
+from warcraft import dungeons as DUNGEONS
+from warcraft import regions as REGIONS
+from config import RIO_MAX_PAGE, RIO_SEASON
 
+## raider.io handling
 def update_known_affixes(affixes, affixes_slug):
+    '''Update datastore's list of known affixes and their last seen times'''
     key = ndb.Key('KnownAffixes', affixes_slug)
-    ka = key.get()
+    known_affix = key.get()
 #    logging.info("update_known_affixes %s %s %s" % (affixes,
 #                                                    affixes_slug,
 #                                                    str(ka)))
-    if ka is None: # only add it if we haven't seen it before
-        ka = KnownAffixes(id=affixes_slug, affixes=affixes)
-        ka.put()
+    if known_affix is None: # only add it if we haven't seen it before
+        known_affix = KnownAffixes(id=affixes_slug, affixes=affixes)
+        known_affix.put()
     else:
-        ka.put() # put it back to update last seen
+        known_affix.put() # put it back to update last seen
+
+def parse_individual_ranking(ranking):
+    '''Parse an individual r.io run and return a Run model object for it'''
+
+    score = ranking["score"]
+    run = ranking["run"]
+
+    roster = []
+    ksrid = ""
+    completed_at = ""
+    completed_at = datetime.datetime.strptime(run["completed_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
+
+    clear_time_ms = run["clear_time_ms"]
+    mythic_level = run["mythic_level"]
+    if mythic_level < 10: # only track runs at +10 or above
+        return None
+    num_chests = run["num_chests"]
+    keystone_time_ms = run["keystone_time_ms"]
+    faction = run["faction"]
+    ksrid = str(run["keystone_run_id"])
+
+    for roster_entry in run["roster"]:
+        character = roster_entry["character"]
+        spec_class = character["spec"]["name"] + " " + character["class"]["name"]
+        roster += [spec_class]
+
+    return Run(score=score, roster=roster, keystone_run_id=ksrid,
+               completed_at=completed_at, clear_time_ms=clear_time_ms,
+               mythic_level=mythic_level, num_chests=num_chests,
+               keystone_time_ms=keystone_time_ms, faction=faction)
+
 
 def parse_response(data, dungeon, affixes, region, page):
+    '''Parse the response from r.io and store it in our datastore'''
     dungeon_slug = slugify.slugify(unicode(dungeon))
 
     if affixes == "current":
@@ -71,7 +110,7 @@ def parse_response(data, dungeon, affixes, region, page):
 
     affixes_slug = slugify.slugify(unicode(affixes))
     update_known_affixes(affixes, affixes_slug)
-    
+
 
     key_string = dungeon_slug + "-" + affixes_slug + "-" + region + "-" + str(page)
     key = ndb.Key('DungeonAffixRegion',
@@ -83,33 +122,10 @@ def parse_response(data, dungeon, affixes, region, page):
     dar.region = region
     dar.page = page
 
-    for d in data:
-        r = d["run"]
-    
-        score = d["score"]
-        roster = []
-        ksrid = ""
-        completed_at = ""
-        completed_at = datetime.datetime.strptime(r["completed_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
-    
-        clear_time_ms = r["clear_time_ms"]
-        mythic_level = r["mythic_level"]
-        num_chests = r["num_chests"]
-        keystone_time_ms = r["keystone_time_ms"]
-        faction = r["faction"]
-    
-        ksrid = str(r["keystone_run_id"])
-
-        for c in r["roster"]:
-            ch = c["character"]
-            spec_class = ch["spec"]["name"] + " " + ch["class"]["name"]
-            roster += [spec_class]
-       
-        if mythic_level >= 10: # only track runs at +10 or above
-            dar.runs += [Run(score=score, roster=roster, keystone_run_id=ksrid,
-                             completed_at=completed_at, clear_time_ms=clear_time_ms,
-                             mythic_level=mythic_level, num_chests=num_chests,
-                             keystone_time_ms=keystone_time_ms, faction=faction)]
+    for individual_ranking in data:
+        parsed_run = parse_individual_ranking(individual_ranking)
+        if parsed_run is not None:
+            dar.runs += [parsed_run]
 
     return dar
 
@@ -120,7 +136,8 @@ def parse_response(data, dungeon, affixes, region, page):
 ## also in templates/max_link and templates/by-affix
 ## also in wcl_ (also marked with @@)
 
-def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-4-post", page=0):
+def update_dungeon_affix_region(dungeon, affixes, region, season=RIO_SEASON, page=0):
+    '''For a given dungeon, affixes, region, season, and page, get top M+ runs'''
     dungeon_slug = slugify.slugify(unicode(dungeon))
     affixes_slug = slugify.slugify(unicode(affixes))
 
@@ -128,7 +145,9 @@ def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-4-p
 #                                                   affixes_slug,
 #                                                   region))
 
-    req_url = "https://raider.io/api/v1/mythic-plus/runs?season=%s&region=%s&affixes=%s&dungeon=%s&page=%d" % (season, region, affixes_slug, dungeon_slug, page)
+    req_url = "https://raider.io/api/v1/mythic-plus/runs?"
+    req_url += "season=%s&region=%s&affixes=%s&dungeon=%s&page=%d" \
+        % (season, region, affixes_slug, dungeon_slug, page)
 
 #    logging.info(" %s" % req_url)
 
@@ -138,25 +157,28 @@ def update_dungeon_affix_region(dungeon, affixes, region, season="season-bfa-4-p
         if result.status_code == 200:
             response = json.loads(result.content)["rankings"]
             if response == []: # empty rankings, as sometimes happens at week start
-                logging.info("no rankings found for %s / %s / %s / %s" % (dungeon, affixes, region, page))
+                logging.info("no rankings found for %s / %s / %s / %s",
+                             dungeon, affixes, region, page)
                 return
             dar = parse_response(response,
                                  dungeon, affixes, region, page)
             dar.put()
     except DeadlineExceededError:
-        logging.exception('deadline exception fetching url: ' + req_url)    
-        options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(update_dungeon_affix_region, dungeon, affixes, region, season, page, _retry_options=options)
+        logging.exception('deadline exception fetching url: %s', req_url)
+        options = TaskRetryOptions(task_retry_limit=1)
+        deferred.defer(update_dungeon_affix_region, dungeon, affixes,
+                       region, season, page, _retry_options=options)
 
     except urlfetch.Error:
-        logging.exception('caught exception fetching url: ' + req_url)
+        logging.exception('caught exception fetching url: %s', req_url)
 
 def update_current():
-    global dungeons, regions
-    for region in regions:
-        for dungeon in dungeons:
-            for page in range(0, MAX_PAGE):
-                options = TaskRetryOptions(task_retry_limit = 1)
+    '''Query the r.io api across all regions for each dungeon (current affixes)'''
+    global DUNGEONS, REGIONS, RIO_MAX_PAGE
+    for region in REGIONS:
+        for dungeon in DUNGEONS:
+            for page in range(0, RIO_MAX_PAGE):
+                options = TaskRetryOptions(task_retry_limit=1)
                 deferred.defer(update_dungeon_affix_region,
                                dungeon,
                                "current",
@@ -164,8 +186,8 @@ def update_current():
                                page=page,
                                _retry_options=options)
 
-## end raider.io processing
 
+## end raider.io processing
 
 ## data analysis start
 
@@ -557,7 +579,7 @@ def construct_analysis(counts):
 
 # generate counts
 def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
-    global dungeons, regions, specs, last_updated, MAX_PAGE
+    global dungeons, regions, specs, last_updated, RIO_MAX_PAGE
 
     affixes_to_get = [affixes]
     if affixes == "All Affixes":
@@ -583,7 +605,7 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
         affixes_slug = slugify.slugify(unicode(affix))
         for region in regions:
             for dung in dungeons:
-                for page in range(0, MAX_PAGE):
+                for page in range(0, RIO_MAX_PAGE):
                     dungeon_slug = slugify.slugify(unicode(dung))
                     key_string = dungeon_slug + "-" + affixes_slug + "-" + region + "-" + str(page)
                     key = ndb.Key('DungeonAffixRegion',
@@ -2668,6 +2690,7 @@ def update_wcl_all():
 
 class UpdateCurrentDungeons(webapp2.RequestHandler):
     def get(self):
+        global dungeons, regions
         self.response.headers['Content-Type'] = 'text/plain'
         update_current()
         self.response.write("Updates queued.")
@@ -2675,7 +2698,7 @@ class UpdateCurrentDungeons(webapp2.RequestHandler):
 import datetime
 import pytz
 last_updated = None
-MAX_PAGE = 5
+
 
 class OnlyGenerateHTML(webapp2.RequestHandler):
     def get(self):
@@ -2690,15 +2713,6 @@ class OnlyGenerateAllAffixesHTML(webapp2.RequestHandler):
         self.response.write("Writing templates to cloud storage...")
         options = TaskRetryOptions(task_retry_limit = 1)
         deferred.defer(write_all_affixes, _retry_options=options)          
-
-class GenerateHTML(webapp2.RequestHandler):
-    def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write("Queueing updates\n")
-        update_current()
-        self.response.write("Writing templates to cloud storage...\n")
-        options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(write_overviews, _retry_options=options)
 
 class TestView(webapp2.RequestHandler):
     def get(self):
@@ -2792,7 +2806,6 @@ class TestResetDB(webapp2.RequestHandler):
         
 
 app = webapp2.WSGIApplication([
-        ('/generate_html', GenerateHTML),
         ('/update_wcl', WCLGetRankings),
         ('/update_wcl_raid', WCLGetRankingsRaid),
     
