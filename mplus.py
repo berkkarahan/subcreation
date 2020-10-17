@@ -23,8 +23,9 @@ import slugify
 import cloudstorage as gcs
 
 
-from warcraft import dungeons, dungeon_slugs, regions
+from warcraft import dungeons, dungeon_slugs, regions, dungeon_short_names
 from warcraft import specs, tanks, healers, melee, ranged, role_titles
+from warcraft import spec_short_names, affixes_short
 from t_interval import t_interval
 
 from models import Run, DungeonAffixRegion, KnownAffixes
@@ -284,9 +285,6 @@ def gen_dungeon_tier_list(dungeons_report):
             tiers[tm[0]] += [k]
             added += [k]
 
-    def miniicon(dname, dslug):
-        return '<div class="innertier"><img src="images/dungeons/%s.jpg" title="%s" alt="%s" /><br/>%s</div>' % (dslug, dname, dname, dname)
-     
     dtl = {}
     dtl["S"] = ""
     dtl["A"] = ""
@@ -295,9 +293,15 @@ def gen_dungeon_tier_list(dungeons_report):
     dtl["D"] = ""
     dtl["F"] = ""
 
+    global dungeon_short_names
+    template = env.get_template("dungeon-mini-icon.html")
+    
     for i in range(0, 6):
         for k in tiers[tm[i]]:
-            dtl[tm[i]] += miniicon(k[1], k[4])        
+            rendered = template.render(dungeon_slug = k[4],
+                                       dungon_name = k[1],
+                                       dungeon_short_name = dungeon_short_names[k[1]])
+            dtl[tm[i]] += rendered
     
     return dtl
 
@@ -364,9 +368,14 @@ def gen_spec_tier_list(specs_report, role, prefix=""):
     dtl["D"] = ""
     dtl["F"] = ""
 
+    global spec_short_names
+    template = env.get_template("spec-mini-icon.html")
     for i in range(0, 6):
         for k in tiers[tm[i]]:
-            dtl[tm[i]] += '<div class="innertier">' + icon_spec(k[1], prefix) + "</div>"
+            rendered = template.render(spec_name = k[1],
+                                       spec_short_name = spec_short_names[k[1]],
+                                       spec_slug = slugify.slugify(unicode(k[1])))
+            dtl[tm[i]] += rendered
     
     return dtl   
 
@@ -394,6 +403,45 @@ def icon_affix(dname, size=28):
     output_string += output[3]
        
     return output_string
+
+
+def render_affix_tier_list(tiers, tm):
+    dtl = {}
+    dtl["S"] = ""
+    dtl["A"] = ""
+    dtl["B"] = ""
+    dtl["C"] = ""
+    dtl["D"] = ""
+    dtl["F"] = ""
+
+    template = env.get_template('affix-mini-icon.html')
+    template_all = env.get_template('affixes-mini-icons.html')
+    global affixes_short
+    for i in range(0, 6):
+        for k in tiers[tm[i]]:
+            affixen = k[1].split(", ")
+            current_set = current_affixes()
+            this_set = k[1]
+            affix_set = ""
+            
+            # @@ link issue -- we're pulling in (A) (B) during s4
+            slug_link = slugify.slugify(k[1][:-4])
+            if current_set in this_set:
+                slug_link = "index"
+
+            
+            for each_affix in affixen:
+                rendered = template.render(affix_slug = slugify.slugify(each_affix),
+                                           affix_name = each_affix,
+                                           affix_short_name = affixes_short[each_affix])
+                affix_set += rendered
+
+
+
+            dtl[tm[i]] += template_all.render(affix_link = slug_link,
+                                              affix_set = affix_set)
+    
+    return dtl
 
 # todo: affix tier list (how do affixes compare with each other)
 # have this show on all affixes?
@@ -450,13 +498,7 @@ def gen_affix_tier_list(affixes_report):
     dtl["D"] = ""
     dtl["F"] = ""
 
-    for i in range(0, 6):
-        for k in tiers[tm[i]]:
-            dtl[tm[i]] += '<div class="innertier">' + icon_affix(k[1]) + "<br/> %s</div>" % k[1]        
-    
-    return dtl
-    
-
+    return render_affix_tier_list(tiers, tm)    
     
 # use this if there are fewer than 6 affixes scanned
 # since we can't cluster into 6 with uh, fewer than 6
@@ -510,19 +552,7 @@ def gen_affix_tier_list_small(affixes_report):
             tiers[tm[5]] += [k]
             added += [k]
     
-    dtl = {}
-    dtl["S"] = ""
-    dtl["A"] = ""
-    dtl["B"] = ""
-    dtl["C"] = ""
-    dtl["D"] = ""
-    dtl["F"] = ""
-
-    for i in range(0, 6):
-        for k in tiers[tm[i]]:
-            dtl[tm[i]] += '<div class="innertier">' + icon_affix(k[1]) + "<br/> %s</div>" % k[1]        
-    
-    return dtl
+    return render_affix_tier_list(tiers, tm)
 
 
 # for background on the analytical approach of using the lower bound of a confidence interval:

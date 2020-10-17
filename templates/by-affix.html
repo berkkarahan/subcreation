@@ -20,7 +20,7 @@
   <div class="row">
   {% if affixes == "All Affixes" %}
 
-        <div class="col-xl-4 col-lg-6 py-3">
+        <div class="col-xl-4 col-lg-6 py-2">
           <h2>Affixes Ease Tier List</h2>
           <p><b>All Affixes</b><br/>
   <i>Based on {{affix_stats["n"]}} runs, ranging in difficulty from +{{affix_stats["min"]}} to +{{affix_stats["max"]}}.</i></p>
@@ -62,14 +62,13 @@
         {% endif %}
         
 
-<div class="col-xl-4 col-lg-6 py-3">
+<div class="col-xl-4 col-lg-6 py-2">
   <h2>Dungeon Ease Tier List</h2>
   <p><b class="affixes">{{pretty_affixes}}</b><br/>
   <i>Based on {{dungeon_stats["n"]}} runs, ranging in difficulty from +{{dungeon_stats["min"]}} to +{{dungeon_stats["max"]}}.</i>
   </p>
 
 {{ tier_list.tier_list(dtl) }}
-
 <details>
    <summary>Detailed statistical analysis (by dungeon)</summary>
 <div class="container-fluid">
