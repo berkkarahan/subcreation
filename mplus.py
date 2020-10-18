@@ -2101,7 +2101,7 @@ def render_compositions(affixes, prefix=""):
                                last_updated = localized_time(last_updated))
     return rendered
 
-# render stats separatey
+# render stats separately
 def render_stats(affixes, prefix=""):
     dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
     affixes_slug = slugify.slugify(unicode(affixes))

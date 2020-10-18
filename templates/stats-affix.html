@@ -2,8 +2,8 @@
 {% if affixes == "All Affixes" %}
 {{ stats_table.stats_table("affixes", "Affixes", affixes_report) }}
 {% endif %}
-{{ stats_table.stats_table("dungeons", "Dungeons", dungeons_report) }}
-{{ stats_table.stats_table("tanks", "Tanks", role_package["Tanks"]) }}
-{{ stats_table.stats_table("healers", "Healers", role_package["Healers"]) }}
-{{ stats_table.stats_table("melee", "Melee", role_package["Melee"]) }}
-{{ stats_table.stats_table("ranged", "Ranged", role_package["Ranged"]) }}
+{{ stats_table.stats_table("dungeons", "Dungeon", dungeons_report) }}
+{{ stats_table.stats_table("tanks", "Tank Spec", role_package["Tanks"]) }}
+{{ stats_table.stats_table("healers", "Healer Spec", role_package["Healers"]) }}
+{{ stats_table.stats_table("melee", "Melee Spec", role_package["Melee"]) }}
+{{ stats_table.stats_table("ranged", "Ranged Spec", role_package["Ranged"]) }}
