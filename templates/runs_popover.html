@@ -1,18 +1,7 @@
 {% macro runs_popover(all_runs, season) -%}
-<ul>
-{% set clvl = 1000 %}
-{% for (score, level, run_id) in all_runs %}
-{% if level < clvl %}
-     {% if clvl != 1000 %}
-            </li>
-      {% endif %}
-<li><b>+{{level}}</b>:
-  {% set clvl = level %}
-{% endif %}
-<a href='https://raider.io/mythic-plus/{{season}}/runs/{{run_id}}' target='_blank'>{{"%.2f" % score}}</a> 
-{% endfor %}
-    </ul>
-</ul>
-{%- endmacro %}
+<ul>{% set clvl = 1000 %}{% for (score, level, run_id) in all_runs %}{% if level < clvl %}{% if clvl != 1000 %}</li>{% endif %}
+<li><b>+{{level}}</b>: {% set clvl = level %}{% endif %}
+  <a href='https://raider.io/mythic-plus/{{season}}/runs/{{run_id}}' target='_blank' rel='noopener'>{{"%.2f" % score}}</a>{% endfor %}
+</ul></ul>{%- endmacro %}
 
 

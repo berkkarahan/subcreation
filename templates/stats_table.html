@@ -1,0 +1,28 @@
+{% macro stats_table(which_table, pretty_title, report) -%}
+
+{% set current_season = "season-bfa-4-post" %}
+
+{% import 'max_link.html' as max_link %}
+{% import 'link_popover.html' as lp %}
+
+<div id="data-{{which_table}}-stats" class="container-fluid">
+  <table class="sort table table-striped" id="table-{{which_table}}-stats">
+    <tr data-sort-method='none'>
+      <th>lb_ci</th>
+      <th>{{pretty_title}}</th>
+      <th>x&#772;</th>
+      <th>max</th>
+      <th>n</th>
+    </tr>
+    {% for (score, indiv, mean, n, dungeon_slug, max_f, max_id, max_level, all_runs) in report %}
+    <tr>
+      <td>{{score}}</td>
+      <td>{{indiv}}</td>
+      <td>{{mean}}</td>{{ max_link.max_link(max_f, max_id, max_level, current_season) }}{{ lp.link_popover(all_runs, n, "Top Runs for " + indiv, current_season) }}</tr>
+    {% endfor %}
+  </table> 
+  <p>
+    {% include 'lb_ci-definition-dungeon.html' %}
+  </p>
+</div>
+{%- endmacro %}

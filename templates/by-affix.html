@@ -7,7 +7,6 @@
 
 {% import 'tier_list.html' as tier_list %}
 {% import 'max_link.html' as max_link %}
-
 {% import 'link_popover.html' as lp %}
 
 <div class="container-fluid">
@@ -18,48 +17,21 @@
 </div>
 
   <div class="row">
-  {% if affixes == "All Affixes" %}
+{% if affixes == "All Affixes" %}
 
-        <div class="col-xl-4 col-lg-6 py-2">
-          <h2>Affixes Ease Tier List</h2>
-          <p><b>All Affixes</b><br/>
+<div class="col-xl-4 col-lg-6 py-2">
+ <h2>Affixes Ease Tier List</h2>
+  <p><b>All Affixes</b><br/>
   <i>Based on {{affix_stats["n"]}} runs, ranging in difficulty from +{{affix_stats["min"]}} to +{{affix_stats["max"]}}.</i></p>
 {{ tier_list.tier_list(aftl) }}
-
-<details>
+<details id="affixes-stats">
   <summary>Detailed statistical analysis (by affixes)</summary>
-<div class="container-fluid">
-
-<table class="sort table table-striped " id="table-afdd">
-<tr data-sort-method='none'>
-<th>lb_ci</th>
-<th>Affixes</th>
-<th>x&#772;</th>
-<th>max</th>
-<th>n</th>
-</tr>
-{% for (score, indiv_affix, mean, n, dungeon_slug, max_f, max_id, max_level, all_runs) in affixes_report %}
-<tr>
-<td>{{score}}</td>
-<td>{{indiv_affix}}</td>
-<td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id, max_level, current_season) }}
-{{ lp.link_popover(all_runs, n, "Top Runs for " + indiv_affix, current_season) }}
-</tr>
-{% endfor %}
-</table>
-<script>
-  new Tablesort(document.getElementById('table-afdd'));
-</script>
-
-<p>
-{% include 'lb_ci-definition-dungeon.html' %}
-</p>
-</div>
+  <div id="affixes-stats-details">
+    Loading stats for affixes...
+  </div>
 </details>
 </div>
-
-        {% endif %}
+{% endif %}
         
 
 <div class="col-xl-4 col-lg-6 py-2">
@@ -67,37 +39,12 @@
   <p><b class="affixes">{{pretty_affixes}}</b><br/>
   <i>Based on {{dungeon_stats["n"]}} runs, ranging in difficulty from +{{dungeon_stats["min"]}} to +{{dungeon_stats["max"]}}.</i>
   </p>
-
 {{ tier_list.tier_list(dtl) }}
-<details>
+<details id="dungeons-stats">
    <summary>Detailed statistical analysis (by dungeon)</summary>
-<div class="container-fluid">
-<table class="sort table table-striped" id="table-rdd">
-<tr data-sort-method='none'>
-<th>lb_ci</th>
-<th>Dungeon</th>
-<th>x&#772;</th>
-<th>max</th>
-<th>n</th>
-</tr>
-{% for (score, dungeon, mean, n, dungeon_slug, max_f, max_id, max_level, all_runs) in dungeons %}
-<tr>
-<td>{{score}}</td>
-<td>{{dungeon}}</td>
-<td>{{mean}}</td>
-{{ max_link.max_link(max_f, max_id, max_level, current_season) }}
-{{ lp.link_popover(all_runs, n, "Top Runs for " + dungeon, current_season) }}
-</tr>
-{% endfor %}
-</table>
-<script>
-  new Tablesort(document.getElementById('table-rdd'));
-</script>
-
-<p>
- {% include 'lb_ci-definition-dungeon.html' %}
-</p>
-</div>
+   <div id="dungeons-stats-details">
+     Loading stats for dungeons...
+   </div>
 </details>
 </div>
 
@@ -117,3 +64,25 @@
 
 
 {% endblock content %}
+
+{% block script %}
+  function triggerStatsData(which_table) {
+    var expand_me = document.querySelector(`#${which_table}-stats`);
+    expand_me.addEventListener("toggle", function() {
+        var details = document.querySelector(`#${which_table}-stats-details`);
+        $(`#${which_table}-stats-details`).load(`{{prefix}}stats-{{affixes_slug}}.html #data-${which_table}-stats`, function() {
+            $('[data-toggle="popover"]').popover({container: 'body'})
+            new Tablesort(document.getElementById(`table-${which_table}-stats`));
+        });
+    });
+  } 
+
+{% if affixes == "All Affixes" %}
+triggerStatsData("affixes");
+{% endif %}
+triggerStatsData("dungeons");
+triggerStatsData("tanks");
+triggerStatsData("healers");
+triggerStatsData("melee");
+triggerStatsData("ranged");
+{% endblock script %}

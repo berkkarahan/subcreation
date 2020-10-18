@@ -9,13 +9,10 @@
     </p>
     {{ tier_list.tier_list(t) }}
   
-<details>
+<details id="{{nlc}}-stats">
    <summary>Detailed statistical analysis (for {{nlc}})</summary>
-   <div class="container-fluid">
-     {{ st.spec_table(n, role_package[n], prefix, affixes_slug, "", current_season) }}
-     <p>
-       {% include 'lb_ci-definition-dungeon.html' %}       
-     </p>
+   <div id="{{nlc}}-stats-details" class="container-fluid">
+     Loading stats for {{nlc}}...
    </div>
 </details>
 </div>

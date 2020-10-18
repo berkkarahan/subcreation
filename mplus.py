@@ -488,16 +488,6 @@ def gen_affix_tier_list(affixes_report):
             tiers[tm[0]] += [k]
             added += [k]
 
-
-        
-    dtl = {}
-    dtl["S"] = ""
-    dtl["A"] = ""
-    dtl["B"] = ""
-    dtl["C"] = ""
-    dtl["D"] = ""
-    dtl["F"] = ""
-
     return render_affix_tier_list(tiers, tm)    
     
 # use this if there are fewer than 6 affixes scanned
@@ -2111,6 +2101,42 @@ def render_compositions(affixes, prefix=""):
                                last_updated = localized_time(last_updated))
     return rendered
 
+# render stats separatey
+def render_stats(affixes, prefix=""):
+    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
+    affixes_slug = slugify.slugify(unicode(affixes))
+    affixes_slug_special = affixes_slug
+    if affixes == current_affixes():
+        affixes_slug_special = "index"
+   
+    dungeons_report, dungeon_stats = gen_dungeon_report(dungeon_counts)
+    specs_report, spec_stats = gen_spec_report(spec_counts)
+    dung_spec_report, dung_spec_stats = gen_dung_spec_report(dung_spec_counts, spec_counts)    
+    affixes_report, affix_stats = gen_affix_report(affix_counts)
+
+    specs_report = dung_spec_report # to balance out per dungeon anomalies
+    
+    template = env.get_template('stats-affix.html')
+    rendered = template.render(title=affixes,
+                               prefix=prefix,
+                               affixes=affixes,
+                               pretty_affixes=pretty_affixes(affixes),
+                               pretty_affixes_large=pretty_affixes(affixes, size=56),
+                               affixes_slug=affixes_slug,
+                               affixes_slug_special=affixes_slug_special,
+                               dungeons_report = dungeons_report,
+                               dungeon_stats = dungeon_stats,
+                               affixes_report=affixes_report,
+                               affix_stats = affix_stats,
+                               role_package = specs_report,
+                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
+                               known_healers = known_specs_subset_links(healers, prefix=prefix),
+                               known_melee = known_specs_subset_links(melee, prefix=prefix),
+                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
+                               known_affixes = known_affixes_links(prefix=prefix),
+                               last_updated = localized_time(last_updated))
+    return rendered
+
 
 def render_wcl_spec(spec, prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
@@ -2317,7 +2343,19 @@ def render_and_write_compositions(af):
 
     options = TaskRetryOptions(task_retry_limit = 1)
     deferred.defer(write_to_storage, "compositions-" + filename_slug + ".html", rendered,
-                   _retry_options=options)    
+                   _retry_options=options)
+
+
+def render_and_write_stats(af):
+    rendered = render_stats(af)
+    
+    filename_slug = slugify.slugify(unicode(af))
+
+    affix_slug = slugify.slugify(unicode(af))
+
+    options = TaskRetryOptions(task_retry_limit = 1)
+    deferred.defer(write_to_storage, "stats-" + filename_slug + ".html", rendered,
+                   _retry_options=options)        
     
 def write_overviews():
     affixes_to_write = []
@@ -2332,7 +2370,12 @@ def write_overviews():
     for af in affixes_to_write:
         options = TaskRetryOptions(task_retry_limit = 1)        
         deferred.defer(render_and_write_compositions, af,
-                       _retry_options=options)        
+                       _retry_options=options)
+
+    for af in affixes_to_write:
+        options = TaskRetryOptions(task_retry_limit = 1)        
+        deferred.defer(render_and_write_stats, af,
+                       _retry_options=options)          
 
 def write_all_affixes():
     affixes_to_write = []
@@ -2507,6 +2550,9 @@ def test_view(destination):
 
     if "compositions" in destination:
         return render_compositions(affixes, prefix=prefix)        
+
+    if "stats" in destination:
+        return render_stats(affixes, prefix=prefix)
     
     return render_affixes(affixes, prefix=prefix)
 
