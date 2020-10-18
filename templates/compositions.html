@@ -8,8 +8,6 @@
 {% import 'tier_list.html' as tier_list %}
 {% import 'max_link.html' as max_link %}
 
-{% import 'link_popover.html' as lp %}
-
 <div class="container-fluid">
   <div class="row">
     <div class="col-12 py-3">
@@ -22,6 +20,10 @@
     
     <h2>Compositions</h2>
 
+    <p>
+      <b>Disclaimer</b>: Please note these compositions are only based on the top 100 runs per dungeon per region. They may not be representative of the larger meta. Take with a grain of salt.
+    </p>
+    
     <ul>
       <li><a href="#full-group">Full group</a></li>
       <li><a href="#tank-healer">Tank+Healer</a></li>
@@ -50,7 +52,7 @@
 {{comp}}
 <td>{{mean}}</td>
 {{ max_link.max_link(max_f, max_id, max_level, current_season) }}
-{{ lp.link_popover(all_runs, n, "Top Runs", current_season) }}
+<td>{{n}}</td>
 </tr>
 {% endfor %}
 </table>
@@ -84,7 +86,7 @@
 {{comp}}
 <td>{{mean}}</td>
 {{ max_link.max_link(max_f, max_id, max_level, current_season) }}
-{{ lp.link_popover(all_runs, n, "Top Runs", current_season) }}
+<td>{{n}}</td>
 </tr>
 {% endfor %}
 </table>
@@ -118,7 +120,7 @@
 {{comp}}
 <td>{{mean}}</td>
 {{ max_link.max_link(max_f, max_id, max_level, current_season) }}
-{{ lp.link_popover(all_runs, n, "Top Runs", current_season) }}
+<td>{{n}}</td>
 </tr>
 {% endfor %}
 </table>
