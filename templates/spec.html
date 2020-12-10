@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "unified-base.html" %}
 {% set page_type = "spec" %}
 {% set active_page = spec_slug %}
 
@@ -9,7 +9,7 @@
 <div class="col-12 py-3">
   <h1><img src="images/specs/{{spec_slug}}.jpg" width="56" height="56"/> {{spec}}</h1>
   <p>
-    <i>Top talents, essences, azerite, <!--enchants,--> gems, and gear based on data from the top {{n_parses}} {{spec}} M+ logs from the past 4 weeks, since the pre-patch, ranging in difficulty from +{{key_min}} to +{{key_max}}.</i> <button class="btn btn-primary btn-sm" type="button" onClick="showAll()">Show All</button> <button class="btn btn-primary btn-sm" type="button" onClick="hideAll()">Hide All</button>
+    <i>The {%include "blurb-top.html"%} based on the top {{n_parses}} {{spec}} M+ logs from the past 4 weeks, since the pre-patch, ranging in difficulty from +{{key_min}} to +{{key_max}}.</i>
     </p>
 </div>
 
@@ -27,7 +27,7 @@
 
 
 {% import 'spec_view.html' as spec_view %}
-{{ spec_view.spec_view(n_parses, tea, talents, essences, primary, role, defensive, hsc, gear, enchants, gems, gem_builds, corruption, corruption_builds, corruption_levels, spells, items, metric=metric) }}
+{{ spec_view.spec_view(n_parses, tea, talents, legendaries,gear, enchants, gems, gem_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, enchant_mapping=enchant_mapping, metric=metric) }}
     
   </div>
 </div>

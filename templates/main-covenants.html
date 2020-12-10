@@ -1,0 +1,27 @@
+{% extends "unified-base.html" %}
+{% set page_type = "main-index" %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+  <div class="row">
+    <div class="col-12 py-3">
+      <h1>Top Covenants for <a href="https://mplus.subcreation.net">Mythic+ Season 1</a> and <A href="https://castle-nathria.subcreation.net/">Castle Nathria</a></h1>
+      <i>Based on {{n_parses["mplus"]}} top Mythic+ runs and {{n_parses["raid"]}} top Castle Nathria parses</i>.
+    </div>
+  </div>
+
+  <div class="row">
+{% import 'covenant_report.html' as covenant_report %}
+{{ covenant_report.covenant_report("Tanks", "Tank", "tanks", covenants["Tanks"], prefix) }}
+{{ covenant_report.covenant_report("Healers", "Healer", "healers", covenants["Healers"], prefix) }}
+{{ covenant_report.covenant_report("Melee", "Melee", "melee", covenants["Melee"], prefix) }}
+{{ covenant_report.covenant_report("Ranged", "Ranged", "ranged", covenants["Ranged"], prefix) }}
+  </div>
+  
+</div>
+
+
+{% endblock content %}
+

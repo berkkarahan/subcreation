@@ -1,0 +1,21 @@
+dungeon_encounters = {}
+dungeon_encounters["De Other Side"] = 12291
+dungeon_encounters["Halls of Atonement"] = 12287
+dungeon_encounters["Mists of Tirna Scithe"] = 12290
+dungeon_encounters["Plaguefall"] = 12289
+dungeon_encounters["Sanguine Depths"] = 12284
+dungeon_encounters["Spires of Ascension"] = 12285
+dungeon_encounters["The Necrotic Wake"] = 12286
+dungeon_encounters["Theater of Pain"] = 12293
+
+castle_nathria_encounters = {}
+castle_nathria_encounters["Shriekwing"] = 2398
+castle_nathria_encounters["Huntsman Altimor"] = 2418
+castle_nathria_encounters["Sun King's Salvation"] = 2402
+castle_nathria_encounters["Artificer Xy'mox"] = 2405
+castle_nathria_encounters["Hungering Destroyer"] = 2383
+castle_nathria_encounters["Lady Inerva Darkvein"] = 2406
+castle_nathria_encounters["The Council of Blood"] = 2412
+castle_nathria_encounters["Sludgefist"] = 2399
+castle_nathria_encounters["Stone Legion Generals"] = 2417
+castle_nathria_encounters["Sire Denathrius"] = 2407

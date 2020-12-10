@@ -1,14 +1,16 @@
-{% macro spec_overview_table(sizing, title, heading, data, lookup, lookup_type, n_parses, offset_first="", offset_at = [0], anchor_id="", expanded="true", metric="dps") -%}
+{% macro spec_overview_table(sizing, title, heading, data, lookup, lookup_type, n_parses, offset_first="", offset_at = [0], anchor_id="", expanded="true", metric="dps", enchant_mapping = {}) -%}
 
 <div class="{{sizing}} py-3">
-  <h3 id="{{anchor_id}}"><button class="btn btn-primary btn-lg" type="button" data-toggle="collapse" data-target="#collapse-{{anchor_id}}" aria-expanded="{{expanded}}" aria-controls="collapse-{{anchor_id}}">{{title}}</button> <a href="#{{anchor_id}}">#</a></h3>
+  <a name="#{{anchor_id}}" class="anchor">
+    <h3 id="{{anchor_id}}" class="anchor">{{title}}</h3>
+  </a>
   <div class="collapse multi-collapse{% if expanded=="true" %} show{% endif %}" id="collapse-{{anchor_id}}">
-  <table class="table table-striped sort" id="table-spec-{{anchor_id}}">
+  <table class="table table-striped sort spec_table" id="table-spec-{{anchor_id}}">
     <thead>
       <tr>
-        <th>{{heading}}</th>
-        <th>max {{metric}}</th>
-        <th>Overall % (n)</th>
+        <th class="spec_icons">{{heading}}</th>
+        <th class="spec_max">max {{metric}}</th>
+        <th class="spec_counts">Overall % (n)</th>
       </tr>
     </thead>
     <tbody>
@@ -16,7 +18,25 @@
     <tr>
       <td>
         {% for k in build %}
+        {% if lookup_type == "enchant" %}
+        {% if lookup[k][0] in enchant_mapping %}
+        {% if "id" in enchant_mapping[lookup[k][0]] %} 
+        <a href="https://www.wowhead.com/item={{enchant_mapping[lookup[k][0]]["id"]}}" data-wh-icon-size="tiny">{{enchant_mapping[lookup[k][0]]["name"]}}</a><br/>
+        {% elif "spell_id" in enchant_mapping[lookup[k][0]] %}
+        <a href="https://www.wowhead.com/spell={{enchant_mapping[lookup[k][0]]["spell_id"]}}" data-wh-icon-size="tiny">{{enchant_mapping[lookup[k][0]]["name"]}}</a><br/>
+        {% endif %}
+        {% else %}
+        (unknown enchant: {{lookup[k][0]}})<br/>
+        {% endif %}
+        {% elif lookup_type == "soulbind" %}
+        {% if loop.index0 == 1 %}
+        <img src="https://subcreation.net/images/soulbinds/{{lookup[k][0]}}-min.jpg" width="36" height="36" title="{{lookup[k][1]}}" alt="{{lookup[k][1]}}">
+        {% else %}
+        <a href="https://www.wowhead.com/spell={{lookup[k][0]}}"></a>
+        {% endif %}
+        {% else %}
         <a href="https://www.wowhead.com/{{lookup_type}}={{lookup[k][0]}}"></a>
+        {% endif %}
         {% if loop.index0 in offset_at %}
         {{offset_first}}
         {% endif %}
@@ -29,11 +49,12 @@
         <a href='https://www.warcraftlogs.com/reports/{{report_id}}' target='_blank'>{{link_text}}</a>
         {% endif %}
       </td>
-<td>{{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}</a></td>        
-       
-
+      <td>
+        {{ "%.2f%% (%d)" % ((frequency/n_parses*100), frequency) }}
+      </td>        
     </tr>
     {% endfor %}
+
     </tbody>
   </table>
   <script>

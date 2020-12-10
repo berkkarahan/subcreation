@@ -22,43 +22,45 @@ vendor.add('lib')
 import slugify
 import cloudstorage as gcs
 
+from shadowlands import dungeons, dungeon_slugs, dungeon_short_names
+from shadowlands import prideful_weeks as affix_rotation_weeks
+from shadowlands import covenantID_mapping
 
-from warcraft import dungeons, dungeon_slugs, regions, dungeon_short_names
-from warcraft import specs, tanks, healers, melee, ranged, role_titles
-from warcraft import spec_short_names, affixes_short
+from warcraft import specs, tanks, healers, melee, ranged, role_titles, regions
+from warcraft import spec_short_names
 from t_interval import t_interval
 
 from models import Run, DungeonAffixRegion, KnownAffixes
 
-from warcraft import awakened_weeks as affix_rotation_weeks
-
 # wcl handling
 from models import SpecRankings, SpecRankingsRaid
 from auth import api_key
-from wcl import wcl_specs, dungeon_encounters
+from wcl import wcl_specs
+from wcl_shadowlands import dungeon_encounters
+from wcl_shadowlands import castle_nathria_encounters as raid_encounters
 
-from wcl import nyalotha_encounters as raid_encounters
-from raid import nyalotha_nox_notes_slugs as nox_notes_slugs
-from raid import nyalotha_canonical_order as raid_canonical_order
-from raid import nyalotha_short_names as raid_short_names
+from enchants import enchant_mapping
+
+
+from castle_nathria import castle_nathria_canonical_order as raid_canonical_order
+from castle_nathria import castle_nathria_short_names as raid_short_names
 
 # cloudflare cache handling
 from auth import cloudflare_api_key, cloudflare_zone
 
 ## globals
 from config import RIO_MAX_PAGE
-from warcraft import dungeons as DUNGEONS
+from shadowlands import dungeons as DUNGEONS
 from warcraft import regions as REGIONS
-from config import RIO_MAX_PAGE, RIO_SEASON
+from config import RIO_MAX_PAGE, RIO_SEASON, RAID_NAME
+from config import WCL_SEASON, WCL_PARTITION
 
 ## raider.io handling
 def update_known_affixes(affixes, affixes_slug):
     '''Update datastore's list of known affixes and their last seen times'''
     key = ndb.Key('KnownAffixes', affixes_slug)
     known_affix = key.get()
-#    logging.info("update_known_affixes %s %s %s" % (affixes,
-#                                                    affixes_slug,
-#                                                    str(ka)))
+
     if known_affix is None: # only add it if we haven't seen it before
         known_affix = KnownAffixes(id=affixes_slug, affixes=affixes)
         known_affix.put()
@@ -101,13 +103,11 @@ def parse_response(data, dungeon, affixes, region, page):
     dungeon_slug = slugify.slugify(unicode(dungeon))
 
     if affixes == "current":
-#        logging.info(" Detected 'current' affixes... evaluating actual...")
         affixes = ""
         affixes += data[0]["run"]["weekly_modifiers"][0]["name"] + ", "
         affixes += data[0]["run"]["weekly_modifiers"][1]["name"] + ", "
         affixes += data[0]["run"]["weekly_modifiers"][2]["name"] + ", "
         affixes += data[0]["run"]["weekly_modifiers"][3]["name"]
-#        logging.info("  %s " % (affixes))
 
     affixes_slug = slugify.slugify(unicode(affixes))
     update_known_affixes(affixes, affixes_slug)
@@ -142,15 +142,9 @@ def update_dungeon_affix_region(dungeon, affixes, region, season=RIO_SEASON, pag
     dungeon_slug = slugify.slugify(unicode(dungeon))
     affixes_slug = slugify.slugify(unicode(affixes))
 
-#    logging.info("Getting data for %s/%s/%s..." % (dungeon_slug,
-#                                                   affixes_slug,
-#                                                   region))
-
     req_url = "https://raider.io/api/v1/mythic-plus/runs?"
     req_url += "season=%s&region=%s&affixes=%s&dungeon=%s&page=%d" \
         % (season, region, affixes_slug, dungeon_slug, page)
-
-#    logging.info(" %s" % req_url)
 
     response = {}
     try:
@@ -223,21 +217,107 @@ def std(data, ddof=0):
 
 
 from math import sqrt
-
-
-
-# new: spit out all measurements for boxplot fun
-def gen_box_plot(counts):
-    buckets = {}
-    for name, runs in counts.iteritems():
-        if name not in buckets:
-            buckets[name] = []
-        for r in runs:
-            buckets[name] += [r.mythic_level]
-    return buckets
-
-
 from ckmeans import ckmeans
+
+def gen_top_covenant_report_for(spec, mode):
+
+    n_parses, _, _, _, _, _, _, _, _, _, covenants, _, _, _, _, _, _, _ = base_gen_spec_report(spec, mode)
+    logging.info("%s %s" % (spec, mode))
+    logging.info(covenants)
+    logging.info(len(covenants))
+    
+    slug = slugify.slugify(unicode(spec))
+
+    # no data
+    if len(covenants) < 1:
+        return 0, ""
+
+
+    top_result = covenants[0]
+    if len(top_result) < 2:
+        return 0, ""
+
+    if len(top_result[1]) < 1:
+        return 0, ""
+    
+    top_covenant_id = top_result[1][0]
+   
+    logging.info(top_covenant_id)
+    
+    covenant_ids = []
+    for i in [1, 2, 3, 4]:
+        covenant_ids += [covenantID_mapping[i]["id"]]
+    
+    # invalid covenant
+    logging.info(covenant_ids)    
+    
+    if covenants[0][1][0] not in covenant_ids:
+        return 0, ""
+
+    covenant_spell_id = covenants[0][1][0]
+    covenant_id = covenant_ids.index(covenant_spell_id)+1
+
+    logging.info(covenant_spell_id)
+    logging.info(covenant_id)
+
+    
+    name = covenantID_mapping[covenant_id]["name"]
+    
+    return n_parses, name
+    
+
+def create_package(name):
+    package = {}
+    package["name"] = name
+    package["slug"] = slugify.slugify(unicode(name))
+    return package
+
+def gen_covenants_report():
+    report = {}
+    report["Tanks"] = []
+    report["Healers"] = []
+    report["Melee"] = []
+    report["Ranged"] = []
+
+    # each report is a list with elements
+    # spec - the spec we're ooking at
+    #   name - pretty name of the spec
+    #   slug - slug of the spec
+    # mplus - the covenant for m+
+    #   name - pretty name of the covenant
+    #   slug - slug of the covenant
+    # raid - the covenant for raid
+    #   name - pretty name of the covenant
+    #   slug - slug of the covenant
+
+    
+
+    # how many parses overall for raid + mplus
+    
+    n_parses = {}
+    n_parses["raid"] = 0
+    n_parses["mplus"] = 0
+
+
+    for i, display in enumerate([tanks, healers, melee, ranged]):
+        for spec in sorted(display):
+            
+            n, mplus  = gen_top_covenant_report_for(spec, "mplus")
+            n_parses["mplus"] += n
+            
+            n, raid = gen_top_covenant_report_for(spec, "raid")
+            n_parses["raid"] += n
+            
+            report[role_titles[i]] += [[create_package(spec),
+                                        create_package(mplus),
+                                        create_package(raid)]]
+
+
+    logging.info(report)
+    logging.info(n_parses)
+    
+    return report, n_parses
+
 
 # generate a dungeon tier list
 def gen_dungeon_tier_list(dungeons_report):
@@ -247,10 +327,11 @@ def gen_dungeon_tier_list(dungeons_report):
     for k in dungeons_report:
         scores += [float(k[0])]
 
-    logging.info("debugging ckmeans in gen_dungeon_tier_list")
-    logging.info(dungeons_report)        
-    logging.info(scores)
-    
+    if len(dungeons_report) < 6:
+        # for some reason we're seeing fewer than 6 dungeons
+        # might be early in the week, etc.
+        return gen_dungeon_tier_list_small(dungeons_report)
+        
     buckets = ckmeans(scores, 6)
    
     added = []
@@ -285,6 +366,9 @@ def gen_dungeon_tier_list(dungeons_report):
             tiers[tm[0]] += [k]
             added += [k]
 
+    return render_dungeon_tier_list(tiers, tm)
+
+def render_dungeon_tier_list(tiers, tm):
     dtl = {}
     dtl["S"] = ""
     dtl["A"] = ""
@@ -299,12 +383,12 @@ def gen_dungeon_tier_list(dungeons_report):
     for i in range(0, 6):
         for k in tiers[tm[i]]:
             rendered = template.render(dungeon_slug = k[4],
-                                       dungon_name = k[1],
+                                       dungeon_name = k[1],
                                        dungeon_short_name = dungeon_short_names[k[1]])
             dtl[tm[i]] += rendered
     
     return dtl
-
+    
 
 def icon_spec(dname, prefix="", size=56):
     dslug = slugify.slugify(unicode(dname))
@@ -315,7 +399,6 @@ import pdb
 # generate a specs tier list
 def gen_spec_tier_list(specs_report, role, prefix=""):
     global role_titles
-
 
     scores = []
     for i in range(0, 4):
@@ -332,7 +415,6 @@ def gen_spec_tier_list(specs_report, role, prefix=""):
         
     buckets = ckmeans(scores, 6)
             
-
     added = []
 
     tiers = {}
@@ -346,13 +428,16 @@ def gen_spec_tier_list(specs_report, role, prefix=""):
 
     for i in range(0, 6):
         tiers[tm[i]] = []
-    
+
+
     for i in range(0, 6):
         for k in specs_report[role]:
-            if float(k[0]) in buckets[i]:
-                if k not in added:
-                    tiers[tm[i]] += [k]
-                    added += [k]
+            if len(buckets) > i:
+                if float(k[0]) in buckets[i]:
+                    if k not in added:
+                        tiers[tm[i]] += [k]
+                        added += [k]
+
 
     # add stragglers to last tier
     for k in specs_report[role]:
@@ -416,7 +501,6 @@ def render_affix_tier_list(tiers, tm):
 
     template = env.get_template('affix-mini-icon.html')
     template_all = env.get_template('affixes-mini-icons.html')
-    global affixes_short
     for i in range(0, 6):
         for k in tiers[tm[i]]:
             affixen = k[1].split(", ")
@@ -432,8 +516,7 @@ def render_affix_tier_list(tiers, tm):
             
             for each_affix in affixen:
                 rendered = template.render(affix_slug = slugify.slugify(each_affix),
-                                           affix_name = each_affix,
-                                           affix_short_name = affixes_short[each_affix])
+                                           affix_name = each_affix)
                 affix_set += rendered
 
 
@@ -497,6 +580,7 @@ def gen_affix_tier_list_small(affixes_report):
     # super simple tier list -- figure out the max and the min, and then bucket tiers
     cimax = -1
     cimin = -1
+
     for k in affixes_report:       
         if cimax == -1:
             cimax = float(k[0])
@@ -543,6 +627,61 @@ def gen_affix_tier_list_small(affixes_report):
             added += [k]
     
     return render_affix_tier_list(tiers, tm)
+
+# use this if there are fewer than 6 dungeonsscanned
+# since we can't cluster into 6 with uh, fewer than 6
+def gen_dungeon_tier_list_small(dungeons_report):
+   
+    # super simple tier list -- figure out the max and the min, and then bucket tiers
+    cimax = -1
+    cimin = -1
+
+    for k in dungeons_report:       
+        if cimax == -1:
+            cimax = float(k[0])
+        if cimin == -1:
+            cimin = float(k[0])
+        if float(k[0]) < cimin:
+            cimin = float(k[0])
+        if float(k[0]) > cimax:
+            cimax = float(k[0])
+
+    cirange = cimax - cimin
+    cistep = cirange / 6
+
+    added = []
+
+    tiers = {}
+    tm = {}
+    tm[0] = "S"
+    tm[1] = "A"
+    tm[2] = "B"
+    tm[3] = "C"
+    tm[4] = "D"
+    tm[5] = "F"
+
+    for i in range(0, 6):
+        tiers[tm[i]] = []
+    
+    for i in range(0, 6):
+        for k in dungeons_report:
+            if float(k[0]) >= (cimax-cistep*(i+1)):
+                if k not in added:
+                    if tm[i] not in tiers:
+                        tiers[tm[i]] = []
+                    tiers[tm[i]] += [k]
+                    added += [k]
+
+
+    # add stragglers to last tier
+    for k in dungeons_report:
+        if k not in added:
+            if tm[5] not in tiers:
+                tiers[tm[5]] = []
+            tiers[tm[5]] += [k]
+            added += [k]
+    
+    return render_dungeon_tier_list(tiers, tm)
 
 
 # for background on the analytical approach of using the lower bound of a confidence interval:
@@ -642,7 +781,7 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
                         last_updated = dar.last_updated
 
                     for run in dar.runs:
-                        if run.mythic_level < 16: # don't count runs under a +16
+                        if run.mythic_level < 10: # don't count runs under a +10
                             continue
                         
                         if dung not in dungeon_counts:
@@ -740,14 +879,11 @@ def known_specs_subset_links(subset, prefix=""):
 
     return known_specs_report
 
-
         
 
 
 def current_affixes():
     pull_query = KnownAffixes.query().order(-KnownAffixes.last_seen, -KnownAffixes.first_seen)
-#    logging.info(pull_query)
-#    logging.info(pull_query.fetch(1))
     current_affixes_save = pull_query.fetch(1)[0].affixes
     
     return current_affixes_save
@@ -768,11 +904,15 @@ def affix_rotation_affixes(affixes):
 
 # given a list of affixes, return a pretty affix string
 # <img><img><img><img> Affix1, Affix2, Affix3, Affix4
-def pretty_affixes(affixes, size=16):
+def pretty_affixes(affixes, size=16, no_text=False):
     if affixes=="All Affixes":
         return "All Affixes"
 
-    output_string = icon_affix(affixes, size=size) + " %s" % affix_rotation_affixes(affixes)
+    output_string = ""
+    if no_text:
+        output_string = icon_affix(affixes, size=size)
+    else:
+        output_string = icon_affix(affixes, size=size) + " %s" % affix_rotation_affixes(affixes)
     return output_string
         
 
@@ -1001,11 +1141,7 @@ def gen_dung_spec_report(dung_spec_counts, spec_counts):
     # we'll be adjusting [0] of the rolepackage, which is "%.2f" % lb_ci 
     for k, v in role_package.iteritems():
         for rp in v:
-            logging.info(rp[1])
-            logging.info(rp[0])
-            logging.info(per_spec_lb_ci[rp[1]])
             mean = average(per_spec_lb_ci[rp[1]])
-            logging.info(mean)
 
             # we're modifying role_package directly here
             rp[0] = "%.2f" % mean
@@ -1017,793 +1153,354 @@ def gen_dung_spec_report(dung_spec_counts, spec_counts):
     return role_package, stats
 
 
-def can_tuple(elements):
-    new_list = []
-    for k in elements:
-        new_list += [tuple((k))]
-    return tuple(new_list)
-
-# talents, essences, azerite combo
-def wcl_tea(rankings):
+# wcl parsing starts here
+def wcl_parse(rankings, extractor, is_sorted=True, is_aggregated=True, only_use_ids=False, flatten=False):
     groupings = {}
-    shadow = []
-    popover = {}
-    
+    map_name_id_icon = []
+    metadata = {}
+
+    # go through each element in rankings
+    # and use extractor to pull out what we want to focus on
+    # and then add it to groupings
+    # also, build out a map of name to -> id icon for each element
     for k in rankings:
-        if "essencePowers" not in k:
-            continue
-        
-        talents = []
-        for i, j in enumerate(k["talents"]):
-            talents += [j["name"]]
-            shadow += [j]
+        # extractor pulls out the elements we want to use
+        names_in_set, name_id_icons = extractor(k)
+        map_name_id_icon += name_id_icons
 
-        
-        essences = []
-        for i, j in enumerate(k["essencePowers"]):
-            if i != 1: # skip the major's minor
-                essences += [j["name"]]
-                shadow += [j]
+        add_this = None
+        if flatten: # use each element of names_in_set separately
+            added_this_round = []                    
+            for element in names_in_set:
+                add_this = tuple([element])
+                if add_this not in groupings:
+                   groupings[add_this] = 0
+                   metadata[add_this] = []
+                if add_this not in added_this_round:
+                   groupings[add_this] += 1
+                   added_this_round += [add_this]
 
-        major = essences[0]
-        minors = sorted(essences[1:])
-        essences = [major] + minors
+        else: # treat the elements in aggregate; don't consider them individually
+            if is_sorted:
+                add_this = tuple(sorted(names_in_set))
+            else:
+                add_this = tuple(names_in_set)
 
-        primary = []
-        # ignoring empowered traits
-        for i, j in enumerate(k["azeritePowers"]):
-            if i % 5 == 0 or i % 5 == 1: 
-                primary += [j["name"]]
-                shadow += [j]
-
-        primary = sorted(primary)
-
-        add_this = tuple(talents + essences + primary)
-    
-        if add_this not in groupings:
-            groupings[add_this] = 0
-            popover[add_this] = []
-        groupings[add_this] += 1
-        
-        link_text = ""
-        sort_value = 0
-        band_value = 0
-        if "keystoneLevel" in k:
-            link_text = "+%d" % k["keystoneLevel"]
-            sort_value = int(k["keystoneLevel"])
-            band_value = int(k["keystoneLevel"])
-        elif "total" in k:
-            link_text = "%.2fk" % (float(k["total"])/1000)
-            sort_value = (float(k["total"])/1000)
-            band_value = int((float(k["total"])/10000))*10
-
-        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
-
-
-    shdw = {}
-    for x in shadow:
-        shdw[x["name"]] = [x["id"], x["icon"]]
-
-    for k, v in popover.iteritems():
-        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
-
-    return groupings, shdw, popover
-
-
-def wcl_talents(rankings):
-    groupings = {}
-    shadow = []
-    popover = {}
-    
-    for k in rankings:
-        talents = []
-        for i, j in enumerate(k["talents"]):
-            talents += [j["name"]]
-            shadow += [j]
-
-        add_this = tuple(talents)
-        
-        if add_this not in groupings:
-            groupings[add_this] = 0
-            popover[add_this] = []
-        groupings[add_this] += 1
-        
-        link_text = ""
-        sort_value = 0
-        band_value = 0
-        if "keystoneLevel" in k:
-            link_text = "+%d" % k["keystoneLevel"]
-            sort_value = int(k["keystoneLevel"])
-            band_value = int(k["keystoneLevel"])
-        elif "total" in k:
-            link_text = "%.2fk" % (float(k["total"])/1000)
-            sort_value = (float(k["total"])/1000)
-            band_value = int((float(k["total"])/10000))*10
-
-        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
-
-
-    shdw = {}
-    for x in shadow:
-        shdw[x["name"]] = [x["id"], x["icon"]]
-
-    for k, v in popover.iteritems():
-        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
-
-    return groupings, shdw, popover
-
-def wcl_essences(rankings):
-    groupings = {}
-    shadow = []
-    popover = {}
-    
-    for k in rankings:
-        if "essencePowers" not in k:
-            continue
-        
-        essences = []
-        for i, j in enumerate(k["essencePowers"]):
-            if i != 1: # skip the major's minor
-                essences += [j["name"]]
-                shadow += [j]
-
-
-        major = essences[0]
-        minors = sorted(essences[1:])
-        essences = [major] + minors
-        
-        add_this = tuple(essences)
-    
-        if add_this not in groupings:
-            groupings[add_this] = 0
-            popover[add_this] = []
-        groupings[add_this] += 1
-
-        link_text = ""
-        sort_value = 0
-        band_value = 0
-        if "keystoneLevel" in k:
-            link_text = "+%d" % k["keystoneLevel"]
-            sort_value = int(k["keystoneLevel"])
-            band_value = int(k["keystoneLevel"])
-        elif "total" in k:
-            link_text = "%.2fk" % (float(k["total"])/1000)
-            sort_value = (float(k["total"])/1000)
-            band_value = int((float(k["total"])/10000))*10        
-
-        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
-
-
-    shdw = {}
-    for x in shadow:
-        shdw[x["name"]] = [x["id"], x["icon"]]
-
-    for k, v in popover.iteritems():
-        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
-
-    return groupings, shdw, popover
-
-
-
-def wcl_corruption_builds(rankings):
-    groupings = {}
-    shadow = []
-    popover = {}
-
-    
-    for k in rankings:
-        corruptions = []
-        if "corruption" in k:
-            if "activePowers" in k["corruption"]:
-                for i, j in enumerate(k["corruption"]["activePowers"]):
-                    jj = copy.deepcopy(j)
-                    jj["name"] = " %03d " % (100-j["corruption"]) + jj["name"]
-                    corruptions += [jj["name"]]
-                    shadow += [jj]
-            if "passivePowers" in k["corruption"]:
-                for i, j in enumerate(k["corruption"]["passivePowers"]):
-                    jj = copy.deepcopy(j)
-                    jj["name"] = " %03d " % (100-j["corruption"]) + jj["name"]
-                    corruptions += [jj["name"]]
-                    shadow += [jj]                                    
-
-        add_this = tuple(sorted(corruptions))
-        
-        if add_this not in groupings:
-            groupings[add_this] = 0
-            popover[add_this] = []
-        groupings[add_this] += 1
-        
-        link_text = ""
-        sort_value = 0
-        band_value = 0
-        if "keystoneLevel" in k:
-            link_text = "+%d" % k["keystoneLevel"]
-            sort_value = int(k["keystoneLevel"])
-            band_value = int(k["keystoneLevel"])
-        elif "total" in k:
-            link_text = "%.2fk" % (float(k["total"])/1000)
-            sort_value = (float(k["total"])/1000)
-            band_value = int((float(k["total"])/10000))*10
-
-        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
-
-
-    shdw = {}
-    for x in shadow:
-        shdw[x["name"]] = [x["id"], x["icon"]]
-
-    for k, v in popover.iteritems():
-        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
-
-    return groupings, shdw, popover
-
-def wcl_corruption(rankings):
-    groupings = {}
-    shadow = []
-    popover = {}
-
-    
-    for k in rankings:
-        corruptions = []
-        if "corruption" in k:
-            if "activePowers" in k["corruption"]:
-                for i, j in enumerate(k["corruption"]["activePowers"]):
-                    jj = copy.deepcopy(j)
-                    jj["name"] = " %03d " % (100-j["corruption"]) + jj["name"]
-                    corruptions += [jj["name"]]
-                    shadow += [jj]
-            if "passivePowers" in k["corruption"]:
-                for i, j in enumerate(k["corruption"]["passivePowers"]):
-                    jj = copy.deepcopy(j)
-                    jj["name"] = " %03d " % (100-j["corruption"]) + jj["name"]
-                    corruptions += [jj["name"]]
-                    shadow += [jj]                                    
-
-        added_this_round = []
-        for corr in corruptions:
-            add_this = tuple([corr])
             if add_this not in groupings:
                 groupings[add_this] = 0
-                popover[add_this] = []
-            if add_this not in added_this_round:
-                groupings[add_this] += 1
-                added_this_round += [add_this]
+                metadata[add_this] = []
+    
+            groupings[add_this] += 1
 
+        if add_this == None:
+            continue
+            
         link_text = ""
         sort_value = 0
-        band_value = 0
-        if "keystoneLevel" in k:
+
+        # is this for m+ or raid?
+        if "keystoneLevel" in k: # m+
             link_text = "+%d" % k["keystoneLevel"]
             sort_value = int(k["keystoneLevel"])
-            band_value = int(k["keystoneLevel"])
-        elif "total" in k:
+        elif "total" in k: # raid
             link_text = "%.2fk" % (float(k["total"])/1000)
             sort_value = (float(k["total"])/1000)
-            band_value = int((float(k["total"])/10000))*10
 
-        for corr in corruptions:
-            add_this = tuple([corr])
-            popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
+        # 0 is an artifact of band value, for aggregated reports in the popover -- unused now
+        report_id = ""
+        if "reportID" in k:
+            report_id = k["reportID"]
 
+        metadata[add_this] += [[sort_value, 0, link_text, report_id]]
 
-    shdw = {}
-    for x in shadow:
-        shdw[x["name"]] = [x["id"], x["icon"]]
+    # get rid of duplicate icons in the look up table / mapping
+    no_duplicate_mapping = {}
+    for mapping in map_name_id_icon:
+        if only_use_ids:
+            no_duplicate_mapping[mapping["id"]] = [mapping["id"], ""]
+        else:
+            no_duplicate_mapping[mapping["name"]] = [mapping["id"], mapping["icon"]]
 
-    for k, v in popover.iteritems():
-        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
+    for k, v in metadata.iteritems():
+        metadata[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:1] # just the best one
 
-    return groupings, shdw, popover
-
-def wcl_corruption_levels(rankings):
-    groupings = {}
-    shadow = []
-    popover = {}
-
-    for k in rankings:
-        
-        effective_corruption = 0
-        cloakResist = 0
-        corruptionFromPowers = 0
-
-        if "corruption" in k:
-            if "cloakResist" in k["corruption"]:
-                cloakResist = k["corruption"]["cloakResist"]
-            if "corruptionFromPowers" in k["corruption"]:
-                corruptionFromPowers = k["corruption"]["corruptionFromPowers"]
+    return wcl_top10(groupings, metadata), no_duplicate_mapping
 
 
-        # check for corruption reducing essences
-        essenceResist = 0
-        essences = []        
-        if "essencePowers" in k:
-            for i, j in enumerate(k["essencePowers"]):
-                if i != 1: # skip the major's minor
-                    essences += [j["name"]]
-                    shadow += [j]
-
-            major = essences[0]
-            minors = sorted(essences[1:])
-            essences = [major] + minors
-
-
-        corruption_reducing = []
-
-        corruption_reducing += ["Replica of Knowledge"]
-        corruption_reducing += ["Symbiotic Presence"]
-        
-        corruption_reducing += ["Reaping Flames"]        
-        corruption_reducing += ["Lethal Strikes"]
-
-        corruption_reducing += ["Spirit of Preservation"]
-        corruption_reducing += ["Devout Spirit"]
-
-        corruption_reducing += ["Guardian Spirit"]        
-        corruption_reducing += ["Unwavering Ward"]
-
-        corruption_reducing += ["Touch of the Everlasting"]        
-        corruption_reducing += ["Will to Survive"]
-
-        corruption_reducing += ["Vigilant Protector"]
-        corruption_reducing += ["Endurance"]
-
-
-        for e in essences:
-            if e in corruption_reducing:
-                essenceResist = 10
-
-        effective_corruption = corruptionFromPowers - cloakResist - essenceResist
-
-        corruption_bracket = 0
-        corruption_downsides = []
-
-        if effective_corruption >= 1:
-            corruption_bracket = 1
-            corruption_downsides += ["Grasping Tendrils"]
-        if effective_corruption >= 20:
-            corruption_bracket = 20
-            corruption_downsides += ["Eye of Corruption"]            
-        if effective_corruption >= 40:            
-            corruption_bracket = 40
-            corruption_downsides += ["Grand Delusions"]
-        if effective_corruption >= 60:
-            corruption_bracket = 60
-            corruption_downsides += ["Cascading Disaster"]
-        if effective_corruption >= 80:
-            corruption_bracket = 80
-            corruption_downsides += ["Inevitable Doom"]
-
-        add_this = tuple(corruption_downsides) # not sorted, preserve order
-        
-        if add_this not in groupings:
-            groupings[add_this] = 0
-            popover[add_this] = []
-        groupings[add_this] += 1
-        
-        link_text = ""
-        sort_value = 0
-        band_value = 0
-        if "keystoneLevel" in k:
-            link_text = "+%d" % k["keystoneLevel"]
-            sort_value = int(k["keystoneLevel"])
-            band_value = int(k["keystoneLevel"])
-        elif "total" in k:
-            link_text = "%.2fk" % (float(k["total"])/1000)
-            sort_value = (float(k["total"])/1000)
-            band_value = int((float(k["total"])/10000))*10
-
-        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
-
-    shdw = {}
-    corruption_spells = []
-    corruption_spells += [{"id" : 315175,
-                           "icon" : "achievement_boss_yoggsaron_01.jpg",
-                           "name" : "Grasping Tendrils"}]
-    corruption_spells += [{"id" : 315169,
-                           "icon" : "spell_priest_void-blast.jpg",
-                           "name" : "Eye of Corruption"}]
-    corruption_spells += [{"id" : 315184,
-                           "icon" : "inv_eyeofnzothpet.jpg",
-                           "name" : "Grand Delusions"}]
-    corruption_spells += [{"id" : 315857,
-                           "icon" : "inv_eyeofnzothpet.jpg",                           
-                           "name" : "Cascading Disaster"}]
-    corruption_spells += [{"id" : 315179,
-                           "icon" : "inv_eyeofnzothpet.jpg",                           
-                           "name" : "Inevitable Doom"}]                          
-
-
-    shadow = corruption_spells
-    for x in shadow:
-        shdw[x["name"]] = [x["id"], x["icon"]]
-
-    for k, v in popover.iteritems():
-        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
-
-    return groupings, shdw, popover
-
-
-def wcl_primary(rankings):
-    groupings = {}
-    shadow = []
-    popover = {}
+# extract elements in category
+def wcl_generic_extract(ranking, category):
+    names_in_set = []
+    name_id_icons = []
+    if category not in ranking:
+        return [], []
     
-    for k in rankings:
+    for i, j in enumerate(ranking[category]):
+        names_in_set += [j["name"]]
+        name_id_icons += [j]
 
-        primary = []
-        # ignoring empowered traits
-        for i, j in enumerate(k["azeritePowers"]):
-            if i % 5 == 0 or i % 5 == 1: 
-                primary += [j["name"]]
-                shadow += [j]
-
-        primary = sorted(primary)
-
-        add_this = tuple(primary)
-    
-        if add_this not in groupings:
-            groupings[add_this] = 0
-            popover[add_this] = []
-        groupings[add_this] += 1
-
-        link_text = ""
-        sort_value = 0
-        band_value = 0
-        if "keystoneLevel" in k:
-            link_text = "+%d" % k["keystoneLevel"]
-            sort_value = int(k["keystoneLevel"])
-            band_value = int(k["keystoneLevel"])
-        elif "total" in k:
-            link_text = "%.2fk" % (float(k["total"])/1000)
-            sort_value = (float(k["total"])/1000)
-            band_value = int((float(k["total"])/10000))*10
-
-        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
+    return names_in_set, name_id_icons
 
 
-    shdw = {}
-    for x in shadow:
-        shdw[x["name"]] = [x["id"], x["icon"]]
+# extract gear a single ranking
+def wcl_extract_gear(ranking, slots):
+    names_in_set = []
+    name_id_icons = []
+    for i, j in enumerate(ranking["gear"]):
+        if i in slots:
+            names_in_set += [j["name"]]
+            name_id_icons += [j]
 
-    for k, v in popover.iteritems():
-        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
-        
-    return groupings, shdw, popover
-
-def wcl_role(rankings):
-    groupings = {}
-    shadow = []
-    popover = {}
-    
-    for k in rankings:
-
-        role = []
-        # ignoring empowered traits
-        for i, j in enumerate(k["azeritePowers"]):
-            if i % 5 == 2:
-                role += [j["name"]]
-                shadow += [j]                
-
-        role = sorted(role)
-
-        add_this = tuple(role)
-    
-        if add_this not in groupings:
-            groupings[add_this] = 0
-            popover[add_this] = []
-        groupings[add_this] += 1
-
-        link_text = ""
-        sort_value = 0
-        band_value = 0
-        if "keystoneLevel" in k:
-            link_text = "+%d" % k["keystoneLevel"]
-            sort_value = int(k["keystoneLevel"])
-            band_value = int(k["keystoneLevel"])
-        elif "total" in k:
-            link_text = "%.2fk" % (float(k["total"])/1000)
-            sort_value = (float(k["total"])/1000)
-            band_value = int((float(k["total"])/10000))*10
-
-        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
-
-
-    shdw = {}
-    for x in shadow:
-        shdw[x["name"]] = [x["id"], x["icon"]]
-
-    for k, v in popover.iteritems():
-        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
-        
-    return groupings, shdw, popover
-
-def wcl_defensive(rankings):
-    groupings = {}
-    shadow = []
-    popover = {}
-    
-    for k in rankings:
-
-        defensive = []
-        # ignoring empowered traits
-        for i, j in enumerate(k["azeritePowers"]):
-            if i % 5 == 3:
-                defensive += [j["name"]]
-                shadow += [j]                
-
-        defensive = sorted(defensive)
-
-        add_this = tuple(defensive)
-    
-        if add_this not in groupings:
-            groupings[add_this] = 0
-            popover[add_this] = []
-        groupings[add_this] += 1
-
-        link_text = ""
-        sort_value = 0
-        band_value = 0
-        if "keystoneLevel" in k:
-            link_text = "+%d" % k["keystoneLevel"]
-            sort_value = int(k["keystoneLevel"])
-            band_value = int(k["keystoneLevel"])
-        elif "total" in k:
-            link_text = "%.2fk" % (float(k["total"])/1000)
-            sort_value = (float(k["total"])/1000)
-            band_value = int((float(k["total"])/10000))*10
-
-        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
-
-
-    shdw = {}
-    for x in shadow:
-        shdw[x["name"]] = [x["id"], x["icon"]]
-
-    for k, v in popover.iteritems():
-        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
-        
-    return groupings, shdw, popover
-
-
-def wcl_hsc(rankings):
-    groupings = {}
-    shadow = []
-    popover = {}
-    
-    for k in rankings:
-
-        hsc = []
-        for i, j in enumerate(k["gear"]):
-            if i == 0 or i == 2 or i == 4:
-                hsc += [j["name"]]
-                shadow += [j]
-        
-        add_this = tuple(hsc)
-    
-        if add_this not in groupings:
-            groupings[add_this] = 0
-            popover[add_this] = []
-        groupings[add_this] += 1
-
-        link_text = ""
-        sort_value = 0
-        band_value = 0
-        if "keystoneLevel" in k:
-            link_text = "+%d" % k["keystoneLevel"]
-            sort_value = int(k["keystoneLevel"])
-            band_value = int(k["keystoneLevel"])
-        elif "total" in k:
-            link_text = "%.2fk" % (float(k["total"])/1000)
-            sort_value = (float(k["total"])/1000)
-            band_value = int((float(k["total"])/10000))*10
-
-        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
-
-
-    shdw = {}
-    for x in shadow:
-        shdw[x["name"]] = [x["id"], x["icon"]]
-
-    for k, v in popover.iteritems():
-        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
-        
-    return groupings, shdw, popover
-
-def wcl_rings(rankings):
-    groupings = {}
-    shadow = []
-    popover = {}
-    
-    for k in rankings:
-
-        rings = []
-        for i, j in enumerate(k["gear"]):
-            if i == 10 or i == 11:
-                rings += [j["name"]]
-                shadow += [j]
-        
-        add_this = tuple(sorted(rings))
-    
-        if add_this not in groupings:
-            groupings[add_this] = 0
-            popover[add_this] = []
-        groupings[add_this] += 1
-
-        link_text = ""
-        sort_value = 0
-        band_value = 0
-        if "keystoneLevel" in k:
-            link_text = "+%d" % k["keystoneLevel"]
-            sort_value = int(k["keystoneLevel"])
-            band_value = int(k["keystoneLevel"])
-        elif "total" in k:
-            link_text = "%.2fk" % (float(k["total"])/1000)
-            sort_value = (float(k["total"])/1000)
-            band_value = int((float(k["total"])/10000))*10
-
-        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
-
-
-    shdw = {}
-    for x in shadow:
-        shdw[x["name"]] = [x["id"], x["icon"]]
-
-    for k, v in popover.iteritems():
-        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
-        
-    return groupings, shdw, popover
-
-
+    return names_in_set, name_id_icons
 
 def wcl_gear(rankings, slots):
-    groupings = {}
-    shadow = []
-    popover = {}
+    is_sorted = True
+    if 15 in slots: # don't sort if there's an offhand
+        is_sorted = False
+
+    return wcl_parse(rankings,
+                     lambda e: wcl_extract_gear(e, slots),
+                     is_sorted = is_sorted)
+
+def wcl_extract_gems(ranking):
+    names_in_set = []
+    name_id_icons = []
     
-    for k in rankings:
+    for i, j in enumerate(ranking["gear"]):
+        if "gems" in j:
+            for each_gem in j["gems"]:
+                names_in_set += [each_gem["id"]]
+                name_id_icons += [each_gem]
 
-        gear = []
-        for i, j in enumerate(k["gear"]):
-            if i in slots:
-                gear += [j["name"]]
-                shadow += [j]
-
-        # do NOT sort if weapon (we want the mainhand/offhand distinction)
-        if 15 in slots:
-            add_this = tuple((gear))
-        else:
-            add_this = tuple(sorted(gear))
-    
-        if add_this not in groupings:
-            groupings[add_this] = 0
-            popover[add_this] = []
-        groupings[add_this] += 1
-
-        link_text = ""
-        sort_value = 0
-        band_value = 0
-        if "keystoneLevel" in k:
-            link_text = "+%d" % k["keystoneLevel"]
-            sort_value = int(k["keystoneLevel"])
-            band_value = int(k["keystoneLevel"])
-        elif "total" in k:
-            link_text = "%.2fk" % (float(k["total"])/1000)
-            sort_value = (float(k["total"])/1000)
-            band_value = int((float(k["total"])/10000))*10
-
-        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
-
-
-    shdw = {}
-    for x in shadow:
-        shdw[x["name"]] = [x["id"], x["icon"]]
-
-    for k, v in popover.iteritems():
-        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
-        
-    return wcl_top10(groupings, popover), shdw
+    return names_in_set, name_id_icons
 
 def wcl_gems(rankings):
-    groupings = {}
-    popover = {}
-    shadow = []
-    
-    for k in rankings:
-
-        gems = []
-        for i, j in enumerate(k["gear"]):
-            if "gems" in j:
-                for q in j["gems"]:
-                    gems += [q["id"]]
-                    shadow += [q]
-
-        if gems == []:
-            continue
-                    
-        added_this_round = []                    
-        for gem in gems:
-            add_this = tuple([gem])
-            if add_this not in groupings:
-                groupings[add_this] = 0
-                popover[add_this] = []
-            if add_this not in added_this_round:
-                groupings[add_this] += 1
-                added_this_round += [add_this]
-
-        link_text = ""
-        sort_value = 0
-        band_value = 0
-        if "keystoneLevel" in k:
-            link_text = "+%d" % k["keystoneLevel"]
-            sort_value = int(k["keystoneLevel"])
-            band_value = int(k["keystoneLevel"])
-        elif "total" in k:
-            link_text = "%.2fk" % (float(k["total"])/1000)
-            sort_value = (float(k["total"])/1000)
-            band_value = int((float(k["total"])/10000))*10
-
-        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
-        
-
-        
-    shdw = {}
-    for x in shadow:
-        shdw[x["id"]] = [x["id"], ""]
-       
-    for k, v in popover.iteritems():
-        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
-
-       
-    return wcl_top10(groupings, popover), shdw
+    return wcl_parse(rankings,
+                     wcl_extract_gems,
+                     only_use_ids=True,
+                     flatten=True)
 
 def wcl_gem_builds(rankings):
-    groupings = {}
-    popover = {}
-    shadow = []
+    return wcl_parse(rankings,
+                     wcl_extract_gems,
+                     only_use_ids=True)
+
+def wcl_hsc(rankings):
+    return wcl_parse(rankings,
+                     lambda e: wcl_extract_gear(e, [0, 2, 4]),
+                     is_sorted=False) # we want to show in helm, shoulders, chest order
+
+def wcl_extract_azerite_powers(ranking, offsets):
+    names_in_set = []
+    name_id_icons = []
+    for i, j in enumerate(ranking["azeritePowers"]):
+        if i % 5 in offsets:
+            names_in_set += [j["name"]]
+            name_id_icons += [j]
+            
+    return names_in_set, name_id_icons
+
+def wcl_primary(rankings):
+    return wcl_parse(rankings,
+                     lambda e: wcl_extract_azerite_powers(e, [0, 1]))
+
+def wcl_role(rankings):
+    return wcl_parse(rankings,
+                     lambda e: wcl_extract_azerite_powers(e, [2]))
+
+def wcl_defensive(rankings):
+    return wcl_parse(rankings,
+                     lambda e: wcl_extract_azerite_powers(e, [3]))
+
+
+def wcl_extract_essences(ranking):
+    names_in_set = []
+    name_id_icons = []
+    if "essencePowers" not in ranking:
+        return [], []
+
+
+    essences = []
+    for i, j in enumerate(ranking["essencePowers"]):
+        if i != 1: # skip the major's minor
+            essences += [j["name"]]
+            name_id_icons += [j]
+
+    major = essences[0]
+    minors = sorted(essences[1:])
+    names_in_set = [major] + minors            
     
-    for k in rankings:
+    return names_in_set, name_id_icons    
+    
 
-        gems = []
-        for i, j in enumerate(k["gear"]):
-            if "gems" in j:
-                for q in j["gems"]:
-                    gems += [q["id"]]
-                    shadow += [q]
+def wcl_essences(rankings):
+    return wcl_parse(rankings, wcl_extract_essences, is_sorted=False)
 
-        add_this = tuple(sorted(gems))
-                    
-        if add_this not in groupings:
-            groupings[add_this] = 0
-            popover[add_this] = []
-        groupings[add_this] += 1
+def wcl_extract_talents(ranking):
+    names_in_set = []
+    name_id_icons = []
 
-        link_text = ""
-        sort_value = 0
-        band_value = 0
-        if "keystoneLevel" in k:
-            link_text = "+%d" % k["keystoneLevel"]
-            sort_value = int(k["keystoneLevel"])
-            band_value = int(k["keystoneLevel"])
-        elif "total" in k:
-            link_text = "%.2fk" % (float(k["total"])/1000)
-            sort_value = (float(k["total"])/1000)
-            band_value = int((float(k["total"])/10000))*10
+    for i, j in enumerate(ranking["talents"]):
+        names_in_set += [j["name"]]
+        name_id_icons += [j]
+    
+    return names_in_set, name_id_icons    
 
-        popover[add_this] += [[sort_value, band_value, link_text, k["reportID"]]]
+def wcl_talents(rankings):
+    return wcl_parse(rankings, wcl_extract_talents, is_sorted=False)
 
-    shdw = {}
-    for x in shadow:
-        shdw[x["id"]] = [x["id"], ""]
-       
-    for k, v in popover.iteritems():
-        popover[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:25]
+def wcl_extract_soulbinds(ranking):
+    names_in_set = []
+    name_id_icons = []
+
+    if "soulbindPowers" not in ranking:
+        return [], []
+
+    if "soulbindID" not in ranking:
+        return [], []
+
+    if ranking["soulbindID"] == 0:
+        return [], []
+
+    if ranking["covenantID"] not in [1, 2, 3, 4]:
+        return [], []
         
-    return wcl_top10(groupings, popover), shdw
+    names_in_set += [covenantID_mapping[ranking["covenantID"]]["id"]]
+    name_id_icons += [covenantID_mapping[ranking["covenantID"]]]
+   
+    soulbindID_mapping = {}
+    soulbindID_mapping[1] = {"name": "Niya"}
+    soulbindID_mapping[2] = {"name": "Dreamweaver"}
+    soulbindID_mapping[3] = {"name": "General Draven"}
+    soulbindID_mapping[4] = {"name": "Plague Deviser Marileth"}
+    soulbindID_mapping[5] = {"name": "Emeni"}
+    soulbindID_mapping[6] = {"name": "Korayn"}
+    soulbindID_mapping[7] = {"name": "Pelagos"}
+    soulbindID_mapping[8] = {"name": "Nadjia the Mistblade"}
+    soulbindID_mapping[9] = {"name": "Theotar the Mad Duke"}
+    soulbindID_mapping[10] = {"name": "Bonesmith Heirmir"}
+    soulbindID_mapping[13] = {"name": "Kleia"}
+    soulbindID_mapping[18] = {"name": "Forgelite Prime Mikanikos"}
+
+    # there's no spell or item id for soulbinds
+    # so we have create our own icons
+    # and then map to them
+    # this is sadly very hacky for now
+    # we convert to slug
+    # and then use this in spec_view
+    for k, v in soulbindID_mapping.iteritems():
+        v["id"] = slugify.slugify(unicode(v["name"]))
+    
+    names_in_set += [soulbindID_mapping[ranking["soulbindID"]]["name"]]
+    name_id_icons += [{"id": soulbindID_mapping[ranking["soulbindID"]]["id"],
+                       "icon": soulbindID_mapping[ranking["soulbindID"]]["name"],
+                       "name": soulbindID_mapping[ranking["soulbindID"]]["name"]}]
+
+    return names_in_set, name_id_icons   
+    
+
+def wcl_extract_soulbind_abilities(ranking):
+    names_in_set = []
+    name_id_icons = []
+
+    if "soulbindPowers" not in ranking:
+        return [], []
+
+    if "soulbindID" not in ranking:
+        return [], []
+
+    if ranking["soulbindID"] == 0:
+        return [], []
+
+    if ranking["covenantID"] not in [1, 2, 3, 4]:
+        return [], []
+    
+    names_in_set, name_id_icons = wcl_extract_soulbinds(ranking)
+
+    for i, j in enumerate(ranking["soulbindPowers"]):
+        names_in_set += [j["name"]]
+        name_id_icons += [j]
+
+    return names_in_set, name_id_icons   
+
+def wcl_soulbinds(rankings):
+    return wcl_parse(rankings, wcl_extract_soulbinds, is_sorted=False)
+
+def wcl_soulbind_abilities(rankings):
+    return wcl_parse(rankings, wcl_extract_soulbind_abilities, is_sorted=False)
+
+def wcl_extract_covenants(ranking):
+    names_in_set = []
+    name_id_icons = []
+
+    if "covenantID" not in ranking:
+        return [], []
+    
+    if ranking["covenantID"] not in [1, 2, 3, 4]:
+        return [], []
+    
+    names_in_set += [covenantID_mapping[ranking["covenantID"]]["id"]]
+    name_id_icons += [covenantID_mapping[ranking["covenantID"]]]
+    
+    return names_in_set, name_id_icons   
+
+def wcl_covenants(rankings):
+    return wcl_parse(rankings, wcl_extract_covenants, only_use_ids=True)
 
 
+def wcl_legendaries(rankings):
+    return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "legendaryEffects"))
+
+def wcl_conduit_builds(rankings):
+    return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "conduitPowers"))
+
+def wcl_conduits(rankings):
+    return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "conduitPowers"), flatten=True)
+
+# talents, essences, azerite combo -- now talents, soulbind, conduit, legendary
+def wcl_extract_tea(ranking):
+    names_in_set = []
+    name_id_icons = []
+
+    add_names, add_icons = wcl_extract_talents(ranking)
+    names_in_set += add_names
+    name_id_icons += add_icons
+
+    add_names, add_icons = wcl_generic_extract(ranking, "legendaryEffects")
+    names_in_set += add_names
+    name_id_icons += add_icons
+
+    add_names, add_icons = wcl_generic_extract(ranking, "soulbindPowers")
+    names_in_set += add_names
+    name_id_icons += add_icons
+    
+    add_names, add_icons = wcl_generic_extract(ranking, "conduitPowers")
+    names_in_set += add_names
+    name_id_icons += add_icons     
+    
+    return names_in_set, name_id_icons    
+
+def wcl_tea(rankings):
+    return wcl_parse(rankings, wcl_extract_tea, is_sorted=False)
+
+# we want enchants for particular set of slots
+def wcl_extract_enchants(ranking, slots, type="permanentEnchant"):
+    names_in_set = []
+    name_id_icons = []
+    for i, j in enumerate(ranking["gear"]):
+        if i in slots:
+            if type in j:
+                names_in_set += [j[type]]
+                name_id_icons += [{"id":j[type]}]
+
+    return names_in_set, name_id_icons
+
+def wcl_enchants(rankings, slots, type="permanentEnchant"):
+    return wcl_parse(rankings, lambda e: wcl_extract_enchants(e, slots, type), only_use_ids=True)
+    
+
+# pick the top 10, sorted by n
 def wcl_top10(d, pop=None, top_n = 10):
-    # need to also explore these ... k["reportId"] + k["keystoneLevel"]    
+    # consider sorting by key level / dps instead?
     dv = sorted(d.items(), key=operator.itemgetter(1), reverse=True)
     output = []
     for i, (s, n) in enumerate(dv):
@@ -1815,22 +1512,35 @@ def wcl_top10(d, pop=None, top_n = 10):
             output += [[n, s, pop[s]]]
 
     return output
-    
 
-
+# spec report generation
 def gen_wcl_spec_report(spec):
-    wcl_query = SpecRankings.query(SpecRankings.spec==spec) ##temp
-    ## can we split by dungeon? by affix?
+    return base_gen_spec_report(spec, "mplus")
 
+def gen_wcl_raid_spec_report(spec, encounter="all"):
+    return base_gen_spec_report(spec, "raid", encounter)
+
+def base_gen_spec_report(spec, mode, encounter="all"):
+    wcl_query = None
+
+    if mode == "mplus":
+        wcl_query = SpecRankings.query(SpecRankings.spec==spec)
+    elif mode=="raid":
+        if encounter == "all":
+            wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec)
+        else:
+            wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
+                                               SpecRankingsRaid.encounter==encounter)
+           
     results = wcl_query.fetch()
-
     global last_updated
 
-    key_levels = []
-
+    maxima = []
     n_parses = 0
-
     rankings = []
+
+    seen_difficulties = set()
+    difficulty = ""
     
     for k in results:
         if last_updated == None:
@@ -1838,55 +1548,46 @@ def gen_wcl_spec_report(spec):
         if k.last_updated > last_updated:
             last_updated = k.last_updated
 
+        if mode == "raid":
+            seen_difficulties.add(k.difficulty)
+            
         latest = json.loads(k.rankings)
         rankings += latest
-
 
     for k in rankings:
-        key_levels += [k["keystoneLevel"]]
+        if mode == "mplus":
+            maxima += [k["keystoneLevel"]]
 
-    tea, spells, pop = wcl_tea(rankings)
-    tea = wcl_top10(tea, pop, top_n = 25)
+    # clean up difficulty display
+    # a single boss will always be only one difficulty
+    # this is for the all bosses view, where we might have a mix of
+    # heroic and mythic bosses -- until all bosse are done on mythic for that spec
+            
+    if mode == "raid":
+        canonical_order_difficulties = ["Mythic", "Heroic", "Normal"]
+
+        seen_difficulties_canonical = []
+        for diff in canonical_order_difficulties:
+            if diff in seen_difficulties:
+                seen_difficulties_canonical += [diff]
+
+        difficulty = " / ".join(seen_difficulties_canonical)
+
+    items = {}
+    spells = {}
+
+    tea = []
+    tea, update_spells = wcl_tea(rankings)
+    spells.update(update_spells)
         
-    t, tspells, pop = wcl_talents(rankings)
-    talents = wcl_top10(t, pop)
-    spells.update(tspells)
+    talents, update_spells = wcl_talents(rankings)
+    spells.update(update_spells)
 
-    c, cspells, pop = wcl_corruption_builds(rankings)
-    corruption_builds = wcl_top10(c, pop)
-    spells.update(cspells)
-
-    c, cspells, pop = wcl_corruption(rankings)
-    corruption = wcl_top10(c, pop)
-    spells.update(cspells)
-
-    c, cspells, pop = wcl_corruption_levels(rankings)
-    corruption_levels = wcl_top10(c, pop)
-    spells.update(cspells)
-
-    e, espells, pop = wcl_essences(rankings)
-    essences = wcl_top10(e, pop)
-    spells.update(espells) 
-
-    p, pspells, pop = wcl_primary(rankings)
-    primary = wcl_top10(p, pop)
-    spells.update(pspells) 
-
-    r, rspells, pop = wcl_role(rankings)
-    role = wcl_top10(r, pop)
-    spells.update(rspells) 
-
-    d, dspells, pop = wcl_defensive(rankings)
-    defensive = wcl_top10(d, pop)
-    spells.update(dspells) 
-
-    gear = {}
-
-    h, items, pop = wcl_hsc(rankings)
-    hsc = wcl_top10(h, pop)
+    gear = {}    
 
     gear_slots = []
     gear_slots += [["helms", [0]]]
+    gear_slots += [["neck", [1]]]
     gear_slots += [["shoulders", [2]]]
     gear_slots += [["chests", [4]]]
     gear_slots += [["belts", [5]]]
@@ -1900,8 +1601,34 @@ def gen_wcl_spec_report(spec):
     gear_slots += [["weapons", [15, 16]]]
 
     for (slot_name, slots) in gear_slots:
-        gear[slot_name], update_items = wcl_gear(rankings, slots) #popover is built into this function
+        gear[slot_name], update_items = wcl_gear(rankings, slots) 
         items.update(update_items)
+
+
+    # legendaries
+    gear["legendaries"] = []
+
+    # covenants
+    covenants, update_spells = wcl_covenants(rankings)
+    spells.update(update_spells)    
+
+    # soulbinds & soulbind abilities
+    soulbinds, update_spells = wcl_soulbinds(rankings)
+    spells.update(update_spells)
+
+    soulbind_abilities, update_spells = wcl_soulbind_abilities(rankings)
+    spells.update(update_spells)
+
+    # conduits & conduits builds
+    conduits, update_spells = wcl_conduits(rankings)
+    spells.update(update_spells)
+    
+    conduit_builds, update_spells = wcl_conduit_builds(rankings)
+    spells.update(update_spells)
+
+    # legendary powers
+    legendaries, update_spells = wcl_legendaries(rankings)
+    spells.update(update_spells)
 
     gems, update_items = wcl_gems(rankings)
     items.update(update_items)
@@ -1910,111 +1637,52 @@ def gen_wcl_spec_report(spec):
     items.update(update_items)
     
     enchants = {}
-    enchants["weapons"] = []
-    enchants["rings"] = []
-            
-    if len(key_levels) > 0:
-        return len(rankings), max(key_levels), min(key_levels), tea, talents, essences, primary, role, defensive, hsc, gear, enchants, gems, gem_builds, corruption, corruption_builds, corruption_levels, spells, items
-    return 0, 0, 0, tea, talents, essences, primary, role, defensive, hsc, gear, enchants, gems, gem_builds, corruption, corruption_builds, corruption_levels, spells, items
-
-def gen_wcl_raid_spec_report(spec, encounter="all", difficulty="Heroic"):
-    if encounter == "all":
-        wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
-                                           SpecRankingsRaid.difficulty==difficulty)
-    else:
-        wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
-                                           SpecRankingsRaid.encounter==encounter,
-                                           SpecRankingsRaid.difficulty==difficulty)
-    results = wcl_query.fetch()
-
-    global last_updated
-
-    n_parses = 0
-
-    rankings = []
+    enchant_ids = {}
     
-    for k in results:
-        if last_updated == None:
-            last_updated = k.last_updated
-        if k.last_updated > last_updated:
-            last_updated = k.last_updated
+    enchants["weapons"], update_enchant_ids = wcl_enchants(rankings, [15, 16])
+    enchant_ids.update(update_enchant_ids)
 
-        latest = json.loads(k.rankings)
-        rankings += latest
+    enchants["chests"], update_enchant_ids = wcl_enchants(rankings, [4])
+    enchant_ids.update(update_enchant_ids)
 
-    tea, spells, pop = wcl_tea(rankings)
-    tea = wcl_top10(tea, pop, top_n=25)
+    enchants["wrists"], update_enchant_ids = wcl_enchants(rankings, [8])
+    enchant_ids.update(update_enchant_ids)
 
-    t, tspells, pop = wcl_talents(rankings)
-    talents = wcl_top10(t, pop)
-    spells.update(tspells)
+    enchants["feet"], update_enchant_ids = wcl_enchants(rankings, [7])
+    enchant_ids.update(update_enchant_ids)    
 
-    c, cspells, pop = wcl_corruption_builds(rankings)
-    corruption_builds = wcl_top10(c, pop)
-    spells.update(cspells)
-
-    c, cspells, pop = wcl_corruption(rankings)
-    corruption = wcl_top10(c, pop)
-    spells.update(cspells)
-
-    c, cspells, pop = wcl_corruption_levels(rankings)
-    corruption_levels = wcl_top10(c, pop)
-    spells.update(cspells)    
-
-    e, espells, pop = wcl_essences(rankings)
-    essences = wcl_top10(e, pop)
-    spells.update(espells) 
-
-
-    p, pspells, pop = wcl_primary(rankings)
-    primary = wcl_top10(p, pop)
-    spells.update(pspells) 
-
-
-    r, rspells, pop = wcl_role(rankings)
-    role = wcl_top10(r, pop)
-    spells.update(rspells) 
-
+    enchants["cloaks"], update_enchant_ids = wcl_enchants(rankings, [14])
+    enchant_ids.update(update_enchant_ids)    
     
-    d, dspells, pop = wcl_defensive(rankings)
-    defensive = wcl_top10(d, pop)
-    spells.update(dspells) 
+    enchants["rings"], update_enchant_ids = wcl_enchants(rankings, [10, 11])
+    enchant_ids.update(update_enchant_ids)    
+    
+    enchants["belts"], update_enchant_ids = wcl_enchants(rankings, [5], type="onUseEnchant")
+    enchant_ids.update(update_enchant_ids)
 
-    gear = {}
+    max_maxima = 0
+    min_maxima = 0
+    
+    if len(maxima) > 0:
+        max_maxima = max(maxima)
+        min_maxima = min(maxima)
 
-    h, items, pop = wcl_hsc(rankings)
-    hsc = wcl_top10(h, pop)
 
-    gear_slots = []
-    gear_slots += [["helms", [0]]]
-    gear_slots += [["shoulders", [2]]]
-    gear_slots += [["chests", [4]]]
-    gear_slots += [["belts", [5]]]
-    gear_slots += [["legs", [6]]]
-    gear_slots += [["feet", [7]]]
-    gear_slots += [["wrists", [8]]]
-    gear_slots += [["gloves", [9]]]
-    gear_slots += [["rings", [10, 11]]]
-    gear_slots += [["trinkets", [12, 13]]]
-    gear_slots += [["cloaks", [14]]]
-    gear_slots += [["weapons", [15, 16]]]
-
-    for (slot_name, slots) in gear_slots:
-        gear[slot_name], update_items = wcl_gear(rankings, slots) #popover built in
-        items.update(update_items)
-
-    gems, update_items = wcl_gems(rankings)
-    items.update(update_items)
+    if mode == "raid":
+        max_maxima = difficulty
         
-    gem_builds, update_items = wcl_gem_builds(rankings)
-    items.update(update_items)
-        
-    enchants = {}
-    enchants["weapons"] = []
-    enchants["rings"] = []
-    
-    return len(rankings), tea, talents, essences, primary, role, defensive, hsc, gear, enchants, gems, gem_builds, corruption, corruption_builds, corruption_levels, spells, items
-   
+    # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
+    # raid will return difficulty in max_maxima
+    return len(rankings), max_maxima, min_maxima, tea, talents, legendaries, \
+        gear, enchants, gems, gem_builds, \
+        covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, \
+        spells, items, enchant_ids
+
+
+## end wcl parsing code
+
+
+## Rendering Code starts here
 
 def localized_time(last_updated):
     if last_updated == None:
@@ -2043,7 +1711,8 @@ def render_affixes(affixes, prefix=""):
     aftl = gen_affix_tier_list(affixes_report)
     
     template = env.get_template('by-affix.html')
-    rendered = template.render(title=affixes,
+    rendered = template.render(title=affixes + " - Mythic+",
+                               active_section = "mplus",
                                prefix=prefix,
                                affixes=affixes,
                                pretty_affixes=pretty_affixes(affixes),
@@ -2083,7 +1752,8 @@ def render_compositions(affixes, prefix=""):
     dps_report = gen_set_report(dps_counts)
     
     template = env.get_template('compositions.html')
-    rendered = template.render(title=affixes,
+    rendered = template.render(title=affixes + " - Compositions - Mythic+",
+                               active_section = "mplus",
                                prefix=prefix,
                                affixes=affixes,
                                pretty_affixes=pretty_affixes(affixes),
@@ -2118,6 +1788,7 @@ def render_stats(affixes, prefix=""):
     
     template = env.get_template('stats-affix.html')
     rendered = template.render(title=affixes,
+                               active_section = "mplus",
                                prefix=prefix,
                                affixes=affixes,
                                pretty_affixes=pretty_affixes(affixes),
@@ -2138,30 +1809,44 @@ def render_stats(affixes, prefix=""):
     return rendered
 
 
+def get_archetype(spec):
+    if spec in tanks:
+        return "tank"
+    if spec in healers:
+        return "healer"
+    if spec in melee:
+        return "melee"
+    if spec in ranged:
+        return "ranged"
+    return "unknown"
+
 def render_wcl_spec(spec, prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, key_max, key_min, tea, talents, essences, primary, role, defensive, hsc, gear, enchants, gems, gem_builds, corruption, corruption_builds, corruption_levels, spells, items = gen_wcl_spec_report(spec)
-    
+    n_parses, key_max, key_min, tea, talents, legendaries, gear, enchants, gems, gem_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids = gen_wcl_spec_report(spec)
+
+   
     template = env.get_template('spec.html')
-    rendered = template.render(title = spec,
+    rendered = template.render(title = spec + " - Mythic+",
+                               active_section = "mplus",
                                spec = spec,
+                               archetype = get_archetype(spec),
                                spec_slug = spec_slug,
                                tea = tea,
                                talents = talents,
+                               legendaries = legendaries,
                                affixes = affixes,
-                               essences = essences,
-                               primary = primary,
-                               role = role,
-                               defensive = defensive,
-                               hsc = hsc,
                                gear = gear,
                                enchants = enchants,
+                               enchant_ids = enchant_ids,
+                               enchant_mapping = enchant_mapping,
                                gems = gems,
                                gem_builds = gem_builds,
-                               corruption = corruption,
-                               corruption_builds = corruption_builds,
-                               corruption_levels = corruption_levels,
+                               covenants = covenants,
+                               soulbinds = soulbinds,
+                               soulbind_abilities = soulbind_abilities,
+                               conduits = conduits,
+                               conduit_builds = conduit_builds,
                                spells = spells,
                                items = items,
                                n_parses = n_parses,
@@ -2182,6 +1867,8 @@ def render_raid_index(prefix=""):
     template = env.get_template("raid-index.html")
     rendered = template.render(prefix=prefix,
                                active_page = "raid-index",
+                               active_section = "raid",
+                               title_override = "Subcreation %s" % RAID_NAME, 
                                known_tanks = known_specs_subset_links(tanks, prefix=prefix),
                                known_healers = known_specs_subset_links(healers, prefix=prefix),
                                known_melee = known_specs_subset_links(melee, prefix=prefix),
@@ -2195,20 +1882,50 @@ def render_raid_index(prefix=""):
 
 def render_main_index(prefix=""):
     template = env.get_template("main-index.html")
+
     rendered = template.render(prefix=prefix,
+                               title_override = "Subcreation",
+                               active_section = "main",
                                active_page = "main-index")
 
 
     return rendered
 
-def render_wcl_raid_spec(spec, encounter="all", difficulty="Heroic", prefix=""):
+
+def render_main_covenants(prefix=""):
+    template = env.get_template("main-covenants.html")
+
+    covenants, n_parses = gen_covenants_report()
+    
+    rendered = template.render(prefix=prefix,
+                               covenants = covenants,
+                               n_parses = n_parses,
+                               title = "Top Covenants for Mythic+ Season 1 and Castle Nathria",
+                               active_section = "main",
+                               active_page = "main-covenants")
+
+
+    return rendered
+
+
+def render_privacy(prefix=""):
+    template = env.get_template("privacy.html")
+    rendered = template.render(prefix=prefix,
+                               title_override = "Privacy Policy - Subcreation",
+                               active_section = "main",
+                               active_page = "main-privacy")
+
+
+    return rendered
+
+def render_wcl_raid_spec(spec, encounter="all", prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, tea, talents, essences, primary, role, defensive, hsc, gear, enchants, gems, gem_builds, corruption, corruption_builds, corruption_levels, spells, items = gen_wcl_raid_spec_report(spec, encounter, difficulty)
+    n_parses, difficulty, _, tea, talents, legendaries, gear, enchants, gems, gem_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids = gen_wcl_raid_spec_report(spec, encounter)
 
     encounter_pretty = encounter
     if encounter_pretty == "all":
-        encounter_pretty = "Ny'alotha"
+        encounter_pretty = "All Bosses"
 
     encounter_slugs = {}
     for e in raid_canonical_order:
@@ -2217,47 +1934,35 @@ def render_wcl_raid_spec(spec, encounter="all", difficulty="Heroic", prefix=""):
     encounter_slug = slugify.slugify(unicode(encounter))
     difficulty_slug = slugify.slugify(unicode(difficulty))
 
-    nox_role = "dps"
-    if spec in tanks:
-        nox_role = "tank"
-    if spec in healers:
-        nox_role = "healer"
-    
-    if encounter != "all":
-        nox_slug = nox_notes_slugs[encounter]
-
-    nox_link = ""
-    if encounter != "all":
-        nox_link += nox_slug + "/" + nox_role
-
     metric = "dps"
     if spec in healers:
         metric = "hps"
         
     template = env.get_template('spec-raid.html')
-    rendered = template.render(title = spec + " (%s %s)" % (difficulty, encounter_pretty),
+    rendered = template.render(title = spec + " - %s - %s" % (encounter_pretty, RAID_NAME),
+                               active_section = "raid",
                                spec = spec,
                                spec_slug = spec_slug,
+                               archetype = get_archetype(spec),
                                active_page = spec_slug + "-" + encounter_slug + "-" + difficulty_slug,
                                tea = tea,
                                talents = talents,
+                               legendaries = legendaries,
                                affixes = affixes,
-                               essences = essences,
-                               primary = primary,
-                               defensive = defensive,
-                               role = role,
-                               hsc = hsc,
                                gear = gear,
-                               nox_link = nox_link,
                                spells = spells,
                                items = items,
                                enchants = enchants,
+                               enchant_ids = enchant_ids,
+                               enchant_mapping = enchant_mapping,
                                metric = metric,
                                gems = gems,
                                gem_builds = gem_builds,
-                               corruption = corruption,
-                               corruption_builds = corruption_builds,
-                               corruption_levels = corruption_levels,
+                               covenants = covenants,
+                               soulbinds = soulbinds,
+                               soulbind_abilities = soulbind_abilities,
+                               conduits = conduits, 
+                               conduit_builds = conduit_builds,
                                raid_canonical_order = raid_canonical_order,
                                encounter_slugs = encounter_slugs,
                                raid_short_names = raid_short_names,
@@ -2287,7 +1992,7 @@ env = Environment(
 
 ## end templates
 
-## cloud storage
+## cloud storage -- TODO: refactor this into one function instead of ugh, 3
 
 def write_to_storage(filename, content):
     bucket_name = 'mplus.subcreation.net'
@@ -2304,8 +2009,24 @@ def write_to_storage(filename, content):
 
     cloudflare_purge_cache(bucket_name, original_filename)
 
+
+def main_write_to_storage(filename, content):
+    bucket_name = 'subcreation.net'
+    original_filename = filename
+    
+    filename = "/%s/%s" % (bucket_name, filename)
+    write_retry_params = gcs.RetryParams(backoff_factor=1.1)
+    gcs_file = gcs.open(filename,
+                        'w', content_type='text/html',
+                        options={"cache-control" : "public, max-age=86400"},
+                        retry_params=write_retry_params)
+    gcs_file.write(str(content))
+    gcs_file.close()
+
+    cloudflare_purge_cache(bucket_name, original_filename)    
+
 def raid_write_to_storage(filename, content):
-    bucket_name = 'nyalotha.subcreation.net'
+    bucket_name = 'castle-nathria.subcreation.net'
     original_filename = filename
     
     filename = "/%s/%s" % (bucket_name, filename)
@@ -2395,6 +2116,26 @@ def create_spec_overview(s):
     deferred.defer(write_to_storage, filename, rendered,
                        _retry_options=options)
 
+
+def create_main_pages():
+    main_pages = [["index.html", render_main_index],
+                  ["top-covenants.html", render_main_covenants]]
+
+    for (filename, render_function) in main_pages:
+        rendered = render_function()
+        options = TaskRetryOptions(task_retry_limit = 1)        
+        deferred.defer(main_write_to_storage, filename, rendered,
+                       _retry_options=options)                        
+    
+def create_static_pages():
+    static_pages = [["privacy.html", render_privacy]]
+
+    for (filename, render_function) in static_pages:
+        rendered = render_function()
+        options = TaskRetryOptions(task_retry_limit = 1)        
+        deferred.defer(main_write_to_storage, filename, rendered,
+                       _retry_options=options) 
+    
 def create_raid_index():
     rendered = render_raid_index()
     filename = "index.html" 
@@ -2402,20 +2143,14 @@ def create_raid_index():
     deferred.defer(raid_write_to_storage, filename, rendered,
                        _retry_options=options)
     
-def create_raid_spec_overview(s, e="all", difficulty="Heroic"):
+def create_raid_spec_overview(s, e="all"):
     spec_slug = slugify.slugify(unicode(s))
-    rendered = render_wcl_raid_spec(s, encounter=e, difficulty=difficulty)
+    rendered = render_wcl_raid_spec(s, encounter=e)
     if e == "all":
-        if difficulty == "Mythic":
-            filename = "%s-mythic.html" % (spec_slug)
-        else:        
-            filename = "%s.html" % (spec_slug)
+        filename = "%s.html" % (spec_slug)
     else:
         encounter_slug = slugify.slugify(unicode(e))
-        if difficulty == "Mythic":
-            filename = "%s-%s-mythic.html" % (spec_slug, encounter_slug)
-        else:        
-            filename = "%s-%s.html" % (spec_slug, encounter_slug)
+        filename = "%s-%s.html" % (spec_slug, encounter_slug)
     options = TaskRetryOptions(task_retry_limit = 1)        
     deferred.defer(raid_write_to_storage, filename, rendered,
                        _retry_options=options)
@@ -2428,34 +2163,6 @@ def write_spec_overviews():
         deferred.defer(create_spec_overview, s,
                        _retry_options=options)
   
-        
-        # no longer doing dungeons
-        # for dg in dungeons:
-        #     rendered = render_dungeon(af, dg)
-        #     dungeon_slug = slugify.slugify(unicode(dg))
-        #     filename = "%s-%s.html" % (dungeon_slug, affix_slug)
-        #     deferred.defer(write_to_storage, filename, rendered,
-        #                    _retry_options=options)
-
-    # no longer doing specs per affix
-    # for s in specs:
-    #     for af in affixes_to_write:
-    #         rendered = render_spec(af, "all", s)
-    #         spec_slug = slugify.slugify(unicode(s))
-    #         affix_slug = slugify.slugify(unicode(af))
-    #         filename = "%s-%s.html" % (spec_slug, affix_slug)
-    #         deferred.defer(write_to_storage, filename, rendered,
-    #                        _retry_options=options)   
-            
-
-            # no longer doing per dungeon spec -- too small granularity
-            # for dg in dungeons:
-            #     rendered = render_spec(af, dg, s)
-            #     dungeon_slug = slugify.slugify(unicode(dg))
-            #     spec_slug = slugify.slugify(unicode(s))
-            #     filename = "%s-%s-%s.html" % (spec_slug, dungeon_slug, affix_slug)
-            #     deferred.defer(write_to_storage, filename, rendered)   
-
             
 
 def write_raid_spec_overviews():
@@ -2466,15 +2173,11 @@ def write_raid_spec_overviews():
     
     for s in specs:
         options = TaskRetryOptions(task_retry_limit = 1)        
-#        deferred.defer(create_raid_spec_overview, s, "all", "Heroic",
-#                       _retry_options=options)
         deferred.defer(create_raid_spec_overview, s, "all", "Mythic",
                        _retry_options=options)
         
         for k, v in raid_encounters.iteritems():
             options = TaskRetryOptions(task_retry_limit = 1)        
-#            deferred.defer(create_raid_spec_overview, s, k, "Heroic",
-#                           _retry_options=options)
             deferred.defer(create_raid_spec_overview, s, k, "Mythic",
                            _retry_options=options)
 
@@ -2485,8 +2188,6 @@ def write_raid_spec_overviews():
 
 def cloudflare_purge_cache(bucket, filename):
     url = "http://%s/%s" % (bucket, filename)
-    logging.info("cf purge cache: %s" % url)
-
     cf_endpoint = "https://api.cloudflare.com/client/v4/zones/%s/purge_cache" % cloudflare_zone
     headers = { }
     headers["Content-Type"] = "application/json"
@@ -2499,7 +2200,6 @@ def cloudflare_purge_cache(bucket, filename):
                             headers=headers, 
                             method=urlfetch.POST)
 
-    logging.info("cf purge cache result: %s %s" % (json.loads(result.content)["success"], url))
     return json.loads(result.content)["success"], url
 
 ## end cloudflare cache purge
@@ -2562,7 +2262,6 @@ def test_raid_view(destination):
     spec = "all"
     encounter = "all"
     prefix = "raid?goto="
-    difficulty = "Heroic"
     
     for s in specs:
         if slugify.slugify(unicode(s)) in destination:
@@ -2572,16 +2271,11 @@ def test_raid_view(destination):
         if slugify.slugify(unicode(e)) in destination:
             encounter = e
 
-
-    if "mythic" in destination:
-        difficulty = "Mythic"
-
     if "index" in destination:
         return render_raid_index(prefix=prefix)
             
 
-    return render_wcl_raid_spec(spec, encounter=encounter,
-                                difficulty = difficulty, prefix=prefix)
+    return render_wcl_raid_spec(spec, encounter=encounter, prefix=prefix)
 
 
 def test_main_view(destination):
@@ -2589,9 +2283,15 @@ def test_main_view(destination):
     if "index" in destination:
         return render_main_index(prefix=prefix)
 
+    if "privacy" in destination:
+        return render_privacy(prefix=prefix)
+
+    if "top-covenants" in destination:
+        return render_main_covenants(prefix=prefix)       
+
 ## wcl querying
 # @@season update
-def _rankings(encounterId, class_id, spec, page=1, season=5):
+def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
     # filter to the last 4 weeks
     now = datetime.datetime.now()
     wcl_date = "date."
@@ -2599,6 +2299,7 @@ def _rankings(encounterId, class_id, spec, page=1, season=5):
     wcl_date += "." + "%d000" % (time.mktime(now.timetuple()))
     
     url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&class=%d&spec=%d&page=%d&filter=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, season, class_id, spec, page, wcl_date, api_key)
+    
     result = urlfetch.fetch(url)
     data = json.loads(result.content)
     return data
@@ -2617,8 +2318,9 @@ def update_wcl_rankings(spec, dungeon, page):
     
     stopFlag = False
     rankings = _rankings(dungeon_id, wcl_specs[spec][0], wcl_specs[spec][1], page=page)
+
     for k in rankings["rankings"]:
-        if int(k["keystoneLevel"]) >= 10: # reducing this to from +16 to +10 early in the season
+        if int(k["keystoneLevel"]) >= 10: 
             aggregate += [k]
         else:
             stopFlag = True
@@ -2635,23 +2337,23 @@ def update_wcl_rankings(spec, dungeon, page):
 
 # 4 - heroic
 # 5 - mythic
-def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=4, metric="dps"):
+def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=WCL_PARTITION, metric="dps"):
     # filter to the last 4 weeks
     now = datetime.datetime.now()
     wcl_date = "date."
     wcl_date += "%d000" % (time.mktime(now.timetuple())-4*7*60*60*24 )
     wcl_date += "." + "%d000" % (time.mktime(now.timetuple()))
 
-    partition = 4 # for prepatch
-    
-    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&difficulty=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, partition, difficulty, class_id, spec, page, wcl_date, metric, api_key)
-    
+    #partition = 4 # for prepatch
+    # &partition=%d
+    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?difficulty=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, difficulty, class_id, spec, page, wcl_date, metric, api_key)
+
     result = urlfetch.fetch(url)
     data = json.loads(result.content)
     return data
 
 
-def update_wcl_raid_rankings(spec, encounter, page=1, difficulty = "Heroic"):
+def update_wcl_raid_rankings(spec, encounter, page=1, difficulty="Mythic"):
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
     spec_key = slugify.slugify(unicode(spec))
@@ -2660,10 +2362,14 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty = "Heroic"):
     encounter_id = raid_encounters[encounter]
     encounter_slug = slugify.slugify(unicode(encounter))
 
+    logging.info("%s %s %s" % (spec, encounter, difficulty))
+    
     aggregate = []
     
     stopFlag = False
-    difficulty_code = 4
+    difficulty_code = 5
+    if difficulty == "Normal":
+        difficulty_code = 3    
     if difficulty == "Heroic":
         difficulty_code = 4
     if difficulty == "Mythic":
@@ -2676,14 +2382,28 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty = "Heroic"):
         
     rankings = _rankings_raid(encounter_id, wcl_specs[spec][0], wcl_specs[spec][1], difficulty_code, page=page, metric=metric)
 
-    # no datas yet!
+    no_data_yet = False
     if "rankings" not in rankings:
-        return False
+        no_data_yet = True
+    else:
+        if len(rankings["rankings"]) == 0:
+            no_data_yet = True
+    
+    # no data yet
+    if no_data_yet:
+        logging.info("No parses found for %s. Falling back" % difficulty)
+        if difficulty == "Mythic": # fall back to heroic if no mythic parses yet
+            logging.info("... to Heroic")
+            return update_wcl_raid_rankings(spec, encounter, page, difficulty="Heroic")
+        if difficulty == "Heroic": # fall back to normal if no heroic parses yet
+            logging.info("... to Normal")            
+            return update_wcl_raid_rankings(spec, encounter, page, difficulty="Normal")        
+        return False # otherwise fail
     
     for k in rankings["rankings"]:
         aggregate += [k]
-    
-    key = ndb.Key('SpecRankingsRaid', "%s-%s-%s-%d" % (spec_key, encounter_slug, difficulty, page))
+
+    key = ndb.Key('SpecRankingsRaid', "%s-%s-%d" % (spec_key, encounter_slug, page))
     sr = SpecRankingsRaid(key=key)
     sr.spec = spec
     sr.encounter = encounter
@@ -2721,7 +2441,8 @@ def update_wcl_update_subset(subset):
         deferred.defer(update_wcl_spec, s, _retry_options=options)
         
 
-def update_wcl_raid_spec(spec, difficulty="Heroic"):
+def update_wcl_raid_spec(spec, difficulty="Mythic"):
+    logging.info("%s %s" % (spec, difficulty))
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
     spec_key = slugify.slugify(unicode(spec))
@@ -2735,34 +2456,43 @@ def update_wcl_raid_spec(spec, difficulty="Heroic"):
 # update wcl for raids
 def update_wcl_raid_update():
     for i, s in enumerate(specs):
-        # stop updating heroic
-#        options = TaskRetryOptions(task_retry_limit = 1)    
-#        deferred.defer(update_wcl_raid_spec, s, "Heroic", _countdown=30*i, _retry_options=options)
         options = TaskRetryOptions(task_retry_limit = 1)    
         deferred.defer(update_wcl_raid_spec, s, "Mythic", _retry_options=options)
 
 def update_wcl_raid_update_subset(subset):
     for i, s in enumerate(subset):
-#        options = TaskRetryOptions(task_retry_limit = 1)    
-#        deferred.defer(update_wcl_raid_spec, s, "Heroic", _countdown=30*i, _retry_options=options)
         options = TaskRetryOptions(task_retry_limit = 1)    
         deferred.defer(update_wcl_raid_spec, s, "Mythic", _retry_options=options)
-
         
 def update_wcl_raid_all():
     update_wcl_raid_update()
-
     options = TaskRetryOptions(task_retry_limit = 1)
     deferred.defer(write_raid_spec_overviews, _retry_options=options)
     
 # update all the wcl for dungeons
 def update_wcl_all():
     update_wcl_update()
-
     options = TaskRetryOptions(task_retry_limit = 1)
     deferred.defer(write_spec_overviews, _retry_options=options)
 
 ## handlers
+
+# look at what the raw wcl rankings string looks like
+def test_inspect(rh, mode):
+    if mode == "mplus":
+        spec = "Havoc Demon Hunter"        
+        wcl_query = SpecRankings.query(SpecRankings.spec==spec)
+    elif mode=="raid":
+        spec = "Havoc Demon Hunter"
+        wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec)
+        
+    results = wcl_query.fetch()
+    
+    for x in results:
+        for k, v in json.loads(x.rankings)[0].iteritems():
+            rh.response.write("%s\n" % k)
+            rh.response.write("%s\n\n" % v)
+        return
 
 class UpdateCurrentDungeons(webapp2.RequestHandler):
     def get(self):
@@ -2831,7 +2561,7 @@ class TestWCLGetRankings(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
-        update_wcl_update_subset(["Outlaw Rogue"])
+        update_wcl_update_subset(["Havoc Demon Hunter"])
 
 class WCLGetRankingsRaid(webapp2.RequestHandler):
     def get(self):
@@ -2845,11 +2575,23 @@ class WCLGetRankingsRaidOnly(webapp2.RequestHandler):
         self.response.write("Queueing updates...\n")
         update_wcl_raid_update()
 
+class TestWCLInspectMPlus(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Inspecting M+:\n")
+        test_inspect(self, "mplus")
+
+class TestWCLInspectRaid(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Inspecting Raid:\n")
+        test_inspect(self, "raid")
+
 class TestWCLGetRankingsRaid(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
-        update_wcl_raid_update_subset(["Assassination Rogue", "Holy Paladin"]) 
+        update_wcl_raid_update_subset(["Havoc Demon Hunter"]) 
 
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):
@@ -2864,6 +2606,20 @@ class WCLRaidGenHTML(webapp2.RequestHandler):
         self.response.write("Writing WCL Raid HTML...\n")
         options = TaskRetryOptions(task_retry_limit = 1)
         deferred.defer(write_raid_spec_overviews, _retry_options=options)
+
+class GenStaticHTML(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Writing Static HTML pages...\n")
+        options = TaskRetryOptions(task_retry_limit = 1)
+        deferred.defer(create_static_pages, _retry_options=options)
+
+class GenMainHTML(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Writing Main HTML pages...\n")
+        options = TaskRetryOptions(task_retry_limit = 1)
+        deferred.defer(create_main_pages, _retry_options=options)              
 
 
 class TestCloudflarePurgeCache(webapp2.RequestHandler):
@@ -2893,6 +2649,8 @@ app = webapp2.WSGIApplication([
         ('/generate/all_affixes', OnlyGenerateAllAffixesHTML),
         ('/generate/dungeons', WCLGenHTML),
         ('/generate/raids', WCLRaidGenHTML),
+        ('/generate/main', GenMainHTML),    
+        ('/generate/static', GenStaticHTML),
 
         ('/view', TestView),
         ('/raid', TestRaidView),
@@ -2902,6 +2660,8 @@ app = webapp2.WSGIApplication([
         ('/test/affixes', UpdateCurrentDungeons),
         ('/test/dungeons', TestWCLGetRankings),
         ('/test/raids', TestWCLGetRankingsRaid),
+        ('/test/inspect_mplus', TestWCLInspectMPlus),
+        ('/test/inspect_raid', TestWCLInspectRaid),    
         ('/test/cloudflare_purge', TestCloudflarePurgeCache),
         ('/test/reset_db', TestResetDB),    
         ], debug=True)

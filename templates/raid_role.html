@@ -1,12 +1,10 @@
 {% macro raid_role(role_name_pretty, known_role, prefix="") -%}
+{% import 'main_role.html' as main_role %}
 
 <div class="col-xl-3 col-lg-4 py-3">
-  <h2>{{role_name_pretty}}</h2>
-  {% for (name, slug, icon) in known_role %}
-  <div class="raid-role py-3">
-    <a class="" href="{{prefix}}{{slug}}-mythic.html"><img src="images/specs/{{slug}}.jpg" height="56" width="56"/> <br/>{{name}}</a>
-  </div>
-  {% endfor %}
+  {{ main_role.main_role(role_name_pretty, known_role, prefix) }}
 </div>
 
 {%- endmacro %}
+
+

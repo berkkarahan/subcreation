@@ -1,0 +1,40 @@
+{% macro covenant_report(plural, single, anchor, data, prefix) -%}
+<div class="col-6 py-2">
+  <h2>{{single}} Top Covenants</h2>
+
+    <table class="table table-striped sort spec_table" id="table-spec-{{anchor_id}}">
+    <thead>
+      <tr>
+        <th>{{heading}}</th>
+        <th>Top M+ Covenant</th>
+        <th>Top Raid Covenant</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for (spec, mplus, raid) in data %}
+    <tr>
+      <td>
+        <img src="images/specs/{{spec["slug"]}}.jpg" width="36" height="36"> {{spec["name"]}}
+      </td>
+      <td>
+        {% if mplus["name"] == "" %}
+        Not enough <a href="https://mplus.subcreation.net/{{spec["slug"]}}.html">data</a>.
+        {% else %}
+        <a href="https://mplus.subcreation.net/{{spec["slug"]}}.html"><img src="images/covenants/{{mplus["slug"]}}.jpg" width="36" height="36" title="{{mplus["name"]}}"> {{mplus["name"]}}</a>
+        {% endif %}
+      </td>
+      <td>
+        {% if raid["name"] == "" %}
+        Not enough <a href="https://castle-nathria.subcreation.net/{{spec["slug"]}}.html">data</a>.
+        {% else %}
+        <a href="https://castle-nathria.subcreation.net/{{spec["slug"]}}.html"><img src="images/covenants/{{raid["slug"]}}.jpg" width="36" height="36" title="{{raid["name"]}}"> {{raid["name"]}}</a>
+
+        {% endif %}
+      </td>        
+    </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+</div>
+{%- endmacro %}

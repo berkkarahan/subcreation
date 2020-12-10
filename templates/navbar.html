@@ -1,0 +1,199 @@
+{% macro navbar_main(active_section, prefix) -%}
+ <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+  <a class="navbar-brand" href="https://subcreation.net/">Subcreation</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link{{ ' active' if active_section == 'mplus' else '' }}" href="https://mplus.subcreation.net/"><img src="https://mplus.subcreation.net/images/affixes/prideful.jpg" width="20" height="20" /> Mythic+</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link{{ ' active' if active_section == 'raid' else '' }}" href="https://castle-nathria.subcreation.net/"><img src="https://castle-nathria.subcreation.net/images/bosses/castle-nathria/castle-nathria.jpg" width="20" height="20" /> Castle Nathria</a>
+      </li>
+    </ul>
+    <ul class="navbar-nav justify-content-end">
+      <li class="nav-item">
+        <a class="nav-link" target="_blank" href="https://www.patreon.com/subcreation">&#10084;&#65039; Support the site on Patreon</a>
+      </li>
+    </ul>
+  </div>
+ </nav>
+{%- endmacro %}
+
+{% macro navbar_main_secondary(active_section, active_page, prefix) -%}
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
+   <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link{{ ' active' if active_page == 'main-index' else '' }}" href="{{prefix}}index.html">Home</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link{{ ' active' if active_page == 'main-covenants' else '' }}" href="{{prefix}}top-covenants.html">Top Covenants for M+ and Castle Nathria</a>
+      </li>
+    </ul>
+   </div>
+  </nav>
+ 
+ {%- endmacro %}
+
+{% macro navbar_top_builds(prefix, suffix, archetype, active_page, known_tanks, known_healers, known_melee, known_ranged) -%}
+ <span class="navbar-text">
+   Top Builds for 
+ </span>
+<li class="nav-item dropdown">
+  <a class="nav-link dropdown-toggle{% if archetype == "tank" %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	  Tanks
+  </a>
+  <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
+    {% for (name, slug, icon) in known_tanks %}
+    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+          {% endfor %}
+  </div>
+</li>
+
+<li class="nav-item dropdown">
+  <a class="nav-link dropdown-toggle{% if archetype == "healer" %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Healers
+  </a>
+  <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
+    {% for (name, slug, icon) in known_healers %}
+    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+    {% endfor %}
+  </div>
+</li>
+
+<li class="nav-item dropdown">
+  <a class="nav-link dropdown-toggle{% if archetype == "melee" %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+	  Melee
+  </a>
+  <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
+    
+    {% for (name, slug, icon) in known_melee %}
+    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+          {% endfor %}
+  </div>
+</li>
+
+<li class="nav-item dropdown">
+  <a class="nav-link dropdown-toggle{% if archetype == "ranged" %} active{% endif %}" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+    Ranged
+  </a>
+  <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
+    {% for (name, slug, icon) in known_ranged %}
+    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+    {% endfor %}
+  </div>
+</li>
+{%- endmacro %}
+
+{% macro navbar_mplus(affixes, known_affixes, active_page, prefix, page_type, archetype, known_tanks, known_healers, known_melee, known_ranged) -%}
+ 
+ <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
+   <div class="collapse navbar-collapse" id="navbarSupportedContent">
+     <span class="navbar-text">
+       Tier Lists for 
+     </span>
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link{{ ' active' if active_page == 'index' else '' }}" href="{{prefix}}index.html">Current Affixes</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link{{ ' active' if active_page == 'all-affixes' else '' }}" href="{{prefix}}all-affixes.html">All Affixes</a>
+      </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle{% if page_type == "affixes" and not (active_page == 'index' or active_page == 'all-affixes')%} active{% endif %}" href="#" id="navbarAffixes" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Specific Affixes
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarAffixes">
+          {% for (name, slug, icon) in known_affixes %}
+          {% if name == "All Affixes" %}
+	        <div class="dropdown-divider"></div>	            
+          {% endif %}
+          {% if affixes in name %}
+          <a class="dropdown-item active" href="{{prefix}}{{slug}}.html">{{icon}} &nbsp;{{name}}</a>
+          {% else %}
+          <a class="dropdown-item" href="{{prefix}}{{slug}}.html">{{icon}} &nbsp;{{name}}</a>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </li>
+      <span class="navbar-text" style="width: 2em; text-align: center;">
+      </span>
+      {{navbar_top_builds(prefix, "", archetype, active_page, known_tanks, known_healers, known_melee, known_ranged)}}
+     <span class="navbar-text">
+       &nbsp; &nbsp; &nbsp; &nbsp;
+     </span>      
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="addResDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          More Resources
+        </a>
+        <div class="dropdown-menu" aria-labelledby="addResDropdown">
+          <a class="dropdown-item" target="_blank" href="https://raider.io/news?tag=weekly-route">Raider.io Weekly Route</a>
+          <a class="dropdown-item" target="_blank" href="https://wago.io/mdt">Wago.io Routes for the</a>
+          <a class="dropdown-item" target="_blank" href="https://github.com/Nnoggie/MythicDungeonTools/releases">Mythic Dungeon Tools Addon</a>
+          <a class="dropdown-item" target="_blank" href="https://keystone.guru/">Keystone Guru</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" target="_blank" href="https://justhealus.com/">Just Heal Us</a>
+          <a class="dropdown-item" target="_blank" href="https://mythicpl.us/">Mythicpl.us Affixes & M+ Info</a>
+          <div class="dropdown-divider"></div>          
+          <a class="dropdown-item" target="_blank" href="https://tanknotes.com/mythic-plus">TankNotes M+ Guides</a>
+          <a class="dropdown-item" target="_blank" href="https://mythictrap.com/">Mythic Trap M+ Guides</a>          
+          <a class="dropdown-item" target="_blank" href="https://questionablyepic.com/mythicplus-addon/">Questionably Epic M+ Addon</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" target="_blank" href="https://raider.io/mythic-plus-rankings/season-sl-1/all/world/leaderboards">Raider.io M+ Leaderboards</a>
+          <a class="dropdown-item" target="_blank" href="https://www.warcraftlogs.com/zone/rankings/25">Warcraft Logs Mythic+ Dungeons</a>
+          <a class="dropdown-item" target="_blank" href="https://benched.me/">benched.me M+ Statistics</a>
+          <a class="dropdown-item" target="_blank" href="https://bestkeystone.com/">BestKeystone M+ Statistics</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" target="_blank" href="https://titanforge.libsyn.com/">Titanforge Podcast</a>
+          <a class="dropdown-item" target="_blank" href="https://www.reddit.com/r/CompetitiveWoW/">r/CompetitiveWoW</a>
+          <a class="dropdown-item" target="_blank" href="https://raidbots.com/">Raidbots</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" target="_blank" href="https://discord.gg/X8dyq67">Suggest more resources on the Discord</a>
+        </div>
+      </li>
+    </ul>
+  </div>
+
+ </nav>
+ {%- endmacro %}
+
+
+ {% macro navbar_raid(active_page, prefix, page_type, archetype, known_tanks, known_healers, known_melee, known_ranged) -%}
+ <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      {{navbar_top_builds(prefix, "", archetype, active_page, known_tanks, known_healers, known_melee, known_ranged)}}
+     <span class="navbar-text">
+       &nbsp; &nbsp; &nbsp; &nbsp;
+     </span>      
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="addResDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          More Resources
+        </a>
+        <div class="dropdown-menu" aria-labelledby="addResDropdown">
+          <a class="dropdown-item" target="_blank" href="https://readycheckpull.com/">Ready Check Pull Castle Nathria Guide</a>                    
+          <a class="dropdown-item" target="_blank" href="https://tanknotes.com/castle-nathria">TankNotes Castle Nathria Guide</a>
+          <a class="dropdown-item" target="_blank" href="https://mythictrap.com/">Mythic Trap Castle Nathria Guide</a>
+          <a class="dropdown-item" target="_blank" href="https://questionablyepic.com/castle-nathria/">Questionably Epic Castle Nathria Guide</a>
+          <a class="dropdown-item" target="_blank" href="https://complexity.gg/limit-boss-guides-castle-nathria/">Complexity Limit Castle Nathria Guide</a>
+          <a class="dropdown-item" target="_blank" href="https://www.wowhead.com/guides/castle-nathria-raid-overview">Wowhead & FatbossTV Castle Nathria Guide</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" target="_blank" href="https://www.warcraftlogs.com/zone/rankings/26">Warcraft Logs Castle Nathria</a>
+          <a class="dropdown-item" target="_blank" href="https://raider.io/castle-nathria/rankings/world/mythic">Raider.io Raid Leaderboards</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" target="_blank" href="https://titanforge.libsyn.com/">Titanforge Podcast</a>
+          <a class="dropdown-item" target="_blank" href="https://www.reddit.com/r/CompetitiveWoW/">r/CompetitiveWoW</a>          
+          <a class="dropdown-item" target="_blank" href="https://raidbots.com/">Raidbots</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" target="_blank" href="https://discord.gg/X8dyq67">Suggest more resources on the Discord</a>          
+        </div>
+      </li>
+    </ul>
+  </div>
+ </nav>
+ {%- endmacro %}

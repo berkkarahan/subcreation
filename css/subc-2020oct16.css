@@ -172,12 +172,11 @@ a:not([href]):hover {
 
 .dropdown-menu.show[aria-labelledby="navbarSpecs"] {
 	display: flex;
-	width: 500px;
 	flex-wrap: wrap;
 }
 
 .dropdown-menu.show[aria-labelledby="navbarSpecs"] .dropdown-item {
-	  width: 50%;
+
 }
 
 a.class-color {

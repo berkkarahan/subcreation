@@ -37,32 +37,5 @@ wcl_specs['Havoc Demon Hunter'] = [12, 1]
 wcl_specs['Vengeance Demon Hunter'] = [12, 2]
 
 
-dungeon_encounters = {}
-dungeon_encounters["Atal'Dazar"] = 11763
-dungeon_encounters["Freehold"] = 11754
-dungeon_encounters["Kings' Rest"] = 11762
-dungeon_encounters["Shrine of the Storm"] = 11864
-dungeon_encounters["Siege of Boralus"] = 11822
-dungeon_encounters["Temple of Sethraliss"] = 11877
-dungeon_encounters["The MOTHERLODE!!"] = 11594
-dungeon_encounters["The Underrot"] = 11841
-dungeon_encounters["Tol Dagor"] = 11771
-dungeon_encounters["Waycrest Manor"] = 11862
-dungeon_encounters["Operation: Mechagon Junkyard"] = 12097
-dungeon_encounters["Operation: Mechagon Workshop"] = 12098
 
-
-nyalotha_encounters = {}
-nyalotha_encounters["Wrathion"] = 2329
-nyalotha_encounters["Maut"] = 2327
-nyalotha_encounters["Prophet Skitra"] = 2334
-nyalotha_encounters["Dark Inquisitor Xanesh"] = 2328
-nyalotha_encounters["The Hivemind"] = 2333
-nyalotha_encounters["Shad'har the Insatiable"] = 2335
-nyalotha_encounters["Drest'agath"] = 2343
-nyalotha_encounters["Vexiona"] = 2336
-nyalotha_encounters["Ra-den the Despoiled"] = 2331
-nyalotha_encounters["Il'gynoth, Corruption Reborn"] = 2345
-nyalotha_encounters["Carapace of N'Zoth"] = 2337
-nyalotha_encounters["N'Zoth the Corruptor"] = 2344
 
