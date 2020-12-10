@@ -2143,7 +2143,7 @@ def create_raid_index():
     deferred.defer(raid_write_to_storage, filename, rendered,
                        _retry_options=options)
     
-def create_raid_spec_overview(s, e="all"):
+def create_raid_spec_overview(s, e="all", difficulty="Mythic"):
     spec_slug = slugify.slugify(unicode(s))
     rendered = render_wcl_raid_spec(s, encounter=e)
     if e == "all":
@@ -2173,12 +2173,12 @@ def write_raid_spec_overviews():
     
     for s in specs:
         options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(create_raid_spec_overview, s, "all", "Mythic",
+        deferred.defer(create_raid_spec_overview, s, "all",
                        _retry_options=options)
         
         for k, v in raid_encounters.iteritems():
             options = TaskRetryOptions(task_retry_limit = 1)        
-            deferred.defer(create_raid_spec_overview, s, k, "Mythic",
+            deferred.defer(create_raid_spec_overview, s, k,
                            _retry_options=options)
 
 
