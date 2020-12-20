@@ -5,11 +5,12 @@
   <a href="#top"><button type="button" class="btn btn-light">&uarr; Top</button></a>
   <a href="#talents"><button type="button" class="btn btn-primary">Talents</button></a>
 
+  <a href="#legendaries"><button type="button" class="btn btn-primary">Legendaries</button></a>
   <a href="#covenants"><button type="button" class="btn btn-primary">Covenants</button></a>
   <a href="#soulbinds"><button type="button" class="btn btn-primary">Soulbinds</button></a>
   <a href="#conduits"><button type="button" class="btn btn-primary">Conduits</button></a>
-  <a href="#legendaries"><button type="button" class="btn btn-primary">Legendaries</button></a>
-  
+
+ 
   <a href="#head"><button type="button" class="btn btn-primary">Head</button></a>
   <a href="#neck"><button type="button" class="btn btn-primary">Neck</button></a>  
   <a href="#shoulders"><button type="button" class="btn btn-primary">Shoulder</button></a>
@@ -47,7 +48,8 @@
 
 {{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-7", "Talent Builds", "Talents", talents, spells, "spell", n_parses, anchor_id="talents", expanded="true", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Covenants", "Covenant", covenants, spells, "spell", n_parses, anchor_id="covenants", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Legendaries", "Legendary Power", legendaries, spells, "spell", n_parses, anchor_id="legendaries", metric=metric) }}
+
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Soulbinds", "Soulbind", soulbinds, spells, "soulbind", n_parses, anchor_id="soulbinds", metric=metric) }}
 
@@ -57,7 +59,7 @@
 
 {{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-7", "Conduit Builds", "Conduit Builds", conduit_builds, spells, "spell", n_parses, anchor_id="conduit_builds", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Legendaries", "Legendary Power", legendaries, spells, "spell", n_parses, anchor_id="legendaries", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Covenants", "Covenant", covenants, spells, "spell", n_parses, anchor_id="covenants", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Head", "Item", gear["helms"], items, "item", n_parses, anchor_id="head", metric=metric) }}
 

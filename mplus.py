@@ -688,7 +688,7 @@ def gen_dungeon_tier_list_small(dungeons_report):
 # https://www.evanmiller.org/how-not-to-sort-by-average-rating.html
 # https://www.evanmiller.org/ranking-items-with-star-ratings.html 
 
-def construct_analysis(counts):
+def construct_analysis(counts, sort_by="lb_ci"):
     overall = []
     all_data = []
     for name, runs in counts.iteritems():
@@ -728,8 +728,10 @@ def construct_analysis(counts):
         all_runs = sorted(all_runs, key=lambda x: x[0], reverse=True)
         overall += [[name, mean, stddev, n, ci, maxi, all_runs]]
 
-
-    overall = sorted(overall, key=lambda x: x[4][0], reverse=True)
+    overall = sorted(overall, key=lambda x: x[4][0], reverse=True)        
+    if sort_by == "max":
+        overall = sorted(overall, key=lambda x: x[5][0], reverse=True)            
+    
     return overall
 
 ## end data analysis
@@ -944,7 +946,7 @@ def pretty_set(s):
     return output_string
 
 def gen_set_report(set_counts):
-    set_overall = construct_analysis(set_counts)
+    set_overall = construct_analysis(set_counts, sort_by="max")
 
     set_output = []
     for x in set_overall:
@@ -1939,7 +1941,7 @@ def render_wcl_raid_spec(spec, encounter="all", prefix=""):
         metric = "hps"
         
     template = env.get_template('spec-raid.html')
-    rendered = template.render(title = spec + " - %s - %s" % (encounter_pretty, RAID_NAME),
+    rendered = template.render(title = "%s - %s - %s" % (encounter_pretty, spec, RAID_NAME),
                                active_section = "raid",
                                spec = spec,
                                spec_slug = spec_slug,
