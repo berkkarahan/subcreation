@@ -203,3 +203,9 @@ enchant_mapping["6245"] = {"spell_id" : 327082,
                            "name" : "Apocalypse"}
 enchant_mapping["3847"] = {"spell_id" : 62158,
                            "name" : "Stoneskin Gargoyle"}
+# Hunter Scopes (ty Gilbat)
+enchant_mapping["6196"] = {"id": 172920,
+                       "name" : "Optical Target Embiggener"}
+
+enchant_mapping["6195"] = {"id": 172921,
+                       "name" : "Infra-green Reflex Sight"}

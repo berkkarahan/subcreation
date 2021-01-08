@@ -2593,7 +2593,7 @@ class TestWCLGetRankingsRaid(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
-        update_wcl_raid_update_subset(["Havoc Demon Hunter"]) 
+        update_wcl_raid_update_subset(["Marksmanship Hunter"]) 
 
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):
