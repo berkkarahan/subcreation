@@ -1,0 +1,48 @@
+{% extends "unified-base.html" %}
+{% set page_type = "main-index" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="col-12 py-3">
+      <h1>Frequently Asked Questions</h1>
+      
+<h2 id="what-do-the-tier-lists-mean-">What do the tier lists mean?</h2>
+<p>S-Tier is the best. For dungeons, that means that dungeon is <b>easier</b> compared to others. For specs, that means that spec is <strong>stronger</strong>. S-Tier is better than A-Tier which is better than B, which is better than C, and so on.</p>
+<h2 id="mplus">What&#39;s the lb_ci mean under detailed statistical analysis?</h2>
+<p>lb_ci stands for the lower bound of a 95% <a href="https://en.wikipedia.org/wiki/Confidence_interval">confidence interval</a>. Here&#39;s the site calculates it:</p>
+<p>For specs: The site looks at the top 100 keys per dungeon per affix across all region and examine their <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io scores</a>. From these, for each dungeon, for each spec, the site takes the lower bound of a 95% confidence interval. The site then average these lower bounds, one per dungeon, to get an overall average lower bound for each spec, which the site then uses to create the tier list.</p>
+<p>For dungeons: We take the top 100 keys per dungeon for each region for a given affix. For each dungeon, the site calculates the lower bound of a 95% confidence interval and uses that to create the tier list.</p>
+<p>For affixes: We take the top 100 keys for each dungeon for each region per affix. For each affix set, the site calculates the lower bound of a 95% confidence interval and uses that to create the tier list.</p>
+<p>This approach was inspired by pair of articles by Evan Miller:</p>
+<ul>
+<li><a href="https://www.evanmiller.org/how-not-to-sort-by-average-rating.html">How Not To Sort By Average Rating</a></li>
+<li><a href="https://www.evanmiller.org/ranking-items-with-star-ratings.html">Ranking Items With Star Ratings</a></li>
+</ul>
+<p>It isn&#39;t perfect (no model is), but I&#39;ve found it gives a good sense of what the meta looks like at the top end and generally &quot;feels correct&quot; to folks. Very open to suggestions for how to make it better, if you have ideas.</p>
+<h2 id="how-do-you-calculate-the-tier-lists-for-mythic-">How do you calculate the tier lists for Mythic+?</h2>
+<p>The site takes the lower bounds of the 95% confidence interval calculated as per the question above and then clusters them into 6 buckets using the <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5148156/">Ckmeans</a> algorithm.</p>
+<p>Note that because we&#39;re using the lower bound of the 95% confidence interval of the <strong>raider.io score</strong>, Tanks, Healers, Melee, and Ranged are all on the same scale. They&#39;re just shown separatey for ease of comparison across roles.</p>
+<h2 id="for-specs-why-do-you-average-across-dungeons-">For specs, why do you average across dungeons?</h2>
+<p>The site didn&#39;t originally, but this resulted in specs that were used for a pull or two at the start of the dungeon showing up in S-Tier. For example, in Battle for Azeroth, mages would often play Frost for the first pull of Tol Dagor and then swap to Fire for the rest of the dungeon. But Blizzard&#39;s API only considered the spec for each class at the start of each dungeon, not the end, which resulted in Frost Mages, otherwise unplayed at the top end at the time, showing up as S-Tier. Taking the average across dungeons solved this issue.</p>
+<h2 id="do-you-include-untimed-runs-">Do you include untimed runs?</h2>
+<p>No, not in the tier lists.</p>
+<p>That said, untimed runs are included in the Top Builds section, since the Warcraft Logs API doesn&#39;t easily distinguish between the two.</p>
+<h2 id="do-you-include-abandoned-runs-">Do you include abandoned runs?</h2>
+<p>No. Keys that are not completed do not show up in the API and thus the site doesn&#39;t have visibility into their existence.</p>
+<h2 id="isn-t-this-approach-biased-toward-the-top-end-">Isn&#39;t this approach biased toward the top end?</h2>
+<p>Yes. Because we&#39;re only looking at the top 100 keys per dungeon per affix for each region (since that&#39;s what the raider.io provides), we are necessarily biased toward the top end. We also don&#39;t look at keys below +10, and only consider timed keys.</p>
+<p>For a more comprehensive look at the entire set of keys, please check out <a href="https://benched.me">benched.me</a>.</p>
+<p>For interesting statistics on timed vs. untimed keys, please check out <a href="https://bestkeystone.com">bestkeystone.com</a>.</p>
+<h2 id="raid">How do you calculate the tier lists for Raid?</h2>
+<p>The site looks at the top 100 Mythic logs for each spec for each boss. For tanks, melee, and ranged, it considers the top dps logs. For healers, it looks at top hps logs. I am aware that dps for tanks and hps for healers is non-ideal, but don&#39;t have anything better at this time. Open to ideas here.</p>
+      <p>For these top 100 Mythic logs, the site takes the lower bound of a 95% confidence interval again, and then, for the overall raid tier list, averages it across all bosses.</p>
+      <p>Melee and Ranged DPS are on the same tier list, though displayed separatey for ease of viewing. Healers are on their own tier list (since they use hps). Tanks are also on their own tier list (since tank dps is typically much lower).</p>
+<p>Note that some specs may have very few or no Mythic logs on certain bosses. These specs effectively get a &quot;0&quot; for those bosses, potentially resulting in their overall raid tier list ranking dropping.</p>
+<h2 id="i-have-more-questions-how-can-i-reach-you-">I have more questions. How can I reach you?</h2>
+<p>You can reach me at <a href="mailto:alcaras@subcreation.net">alcaras@subcreation.net</a>, on <a href="https://twitter.com/subcreation/">Twitter</a>, or in the site&#39;s <a href="https://discord.com/invite/X8dyq67">discord</a>.</p>
+<p>The site is also open source, so feel free to take a look at the <a href="https://github.com/alcaras/mplus.subcreation.net">source</a>. Pull requests welcome.</p>
+
+
+  </div>
+</div>
+{% endblock content %}

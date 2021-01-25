@@ -1,0 +1,5 @@
+{% import 'raid_stats_table.html' as raid_stats_table %}
+{{ raid_stats_table.raid_stats_table("tanks", "Tank Spec", role_package["Tanks"]) }}
+{{ raid_stats_table.raid_stats_table("healers", "Healer Spec", role_package["Healers"], "hps") }}
+{{ raid_stats_table.raid_stats_table("melee", "Melee Spec", role_package["Melee"]) }}
+{{ raid_stats_table.raid_stats_table("ranged", "Ranged Spec", role_package["Ranged"]) }}

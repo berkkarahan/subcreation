@@ -1,0 +1,28 @@
+{% macro raid_stats_table(which_table, pretty_title, report, metric="dps") -%}
+
+{% import 'raid_max_link.html' as raid_max_link %}
+{% import 'link_popover.html' as lp %}
+
+<div id="data-{{which_table}}-stats" class="container-fluid">
+  <table class="sort table table-striped" id="table-{{which_table}}-stats">
+    <tr data-sort-method='none'>
+      <th title="lower bound of a 95% confidence interval">lb_ci</th>
+      <th>{{pretty_title}}</th>
+      <th title="average {{metric}}">x&#772;</th>
+      <th title="max {{metric}}">max</th>
+      <th>n</th>
+    </tr>
+    {% for (score, indiv, mean, n, slug, max_f, max_id) in report %}
+    <tr>
+      <td>{{score}}</td>
+      <td>{{indiv}}</td>
+      <td>{{mean}}k</td>{{ raid_max_link.raid_max_link(max_f, max_id, max_level, current_season) }}
+      <td>{{n}}</td>
+    </tr>
+    {% endfor %}
+  </table> 
+  <p>
+    {% include 'lb_ci-definition-raid.html' %}
+  </p>
+</div>
+{%- endmacro %}

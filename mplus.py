@@ -148,7 +148,7 @@ def update_dungeon_affix_region(dungeon, affixes, region, season=RIO_SEASON, pag
 
     response = {}
     try:
-        result = urlfetch.fetch(req_url)
+        result = urlfetch.fetch(req_url, deadline=60)
         if result.status_code == 200:
             response = json.loads(result.content)["rankings"]
             if response == []: # empty rankings, as sometimes happens at week start
@@ -196,7 +196,7 @@ def mean(data):
     n = len(data)
     if n < 1:
         raise ValueError('mean requires at least one data point')
-    return sum(data)/n # in Python 2 use sum(data)/float(n)
+    return sum(data)/float(n) 
 
 def _ss(data):
     """Return sum of square deviations of sequence data."""
@@ -628,7 +628,7 @@ def gen_affix_tier_list_small(affixes_report):
     
     return render_affix_tier_list(tiers, tm)
 
-# use this if there are fewer than 6 dungeonsscanned
+# use this if there are fewer than 6 dungeons scanned
 # since we can't cluster into 6 with uh, fewer than 6
 def gen_dungeon_tier_list_small(dungeons_report):
    
@@ -734,11 +734,222 @@ def construct_analysis(counts, sort_by="lb_ci"):
     
     return overall
 
+# construct_analysis for raid, which has per encounter lists of key metrics for a given spec
+def construct_analysis_raid(spec_counts):
+    counts = spec_counts
+    
+    overall = {}
+    all_data = []
+    
+    for encounter, metrics in counts.iteritems():
+        for m in metrics:
+            all_data += [m]
+    
+    master_stddev = 1
+    if len(all_data) >= 2:
+        master_stddev = std(all_data, ddof=1)
+       
+    for encounter, metrics in counts.iteritems():
+        data = []
+        for m in metrics:
+            data += [m]
+
+        n = len(data)
+        if n == 0:
+            overall[encounter] = [0, 0, 0, []]
+            continue
+        mean = average(data)
+        if n <= 1:
+            overall[encounter] = [mean, n, mean, data]
+            continue
+        stddev = std(data, ddof=1)
+        t_bounds = t_interval(n)
+        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
+        # lbci, mean, n
+        overall[encounter]= [ci[0], n, mean, data]
+
+    return overall
+
+
+# build a spec report for raid
+# build for each boss, and overall
+def gen_raid_spec_analysis():
+    
+    raid_counts, raid_max_found, raid_max_link = raid_generate_counts()
+
+    analysis = {}
+    lb_ci_spec = {}
+
+    lb_ci_spec["all"] = {}
+    
+    for s in specs:
+        analysis[s] = construct_analysis_raid(raid_counts[s])
+
+        scores = []
+        all_scores = []
+        n_scores = 0
+        
+        for e in raid_encounters:
+            all_scores += analysis[s][e][3]
+            scores += [analysis[s][e][0]]
+            n_scores += analysis[s][e][1]
+            if e not in lb_ci_spec:
+                lb_ci_spec[e] = {}
+            lb_ci_spec[e][s] = [analysis[s][e][0], analysis[s][e][1], analysis[s][e][2]]
+
+        lb_ci_spec["all"][s] = [average(scores), n_scores, mean(all_scores)]
+
+    return lb_ci_spec, raid_max_found, raid_max_link
+
+def gen_raid_specs_role_package(encounter):
+    global role_titles, specs
+
+    logging.info(encounter)
+
+    # to refactor -- this calls gen_raid_spec analysis for each encounter
+    # but the function runs for all encounters, so no need to do this
+    # could memoize / cache to improve performance
+    lb_ci_spec, raid_max_found, raid_max_link = gen_raid_spec_analysis()
+    encounter_overall = lb_ci_spec[encounter]
+
+    role_package = {}
+    stats = {}
+
+    # go through all the specs, grouped by role
+    for i, display in enumerate([tanks, healers, melee, ranged]):
+        role_score = []
+        stats[role_titles[i]] = {}
+
+        n_runs = 0
+        ids = []
+
+        for k in display: # for spec k
+
+            if encounter != "all":
+                rmf = raid_max_found[k][encounter]
+                rml = raid_max_link[k][encounter]
+            else:
+                maxf = 0
+                maxe = ""
+
+                for encounter, metric in raid_max_found[k].iteritems():
+                    if metric > maxf:
+                        maxe = encounter
+                        maxf = metric
+                        
+                rmf = raid_max_found[k][maxe]
+                rml = raid_max_link[k][maxe]                
+            
+            role_score += [[str("%.2f" % encounter_overall[k][0]), # lower bound of ci
+                            str(k), # name of the spec
+                            str("%.2f" % encounter_overall[k][2]), # mean
+                            str("%d" % encounter_overall[k][1]).rjust(4), # n
+                            slugify.slugify(unicode(str(k))), # slug name
+                            str("%.2f" % rmf), # maximum run
+                            rml, # id of the maximum run
+            ]]
+            n_runs += encounter_overall[k][1] # since it's just parses, can add
+
+        stats[role_titles[i]]["n"] = n_runs
+
+        # sort role_score by lb_ci
+        role_score = sorted(role_score, key=lambda x: x[0], reverse=True)
+        role_package[role_titles[i]] = role_score
+
+    return role_package, stats
+    
+
+# generate a specs tier list
+# placeholder code for now
+def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix=""):
+    global role_titles
+
+    # for raid, we compare tanks to tanks
+    # compare healers to healers
+    # compare dps to dps (grouping melee + ranged)
+
+    compare_with = {}
+    compare_with["Tanks"] = ["Tanks"]
+    compare_with["Healers"] = ["Healers"]
+    compare_with["Melee"] = ["Melee", "Ranged"]
+    compare_with["Ranged"] = ["Melee", "Ranged"]
+    
+    scores = []
+    for i in range(0, 4):
+        if role_titles[i] not in compare_with[role]:
+            continue
+        for k in specs_report[role_titles[i]]:
+            if int(k[3]) < 20: # ignore specs with fewer than 20 parses as they would skew the buckets; we'll add them to F later
+                continue
+
+            scores += [float(k[0])]
+
+    if len(scores) < 6: # relax the fewer than 20 rule (early scans)
+        scores = []
+        for i in range(0, 4):
+            if role_titles[i] not in compare_with[role]:
+                continue            
+            for k in specs_report[role_titles[i]]:
+                scores += [float(k[0])]
+        
+    buckets = ckmeans(scores, 6)
+            
+    added = []
+
+    tiers = {}
+    tm = {}
+    tm[5] = "S"
+    tm[4] = "A"
+    tm[3] = "B"
+    tm[2] = "C"
+    tm[1] = "D"
+    tm[0] = "F"
+
+    for i in range(0, 6):
+        tiers[tm[i]] = []
+
+
+    for i in range(0, 6):
+        for k in specs_report[role]:
+            if len(buckets) > i:
+                if float(k[0]) in buckets[i]:
+                    if k not in added:
+                        tiers[tm[i]] += [k]
+                        added += [k]
+
+
+    # add stragglers to last tier
+    for k in specs_report[role]:
+        if k not in added:
+            tiers[tm[0]] += [k]
+            added += [k]
+    
+    dtl = {}
+    dtl["S"] = ""
+    dtl["A"] = ""
+    dtl["B"] = ""
+    dtl["C"] = ""
+    dtl["D"] = ""
+    dtl["F"] = ""
+
+    global spec_short_names
+    template = env.get_template("raid-spec-mini-icon.html")
+    for i in range(0, 6):
+        for k in tiers[tm[i]]:
+            rendered = template.render(spec_name = k[1],
+                                       spec_short_name = spec_short_names[k[1]],
+                                       spec_slug = slugify.slugify(unicode(k[1])),
+                                       encounter_slug = encounter_slug)
+            dtl[tm[i]] += rendered
+    
+    return dtl   
+
+
 ## end data analysis
 
 ## getting data out and into counts
 
-# generate counts
+# generate counts -- this is used by construct_analysis to do the statistical analysis
 def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
     global dungeons, regions, specs, last_updated, RIO_MAX_PAGE
 
@@ -816,6 +1027,66 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
     return dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts
 
 
+# for constructing the raid tier list
+# we'll have 3 -- all dps against each other (melee and ranged)
+# all tanks against each other (since we only have dps for tanks and tank dps is so much lower)
+# all healers against each other, based on hps
+def raid_generate_counts_spec_encounter(spec, encounter):
+    counts = []
+    
+    # only consider mythic difficulty
+    wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
+                                       SpecRankingsRaid.difficulty=="Mythic",
+                                       SpecRankingsRaid.encounter==encounter)
+    results = wcl_query.fetch()
+
+    rankings = []
+
+    max_found = 0
+    max_link = ""
+
+    # include max link for each encounter
+    
+    global last_updated
+    for k in results:
+        if last_updated == None:
+            last_updated = k.last_updated
+        if k.last_updated > last_updated:
+            last_updated = k.last_updated    
+
+        latest = json.loads(k.rankings)
+
+        for k in latest:
+            metric = float(k["total"])/1000
+            counts += [metric]
+
+            if metric > max_found:
+                max_found = metric
+                max_link = k["reportID"]
+            
+            
+    return counts, max_found, max_link
+
+def raid_generate_counts_spec(spec):
+    counts = {}
+    max_found = {}
+    max_link = {}
+    for k, v in raid_encounters.iteritems():
+        counts[k], max_found[k], max_link[k] = raid_generate_counts_spec_encounter(spec, k)
+    return counts, max_found, max_link
+        
+
+def raid_generate_counts():
+    counts = {}
+    max_found = {}
+    max_link = {}    
+    for s in specs:
+        counts[s], max_found[s], max_link[s] = raid_generate_counts_spec(s)
+
+    return counts, max_found, max_link
+       
+        
+
 # known affixes
 known_affixes_save = []
 
@@ -882,8 +1153,6 @@ def known_specs_subset_links(subset, prefix=""):
     return known_specs_report
 
         
-
-
 def current_affixes():
     pull_query = KnownAffixes.query().order(-KnownAffixes.last_seen, -KnownAffixes.first_seen)
     current_affixes_save = pull_query.fetch(1)[0].affixes
@@ -1111,7 +1380,7 @@ def gen_spec_report(spec_counts):
 
 # this exists to deal with specs that are only good in one dungeon
 # or that appear only good -- e.g. fire mages going frost for the first pull of TD
-# of frost dks going unholy for the first pull for junkyard
+# or frost dks going unholy for the first pull for junkyard
 
 # instead of using an lb_ci for all runs that are in our top set
 # we instead take an average of the lb_ci for each dungeon
@@ -1810,6 +2079,32 @@ def render_stats(affixes, prefix=""):
                                last_updated = localized_time(last_updated))
     return rendered
 
+# render raid stats separately
+def render_raid_stats(encounter, prefix=""):
+    specs_report, spec_stats = gen_raid_specs_role_package(encounter)
+
+    encounter_slugs = {}
+    for e in raid_canonical_order:
+        encounter_slugs[e] = slugify.slugify(unicode(e))
+
+    encounter_slug = slugify.slugify(unicode(encounter))
+    
+    template = env.get_template('stats-raid.html')
+    rendered = template.render(title=encounter,
+                               active_section = "raid",
+                               prefix=prefix,
+                               encounter = encounter,
+                               encounter_slug = encounter_slug,
+                               raid_stats = spec_stats,
+                               role_package = specs_report,
+                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
+                               known_healers = known_specs_subset_links(healers, prefix=prefix),
+                               known_melee = known_specs_subset_links(melee, prefix=prefix),
+                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
+                               known_affixes = known_affixes_links(prefix=prefix),
+                               last_updated = localized_time(last_updated))
+    return rendered
+
 
 def get_archetype(spec):
     if spec in tanks:
@@ -1865,12 +2160,43 @@ def render_wcl_spec(spec, prefix=""):
 
     return rendered
 
-def render_raid_index(prefix=""):
+# for now just overall
+def render_raid_index(encounter="all", prefix=""):
     template = env.get_template("raid-index.html")
+
+    specs_report, spec_stats = gen_raid_specs_role_package(encounter)
+
+    encounter_slugs = {}
+    for e in raid_canonical_order:
+        encounter_slugs[e] = slugify.slugify(unicode(e))
+
+    encounter_slug = slugify.slugify(unicode(encounter))
+    
+    # todo, include encounter in the tier list so deep links work right
+    tankstl = gen_raid_spec_tier_list(specs_report, "Tanks", encounter_slug=encounter_slug, prefix=prefix)
+    healerstl = gen_raid_spec_tier_list(specs_report, "Healers",  encounter_slug=encounter_slug, prefix=prefix)
+    meleetl = gen_raid_spec_tier_list(specs_report, "Melee",  encounter_slug=encounter_slug, prefix=prefix)
+    rangedtl = gen_raid_spec_tier_list(specs_report, "Ranged", encounter_slug=encounter_slug, prefix=prefix)    
+
+    active_page = "raid-index"
+    if encounter != "all":
+        active_page = "raid-" + encounter_slug
+    
     rendered = template.render(prefix=prefix,
-                               active_page = "raid-index",
+                               active_page = active_page,
                                active_section = "raid",
-                               title_override = "Subcreation %s" % RAID_NAME, 
+                               title_override = "Subcreation %s" % RAID_NAME,
+                               tankstl = tankstl,
+                               healerstl = healerstl,
+                               meleetl = meleetl,
+                               rangedtl = rangedtl,
+                               role_package=specs_report,
+                               spec_stats = spec_stats,
+                               encounter=encounter,
+                               encounter_slugs = encounter_slugs,
+                               encounter_slug = encounter_slug,                               
+                               raid_canonical_order = raid_canonical_order,
+                               raid_short_names = raid_short_names,                               
                                known_tanks = known_specs_subset_links(tanks, prefix=prefix),
                                known_healers = known_specs_subset_links(healers, prefix=prefix),
                                known_melee = known_specs_subset_links(melee, prefix=prefix),
@@ -1916,6 +2242,16 @@ def render_privacy(prefix=""):
                                title_override = "Privacy Policy - Subcreation",
                                active_section = "main",
                                active_page = "main-privacy")
+
+
+    return rendered
+
+def render_faq(prefix=""):
+    template = env.get_template("faq.html")
+    rendered = template.render(prefix=prefix,
+                               title_override = "Frequently Asked Questions - Subcreation",
+                               active_section = "main",
+                               active_page = "main-faq")
 
 
     return rendered
@@ -2078,6 +2414,17 @@ def render_and_write_stats(af):
 
     options = TaskRetryOptions(task_retry_limit = 1)
     deferred.defer(write_to_storage, "stats-" + filename_slug + ".html", rendered,
+                   _retry_options=options)
+
+def render_and_write_raid_stats(encounter):
+    rendered = render_raid_stats(encounter)
+    
+    filename_slug = slugify.slugify(unicode(encounter))
+
+    affix_slug = slugify.slugify(unicode(encounter))
+
+    options = TaskRetryOptions(task_retry_limit = 1)
+    deferred.defer(write_to_storage, "raid-stats-" + filename_slug + ".html", rendered,
                    _retry_options=options)        
     
 def write_overviews():
@@ -2130,7 +2477,8 @@ def create_main_pages():
                        _retry_options=options)                        
     
 def create_static_pages():
-    static_pages = [["privacy.html", render_privacy]]
+    static_pages = [["privacy.html", render_privacy],
+                    ["faq.html", render_faq]]
 
     for (filename, render_function) in static_pages:
         rendered = render_function()
@@ -2144,6 +2492,21 @@ def create_raid_index():
     options = TaskRetryOptions(task_retry_limit = 1)        
     deferred.defer(raid_write_to_storage, filename, rendered,
                        _retry_options=options)
+
+    encounters_to_write = []
+    encounters_to_write += raid_canonical_order
+
+    for encounter in encounters_to_write:
+        rendered = render_raid_index(encounter)
+        filename = slugify.slugify(encounter) + ".html"
+        options = TaskRetryOptions(task_retry_limit = 1)        
+        deferred.defer(raid_write_to_storage, filename, rendered,
+                       _retry_options=options)        
+    
+    for encounter in encounters_to_write:
+        options = TaskRetryOptions(task_retry_limit = 1)
+        deferred.defer(render_and_write_raid_stats, encounter,
+                       _retry_options=options)        
     
 def create_raid_spec_overview(s, e="all", difficulty="Mythic"):
     spec_slug = slugify.slugify(unicode(s))
@@ -2157,16 +2520,12 @@ def create_raid_spec_overview(s, e="all", difficulty="Mythic"):
     deferred.defer(raid_write_to_storage, filename, rendered,
                        _retry_options=options)
 
-    
-        
 def write_spec_overviews():
     for s in specs:
         options = TaskRetryOptions(task_retry_limit = 1)        
         deferred.defer(create_spec_overview, s,
                        _retry_options=options)
   
-            
-
 def write_raid_spec_overviews():
     # write the index page
     options = TaskRetryOptions(task_retry_limit = 1)        
@@ -2275,6 +2634,13 @@ def test_raid_view(destination):
 
     if "index" in destination:
         return render_raid_index(prefix=prefix)
+
+    if "stats" in destination:
+        return render_raid_stats(encounter, prefix=prefix)
+    
+    if spec == "all":
+        if encounter != "all":
+            return render_raid_index(prefix=prefix, encounter=encounter)            
             
 
     return render_wcl_raid_spec(spec, encounter=encounter, prefix=prefix)
@@ -2287,6 +2653,9 @@ def test_main_view(destination):
 
     if "privacy" in destination:
         return render_privacy(prefix=prefix)
+
+    if "faq" in destination:
+        return render_faq(prefix=prefix)    
 
     if "top-covenants" in destination:
         return render_main_covenants(prefix=prefix)       
@@ -2302,7 +2671,7 @@ def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
     
     url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&class=%d&spec=%d&page=%d&filter=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, season, class_id, spec, page, wcl_date, api_key)
     
-    result = urlfetch.fetch(url)
+    result = urlfetch.fetch(url, deadline=60)
     data = json.loads(result.content)
     return data
 
@@ -2350,7 +2719,7 @@ def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=WCL
     # &partition=%d
     url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?difficulty=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, difficulty, class_id, spec, page, wcl_date, metric, api_key)
 
-    result = urlfetch.fetch(url)
+    result = urlfetch.fetch(url, deadline=60)
     data = json.loads(result.content)
     return data
 
@@ -2451,7 +2820,9 @@ def update_wcl_raid_spec(spec, difficulty="Mythic"):
 
     aggregate = []
     for k, v in raid_encounters.iteritems():
-        stopFlag = update_wcl_raid_rankings(spec, k, page=1, difficulty=difficulty)
+        options = TaskRetryOptions(task_retry_limit = 1)
+        deferred.defer(update_wcl_raid_rankings, spec, k, page=1, difficulty=difficulty,
+                       _retry_options=options)
 
     return spec, spec_key,  wcl_specs[spec]
         
@@ -2593,7 +2964,7 @@ class TestWCLGetRankingsRaid(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
-        update_wcl_raid_update_subset(["Marksmanship Hunter"]) 
+        update_wcl_raid_update_subset(["Havoc Demon Hunter"]) 
 
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):
@@ -2637,7 +3008,6 @@ class TestResetDB(webapp2.RequestHandler):
         self.response.write("Clearing db\n")
         options = TaskRetryOptions(task_retry_limit = 1)
         self.response.write(reset_db())        
-        
 
 app = webapp2.WSGIApplication([
         ('/update_wcl', WCLGetRankings),
@@ -2665,5 +3035,6 @@ app = webapp2.WSGIApplication([
         ('/test/inspect_mplus', TestWCLInspectMPlus),
         ('/test/inspect_raid', TestWCLInspectRaid),    
         ('/test/cloudflare_purge', TestCloudflarePurgeCache),
-        ('/test/reset_db', TestResetDB),    
+        ('/test/reset_db', TestResetDB),
+    
         ], debug=True)

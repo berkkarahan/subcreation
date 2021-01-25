@@ -4,16 +4,53 @@
 {% block content %}
 {% import 'raid_role.html' as raid_role %}
 
+    <div class="boss-navbar d-flex py-3 justify-content-center flex-wrap " id="navbarSupportedContent">
+          <div class="boss-box {{ ' active' if encounter == "all" else '' }}">
+            <a class="boss-link" href="{{prefix}}index.html">
+              <img src="images/bosses/castle-nathria/castle-nathria.jpg" width="51" height="51" alt="All Bosses" title="All Bosses"><br/>All Bosses
+            </a>
+          </div>
+        </li>
+        
+{% for e in raid_canonical_order %}
+          <div class="boss-box {{ ' active' if encounter_slugs[e] in encounter_slug else '' }}">
+            <a class="boss-link" href="{{prefix}}{{encounter_slugs[e]}}.html">
+              <img src="images/bosses/castle-nathria/{{encounter_slugs[e]}}.jpg" width="51" height="51" alt="{{e}}" title="{{e}}"><br/>
+             {{raid_short_names[e]}}
+            </a>
+          </div>
+        {% endfor %}
+    </div>
+
 <div class="container-fluid">
   <div class="row">
 
-    {{raid_role.raid_role("Tanks", known_tanks, prefix)}}
-    {{raid_role.raid_role("Healers", known_healers, prefix)}}
-    {{raid_role.raid_role("Melee", known_melee, prefix)}}
-    {{raid_role.raid_role("Ranged", known_ranged, prefix)}}
+{% import 'raid_tier_list.html' as raid_tier_list %}
+{{ raid_tier_list.raid_tier_list("Tanks", "Tank", "tanks", tankstl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Tanks"]) }}
+{{ raid_tier_list.raid_tier_list("Healers", "Healer", "healers", healerstl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Healers"]) }}
+{{ raid_tier_list.raid_tier_list("Melee", "Melee", "melee", meleetl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Melee"]) }}
+{{ raid_tier_list.raid_tier_list("Ranged", "Ranged", "ranged", rangedtl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Ranged"]) }}
 
   </div>
 </div>
 
+
 {% endblock content %}
 
+{% block script %}
+  function triggerStatsData(which_table) {
+    var expand_me = document.querySelector(`#${which_table}-stats`);
+    expand_me.addEventListener("toggle", function() {
+        var details = document.querySelector(`#${which_table}-stats-details`);
+        $(`#${which_table}-stats-details`).load(`{{prefix}}raid-stats-{{encounter_slug}}.html #data-${which_table}-stats`, function() {
+            $('[data-toggle="popover"]').popover({container: 'body'})
+            new Tablesort(document.getElementById(`table-${which_table}-stats`));
+        });
+    });
+  } 
+
+triggerStatsData("tanks");
+triggerStatsData("healers");
+triggerStatsData("melee");
+triggerStatsData("ranged");
+{% endblock script %}

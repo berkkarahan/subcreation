@@ -34,6 +34,9 @@
       <li class="nav-item">
         <a class="nav-link{{ ' active' if active_page == 'main-covenants' else '' }}" href="{{prefix}}top-covenants.html">Top Covenants for M+ and Castle Nathria</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link{{ ' active' if active_page == 'main-faq' else '' }}" href="{{prefix}}faq.html">FAQ</a>        
+      </li>
     </ul>
    </div>
   </nav>
@@ -166,7 +169,15 @@
  {% macro navbar_raid(active_page, prefix, page_type, archetype, known_tanks, known_healers, known_melee, known_ranged) -%}
  <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
-    <ul class="navbar-nav mr-auto">
+     <span class="navbar-text">
+       Tier Lists for
+     </span>
+    <ul class="navbar-nav mr-auto">     
+      <li class="nav-item">
+        <a class="nav-link{{ ' active' if active_page == 'raid-index' else '' }}" href="{{prefix}}index.html">All Bosses</a>
+      </li>
+      <span class="navbar-text" style="width: 2em; text-align: center;">
+      </span>      
       {{navbar_top_builds(prefix, "", archetype, active_page, known_tanks, known_healers, known_melee, known_ranged)}}
      <span class="navbar-text">
        &nbsp; &nbsp; &nbsp; &nbsp;
