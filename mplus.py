@@ -2424,7 +2424,7 @@ def render_and_write_raid_stats(encounter):
     affix_slug = slugify.slugify(unicode(encounter))
 
     options = TaskRetryOptions(task_retry_limit = 1)
-    deferred.defer(write_to_storage, "raid-stats-" + filename_slug + ".html", rendered,
+    deferred.defer(raid_write_to_storage, "raid-stats-" + filename_slug + ".html", rendered,
                    _retry_options=options)        
     
 def write_overviews():
@@ -2498,11 +2498,13 @@ def create_raid_index():
 
     for encounter in encounters_to_write:
         rendered = render_raid_index(encounter)
-        filename = slugify.slugify(encounter) + ".html"
+        filename = slugify.slugify(unicode(encounter)) + ".html"
         options = TaskRetryOptions(task_retry_limit = 1)        
         deferred.defer(raid_write_to_storage, filename, rendered,
                        _retry_options=options)        
-    
+
+    # make sure to include all in stats
+    encounters_to_write += ["all"]
     for encounter in encounters_to_write:
         options = TaskRetryOptions(task_retry_limit = 1)
         deferred.defer(render_and_write_raid_stats, encounter,
