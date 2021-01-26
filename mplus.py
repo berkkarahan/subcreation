@@ -1482,7 +1482,12 @@ def wcl_parse(rankings, extractor, is_sorted=True, is_aggregated=True, only_use_
         if "reportID" in k:
             report_id = k["reportID"]
 
-        metadata[add_this] += [[sort_value, 0, link_text, report_id]]
+        if flatten:
+            for element in names_in_set:
+                add_this = tuple([element])
+                metadata[add_this] += [[sort_value, 0, link_text, report_id]]            
+        else:
+            metadata[add_this] += [[sort_value, 0, link_text, report_id]]
 
     # get rid of duplicate icons in the look up table / mapping
     no_duplicate_mapping = {}
