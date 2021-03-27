@@ -3,10 +3,10 @@ import slugify
 dungeons = ["De Other Side",
             "Halls of Atonement",
             "Mists of Tirna Scithe",
+            "The Necrotic Wake",            
             "Plaguefall",
             "Sanguine Depths",
             "Spires of Ascension",
-            "The Necrotic Wake",
             "Theater of Pain"]
 
 dungeon_short_names = {}
@@ -22,6 +22,10 @@ dungeon_short_names["Theater of Pain"] = "TOP"
 dungeon_slugs = []
 for d in dungeons:
     dungeon_slugs += [slugify.slugify(unicode(d))]
+
+slugs_to_dungeons = {}
+for d in dungeons:
+    slugs_to_dungeons[slugify.slugify(unicode(d))] = d
 
 # no rotation, will just be a pass through when empty
 prideful_weeks = {}

@@ -22,7 +22,7 @@ vendor.add('lib')
 import slugify
 import cloudstorage as gcs
 
-from shadowlands import dungeons, dungeon_slugs, dungeon_short_names
+from shadowlands import dungeons, dungeon_slugs, dungeon_short_names, slugs_to_dungeons
 from shadowlands import prideful_weeks as affix_rotation_weeks
 from shadowlands import covenantID_mapping
 
@@ -1790,8 +1790,8 @@ def wcl_top10(d, pop=None, top_n = 10):
     return output
 
 # spec report generation
-def gen_wcl_spec_report(spec):
-    return base_gen_spec_report(spec, "mplus")
+def gen_wcl_spec_report(spec, dungeon="all"):
+    return base_gen_spec_report(spec, "mplus", dungeon)
 
 def gen_wcl_raid_spec_report(spec, encounter="all"):
     return base_gen_spec_report(spec, "raid", encounter)
@@ -1800,7 +1800,11 @@ def base_gen_spec_report(spec, mode, encounter="all"):
     wcl_query = None
 
     if mode == "mplus":
-        wcl_query = SpecRankings.query(SpecRankings.spec==spec)
+        if encounter == "all":
+            wcl_query = SpecRankings.query(SpecRankings.spec==spec)
+        else:
+            wcl_query = SpecRankings.query(SpecRankings.spec==spec,
+                                           SpecRankings.dungeon==encounter)            
     elif mode=="raid":
         if encounter == "all":
             wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec)
@@ -2122,16 +2126,29 @@ def get_archetype(spec):
         return "ranged"
     return "unknown"
 
-def render_wcl_spec(spec, prefix=""):
+def render_wcl_spec(spec, dungeon="all", prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, key_max, key_min, tea, talents, legendaries, gear, enchants, gems, gem_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids = gen_wcl_spec_report(spec)
+    n_parses, key_max, key_min, tea, talents, legendaries, gear, enchants, gems, gem_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids = gen_wcl_spec_report(spec, dungeon)
 
-   
+
+    title = spec + " - Mythic+"
+    if dungeon != "all":
+        title = spec + " - %s - Mythic+" % dungeon
+
+    spec_slug = slugify.slugify(unicode(spec))
+    dungeon_slug = slugify.slugify(unicode(dungeon))
+
+       
     template = env.get_template('spec.html')
-    rendered = template.render(title = spec + " - Mythic+",
+    rendered = template.render(title = title,
                                active_section = "mplus",
+                               active_page = spec_slug + "-" + dungeon_slug,
+                               dungeon = dungeon,
                                spec = spec,
+                               dungeon_slugs = dungeon_slugs,
+                               slugs_to_dungeons = slugs_to_dungeons,
+                               dungeon_short_names = dungeon_short_names,
                                archetype = get_archetype(spec),
                                spec_slug = spec_slug,
                                tea = tea,
@@ -2462,10 +2479,14 @@ def write_all_affixes():
                        _retry_options=options)   
 
 
-def create_spec_overview(s):
-    spec_slug = slugify.slugify(unicode(s))    
-    rendered = render_wcl_spec(s)
-    filename = "%s.html" % (spec_slug)
+def create_spec_overview(s, d="all"):
+    spec_slug = slugify.slugify(unicode(s))
+    rendered = render_wcl_spec(s, dungeon=d)
+    if d == "all":
+        filename = "%s.html" % (spec_slug)
+    else:
+        dungeon_slug = slugify.slugify(unicode(d))
+        filename = "%s-%s.html" % (spec_slug, dungeon_slug)
     options = TaskRetryOptions(task_retry_limit = 1)        
     deferred.defer(write_to_storage, filename, rendered,
                        _retry_options=options)
@@ -2530,8 +2551,13 @@ def create_raid_spec_overview(s, e="all", difficulty="Mythic"):
 def write_spec_overviews():
     for s in specs:
         options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(create_spec_overview, s,
+        deferred.defer(create_spec_overview, s, "all",
                        _retry_options=options)
+
+        for k, v in dungeon_encounters.iteritems():
+            options = TaskRetryOptions(task_retry_limit = 1)        
+            deferred.defer(create_spec_overview, s, k,
+                           _retry_options=options)
   
 def write_raid_spec_overviews():
     # write the index page
@@ -2609,12 +2635,11 @@ def test_view(destination):
             dung = dungeons[i]
 
     if spec != "all":
-        return render_wcl_spec(spec,
-                               prefix=prefix)
-    if dung != "all":
-        return render_dungeon(affixes,
-                              dung,
-                              prefix=prefix)
+        if dung != "all":
+            return render_wcl_spec(spec, dung, prefix=prefix)        
+        return render_wcl_spec(spec, dungeon="all", prefix=prefix)
+
+
 
     if "compositions" in destination:
         return render_compositions(affixes, prefix=prefix)        
