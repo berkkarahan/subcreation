@@ -2670,10 +2670,22 @@ def test_main_view(destination):
 ## wcl querying
 # @@season update
 def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
-    # filter to the last 4 weeks
+    # filter to the last 4 weeks, or 9.0.5 date, whichever is sooner
+
+    # 9.0.5 date
+    latest_patch = datetime.datetime(2021, 3, 11, 0, 0)
+    
     now = datetime.datetime.now()
+
+    latest_patch_mkt = time.mktime(latest_patch.timetuple())
+    four_weeks_ago = time.mktime(now.timetuple())-4*7*60*60*24
+
+    filter_back_to = four_weeks_ago
+    if latest_patch_mkt > four_weeks_ago:
+        filter_back_to = latest_patch_mkt
+    
     wcl_date = "date."
-    wcl_date += "%d000" % (time.mktime(now.timetuple())-4*7*60*60*24 )
+    wcl_date += "%d000" % (filter_back_to)
     wcl_date += "." + "%d000" % (time.mktime(now.timetuple()))
     
     url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&class=%d&spec=%d&page=%d&filter=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, season, class_id, spec, page, wcl_date, api_key)
