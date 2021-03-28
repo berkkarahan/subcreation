@@ -1969,6 +1969,38 @@ def localized_time(last_updated):
         return pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
     return pytz.utc.localize(last_updated).astimezone(pytz.timezone("America/New_York"))
 
+## initial api
+def api_affixes(affixes):
+    global last_updated
+    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
+    affixes_slug = slugify.slugify(unicode(affixes))
+    affixes_slug_special = affixes_slug
+    if affixes == current_affixes():
+        affixes_slug_special = "index"
+    
+    dungeons_report, dungeon_stats = gen_dungeon_report(dungeon_counts)
+    dtl = gen_dungeon_tier_list(dungeons_report)
+
+    tiers = {}
+    for k, v in dtl.iteritems():
+        tiers[k] = []
+
+    for k, v in dtl.iteritems():
+        for d in dungeon_slugs:
+            if d in v:
+                tiers[k] += [slugs_to_dungeons[d]]
+                
+    last_updated = str(localized_time(last_updated))
+    affixes_str = affixes
+
+    rendered = {}
+    rendered["last_updated"] = last_updated
+    rendered["affixes"] = affixes
+    rendered["dungeon_ease_tier_list"] = tiers
+    rendered["source_url"] = "https://mplus.subcreation.net/"
+        
+    return json.dumps(rendered)
+
 def render_affixes(affixes, prefix=""):
     dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
     affixes_slug = slugify.slugify(unicode(affixes))
@@ -2370,15 +2402,15 @@ def write_to_storage(filename, content):
     cloudflare_purge_cache(bucket_name, original_filename)
 
 
-def main_write_to_storage(filename, content):
+def main_write_to_storage(filename, content, cache_control="public, max-age=86400", content_type="text/html"):
     bucket_name = 'subcreation.net'
     original_filename = filename
     
     filename = "/%s/%s" % (bucket_name, filename)
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
     gcs_file = gcs.open(filename,
-                        'w', content_type='text/html',
-                        options={"cache-control" : "public, max-age=86400"},
+                        'w', content_type=content_type,
+                        options={"cache-control" : cache_control},
                         retry_params=write_retry_params)
     gcs_file.write(str(content))
     gcs_file.close()
@@ -2467,7 +2499,10 @@ def write_overviews():
     for af in affixes_to_write:
         options = TaskRetryOptions(task_retry_limit = 1)        
         deferred.defer(render_and_write_stats, af,
-                       _retry_options=options)          
+                       _retry_options=options)
+
+    options = TaskRetryOptions(task_retry_limit = 1)
+    deferred.defer(write_apis, _retry_options=options)    
 
 def write_all_affixes():
     affixes_to_write = []
@@ -2558,7 +2593,17 @@ def write_spec_overviews():
             options = TaskRetryOptions(task_retry_limit = 1)        
             deferred.defer(create_spec_overview, s, k,
                            _retry_options=options)
-  
+
+
+def write_api_dungeon_ease():
+    main_write_to_storage("api/v0/dungeon_ease_tier_list",
+                          api_affixes(current_affixes()),
+                          cache_control="public, max-age=28800",
+                          content_type="application/json")
+            
+def write_apis():
+    write_api_dungeon_ease()
+            
 def write_raid_spec_overviews():
     # write the index page
     options = TaskRetryOptions(task_retry_limit = 1)        
@@ -3039,6 +3084,14 @@ class GenMainHTML(webapp2.RequestHandler):
         deferred.defer(create_main_pages, _retry_options=options)              
 
 
+class GenAPIs(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Writing APIs...\n")
+        options = TaskRetryOptions(task_retry_limit = 1)
+        deferred.defer(write_apis, _retry_options=options)
+
+        
 class TestCloudflarePurgeCache(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
@@ -3053,6 +3106,11 @@ class TestResetDB(webapp2.RequestHandler):
         options = TaskRetryOptions(task_retry_limit = 1)
         self.response.write(reset_db())        
 
+class APIDungeonEase(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.write(api_affixes(current_affixes()))
+        
 app = webapp2.WSGIApplication([
         ('/update_wcl', WCLGetRankings),
         ('/update_wcl_raid', WCLGetRankingsRaid),
@@ -3067,7 +3125,10 @@ app = webapp2.WSGIApplication([
         ('/generate/raids', WCLRaidGenHTML),
         ('/generate/main', GenMainHTML),    
         ('/generate/static', GenStaticHTML),
+        ('/generate/apis', GenAPIs),    
 
+        ('/api/dungeon_ease', APIDungeonEase),
+    
         ('/view', TestView),
         ('/raid', TestRaidView),
         ('/main', TestMainView),    
