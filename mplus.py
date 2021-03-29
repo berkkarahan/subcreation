@@ -397,7 +397,7 @@ def icon_spec(dname, prefix="", size=56):
 import pdb
 
 # generate a specs tier list
-def gen_spec_tier_list(specs_report, role, prefix=""):
+def gen_spec_tier_list(specs_report, role, prefix="", api=False):
     global role_titles
 
     scores = []
@@ -444,25 +444,41 @@ def gen_spec_tier_list(specs_report, role, prefix=""):
         if k not in added:
             tiers[tm[0]] += [k]
             added += [k]
-    
-    dtl = {}
-    dtl["S"] = ""
-    dtl["A"] = ""
-    dtl["B"] = ""
-    dtl["C"] = ""
-    dtl["D"] = ""
-    dtl["F"] = ""
 
-    global spec_short_names
-    template = env.get_template("spec-mini-icon.html")
-    for i in range(0, 6):
-        for k in tiers[tm[i]]:
-            rendered = template.render(spec_name = k[1],
+    if api==False:
+        dtl = {}
+        dtl["S"] = ""
+        dtl["A"] = ""
+        dtl["B"] = ""
+        dtl["C"] = ""
+        dtl["D"] = ""
+        dtl["F"] = ""
+
+
+        global spec_short_names
+        template = env.get_template("spec-mini-icon.html")
+        for i in range(0, 6):
+            for k in tiers[tm[i]]:
+                rendered = template.render(spec_name = k[1],
                                        spec_short_name = spec_short_names[k[1]],
                                        spec_slug = slugify.slugify(unicode(k[1])))
-            dtl[tm[i]] += rendered
+                dtl[tm[i]] += rendered
     
-    return dtl   
+        return dtl
+    else:
+        dtl = {}
+        dtl["S"] = []
+        dtl["A"] = []
+        dtl["B"] = []
+        dtl["C"] = []
+        dtl["D"] = []
+        dtl["F"] = []
+
+        for i in range(0, 6):
+            for k in tiers[tm[i]]:
+                dtl[tm[i]] += [k[1]]
+        
+        return dtl
 
 
 
@@ -1970,7 +1986,7 @@ def localized_time(last_updated):
     return pytz.utc.localize(last_updated).astimezone(pytz.timezone("America/New_York"))
 
 ## initial api
-def api_affixes(affixes):
+def api_affixes_dungeons(affixes):
     global last_updated
     dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
     affixes_slug = slugify.slugify(unicode(affixes))
@@ -1997,6 +2013,37 @@ def api_affixes(affixes):
     rendered["last_updated"] = last_updated_output
     rendered["affixes"] = affixes
     rendered["dungeon_ease_tier_list"] = tiers
+    rendered["source_url"] = "https://mplus.subcreation.net/"
+        
+    return json.dumps(rendered)
+
+def api_affixes_specs(affixes):
+    global last_updated
+    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
+    affixes_slug = slugify.slugify(unicode(affixes))
+    affixes_slug_special = affixes_slug
+    if affixes == current_affixes():
+        affixes_slug_special = "index"
+    
+    specs_report, spec_stats = gen_spec_report(spec_counts)
+    dung_spec_report, dung_spec_stats = gen_dung_spec_report(dung_spec_counts, spec_counts)     
+    specs_report = dung_spec_report # to balance out per dungeon anomalies
+    
+    tankstl = gen_spec_tier_list(specs_report, "Tanks", api=True)
+    healerstl = gen_spec_tier_list(specs_report, "Healers", api=True)
+    meleetl = gen_spec_tier_list(specs_report, "Melee", api=True)
+    rangedtl = gen_spec_tier_list(specs_report, "Ranged",api=True)
+
+    last_updated_output = str(localized_time(last_updated))
+    affixes_str = affixes
+
+    rendered = {}
+    rendered["last_updated"] = last_updated_output
+    rendered["affixes"] = affixes
+    rendered["melee_tier_list"] = meleetl
+    rendered["ranged_tier_list"] = rangedtl
+    rendered["tank_tier_list"] = tankstl
+    rendered["healer_tier_list"] = healerstl
     rendered["source_url"] = "https://mplus.subcreation.net/"
         
     return json.dumps(rendered)
@@ -2597,12 +2644,19 @@ def write_spec_overviews():
 
 def write_api_dungeon_ease():
     main_write_to_storage("api/v0/dungeon_ease_tier_list",
-                          api_affixes(current_affixes()),
+                          api_affixes_dungeons(current_affixes()),
                           cache_control="public, max-age=28800",
                           content_type="application/json")
+
+def write_api_dungeon_specs():
+    main_write_to_storage("api/v0/mplus_spec_tier_list",
+                          api_affixes_specs(current_affixes()),
+                          cache_control="public, max-age=28800",
+                          content_type="application/json")    
             
 def write_apis():
     write_api_dungeon_ease()
+    write_api_dungeon_specs()
             
 def write_raid_spec_overviews():
     # write the index page
@@ -3109,7 +3163,12 @@ class TestResetDB(webapp2.RequestHandler):
 class APIDungeonEase(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/html'
-        self.response.write(api_affixes(current_affixes()))
+        self.response.write(api_affixes_dungeons(current_affixes()))
+
+class APIDungeonSpecs(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.write(api_affixes_specs(current_affixes()))        
         
 app = webapp2.WSGIApplication([
         ('/update_wcl', WCLGetRankings),
@@ -3128,6 +3187,7 @@ app = webapp2.WSGIApplication([
         ('/generate/apis', GenAPIs),    
 
         ('/api/dungeon_ease', APIDungeonEase),
+        ('/api/mplus_specs', APIDungeonSpecs),    
     
         ('/view', TestView),
         ('/raid', TestRaidView),
