@@ -1990,11 +1990,11 @@ def api_affixes(affixes):
             if d in v:
                 tiers[k] += [slugs_to_dungeons[d]]
                 
-    last_updated = str(localized_time(last_updated))
+    last_updated_output = str(localized_time(last_updated))
     affixes_str = affixes
 
     rendered = {}
-    rendered["last_updated"] = last_updated
+    rendered["last_updated"] = last_updated_output
     rendered["affixes"] = affixes
     rendered["dungeon_ease_tier_list"] = tiers
     rendered["source_url"] = "https://mplus.subcreation.net/"
