@@ -506,7 +506,26 @@ def icon_affix(dname, size=28):
     return output_string
 
 
-def render_affix_tier_list(tiers, tm):
+def render_affix_tier_list_api(tiers, tm):
+    dtl = {}
+    dtl["S"] = []
+    dtl["A"] = []
+    dtl["B"] = []
+    dtl["C"] = []
+    dtl["D"] = []
+    dtl["F"] = []
+
+    for i in range(0, 6):
+        for k in tiers[tm[i]]:
+            dtl[tm[i]] += [k[1]]
+    
+    return dtl
+
+
+def render_affix_tier_list(tiers, tm, api=False):
+    if api==True:
+        return render_affix_tier_list_api(tiers, tm)
+    
     dtl = {}
     dtl["S"] = ""
     dtl["A"] = ""
@@ -545,9 +564,9 @@ def render_affix_tier_list(tiers, tm):
 # todo: affix tier list (how do affixes compare with each other)
 # have this show on all affixes?
 # new: generate a dungeon tier list
-def gen_affix_tier_list(affixes_report):
+def gen_affix_tier_list(affixes_report, api=False):
     if len(affixes_report) < 6:
-        return gen_affix_tier_list_small(affixes_report)
+        return gen_affix_tier_list_small(affixes_report, api=api)
 
     # ckmeans
     scores = []
@@ -587,11 +606,11 @@ def gen_affix_tier_list(affixes_report):
             tiers[tm[0]] += [k]
             added += [k]
 
-    return render_affix_tier_list(tiers, tm)    
+    return render_affix_tier_list(tiers, tm, api=api)    
     
 # use this if there are fewer than 6 affixes scanned
 # since we can't cluster into 6 with uh, fewer than 6
-def gen_affix_tier_list_small(affixes_report):
+def gen_affix_tier_list_small(affixes_report, api=False):
    
     # super simple tier list -- figure out the max and the min, and then bucket tiers
     cimax = -1
@@ -642,7 +661,7 @@ def gen_affix_tier_list_small(affixes_report):
             tiers[tm[5]] += [k]
             added += [k]
     
-    return render_affix_tier_list(tiers, tm)
+    return render_affix_tier_list(tiers, tm, api=api)
 
 # use this if there are fewer than 6 dungeons scanned
 # since we can't cluster into 6 with uh, fewer than 6
@@ -2048,6 +2067,28 @@ def api_affixes_specs(affixes):
         
     return json.dumps(rendered)
 
+
+def api_affixes_tier_list():
+    global last_updated
+    affixes = "All Affixes"
+    
+    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
+    affixes_slug = slugify.slugify(unicode(affixes))
+
+    affixes_report, affix_stats = gen_affix_report(affix_counts)        
+    aftl = gen_affix_tier_list(affixes_report, api=True)
+    
+    last_updated_output = str(localized_time(last_updated))
+    affixes_str = affixes
+
+    rendered = {}
+    rendered["last_updated"] = last_updated_output
+    rendered["current_affixes"] = current_affixes()
+    rendered["affixes_ease_tier_list"] = aftl
+    rendered["source_url"] = "https://mplus.subcreation.net/all-affixes.html"
+        
+    return json.dumps(rendered)
+
 def render_affixes(affixes, prefix=""):
     dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
     affixes_slug = slugify.slugify(unicode(affixes))
@@ -2652,11 +2693,18 @@ def write_api_dungeon_specs():
     main_write_to_storage("api/v0/mplus_spec_tier_list",
                           api_affixes_specs(current_affixes()),
                           cache_control="public, max-age=28800",
-                          content_type="application/json")    
+                          content_type="application/json")
+
+def write_api_affix_tier_list():
+    main_write_to_storage("api/v0/affixes_ease_tier_list",
+                          api_affixes_tier_list(),
+                          cache_control="public, max-age=28800",
+                          content_type="application/json")        
             
 def write_apis():
     write_api_dungeon_ease()
     write_api_dungeon_specs()
+    write_api_affix_tier_list()    
             
 def write_raid_spec_overviews():
     # write the index page
@@ -3165,6 +3213,11 @@ class APIDungeonEase(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/html'
         self.response.write(api_affixes_dungeons(current_affixes()))
 
+class APIAffixEase(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.write(api_affixes_tier_list())        
+
 class APIDungeonSpecs(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/html'
@@ -3187,7 +3240,8 @@ app = webapp2.WSGIApplication([
         ('/generate/apis', GenAPIs),    
 
         ('/api/dungeon_ease', APIDungeonEase),
-        ('/api/mplus_specs', APIDungeonSpecs),    
+        ('/api/mplus_specs', APIDungeonSpecs),
+        ('/api/mplus_affixes', APIAffixEase),        
     
         ('/view', TestView),
         ('/raid', TestRaidView),
