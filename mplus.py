@@ -222,7 +222,7 @@ from ckmeans import ckmeans
 
 def gen_top_covenant_report_for(spec, mode):
 
-    n_parses, _, _, _, _, _, _, _, _, _, covenants, _, _, _, _, _, _, _ = base_gen_spec_report(spec, mode)
+    n_parses, n_uniques, _, _, _, _, _, _, _, _, _, covenants, _, _, _, _, _, _, _ = base_gen_spec_report(spec, mode)
     logging.info("%s %s" % (spec, mode))
     logging.info(covenants)
     logging.info(len(covenants))
@@ -303,7 +303,7 @@ def gen_covenants_report():
     for i, display in enumerate([tanks, healers, melee, ranged]):
         for spec in sorted(display):
             
-            n, mplus  = gen_top_covenant_report_for(spec, "mplus")
+            n, mplus = gen_top_covenant_report_for(spec, "mplus")
             n_parses["mplus"] += n
             
             n, raid = gen_top_covenant_report_for(spec, "raid")
