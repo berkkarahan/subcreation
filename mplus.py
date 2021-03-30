@@ -54,6 +54,7 @@ from shadowlands import dungeons as DUNGEONS
 from warcraft import regions as REGIONS
 from config import RIO_MAX_PAGE, RIO_SEASON, RAID_NAME
 from config import WCL_SEASON, WCL_PARTITION
+from config import MIN_KEY_LEVEL
 
 ## raider.io handling
 def update_known_affixes(affixes, affixes_slug):
@@ -80,7 +81,7 @@ def parse_individual_ranking(ranking):
 
     clear_time_ms = run["clear_time_ms"]
     mythic_level = run["mythic_level"]
-    if mythic_level < 10: # only track runs at +10 or above
+    if mythic_level < MIN_KEY_LEVEL: # only track runs at +16 or above
         return None
     num_chests = run["num_chests"]
     keystone_time_ms = run["keystone_time_ms"]
@@ -1029,7 +1030,7 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
                         last_updated = dar.last_updated
 
                     for run in dar.runs:
-                        if run.mythic_level < 10: # don't count runs under a +10
+                        if run.mythic_level < MIN_KEY_LEVEL: # don't count runs under a +16
                             continue
                         
                         if dung not in dungeon_counts:
@@ -1867,16 +1868,33 @@ def base_gen_spec_report(spec, mode, encounter="all"):
             seen_difficulties.add(k.difficulty)
             
         latest = json.loads(k.rankings)
-        rankings += latest
 
+        if mode == "mplus":
+            filtered_latest = []            
+            for k in latest:
+                if k["keystoneLevel"] < MIN_KEY_LEVEL:
+                    continue
+                filtered_latest += [k]
+            
+            rankings += filtered_latest
+        elif mode == "raid":
+            latest = json.loads(k.rankings)
+            rankings += latest
+
+
+    unique_characters = set()   
     for k in rankings:
+        name_to_add = k["name"] + "-" + k["serverName"]
+        unique_characters.add(name_to_add)
         if mode == "mplus":
             maxima += [k["keystoneLevel"]]
 
+    n_uniques = len(unique_characters)
+            
     # clean up difficulty display
     # a single boss will always be only one difficulty
     # this is for the all bosses view, where we might have a mix of
-    # heroic and mythic bosses -- until all bosse are done on mythic for that spec
+    # heroic and mythic bosses -- until all bosses are done on mythic for that spec
             
     if mode == "raid":
         canonical_order_difficulties = ["Mythic", "Heroic", "Normal"]
@@ -1988,7 +2006,7 @@ def base_gen_spec_report(spec, mode, encounter="all"):
         
     # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
     # raid will return difficulty in max_maxima
-    return len(rankings), max_maxima, min_maxima, tea, talents, legendaries, \
+    return len(rankings), n_uniques, max_maxima, min_maxima, tea, talents, legendaries, \
         gear, enchants, gems, gem_builds, \
         covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, \
         spells, items, enchant_ids
@@ -2249,7 +2267,7 @@ def get_archetype(spec):
 def render_wcl_spec(spec, dungeon="all", prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, key_max, key_min, tea, talents, legendaries, gear, enchants, gems, gem_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids = gen_wcl_spec_report(spec, dungeon)
+    n_parses, n_uniques, key_max, key_min, tea, talents, legendaries, gear, enchants, gems, gem_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids = gen_wcl_spec_report(spec, dungeon)
 
 
     title = spec + " - Mythic+"
@@ -2289,6 +2307,7 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
                                spells = spells,
                                items = items,
                                n_parses = n_parses,
+                               n_uniques = n_uniques,
                                key_max = key_max,
                                key_min = key_min,
                                metric = "key",
@@ -2401,7 +2420,7 @@ def render_faq(prefix=""):
 def render_wcl_raid_spec(spec, encounter="all", prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, difficulty, _, tea, talents, legendaries, gear, enchants, gems, gem_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids = gen_wcl_raid_spec_report(spec, encounter)
+    n_parses, n_uniques, difficulty, _, tea, talents, legendaries, gear, enchants, gems, gem_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids = gen_wcl_raid_spec_report(spec, encounter)
 
     encounter_pretty = encounter
     if encounter_pretty == "all":
@@ -2447,6 +2466,7 @@ def render_wcl_raid_spec(spec, encounter="all", prefix=""):
                                encounter_slugs = encounter_slugs,
                                raid_short_names = raid_short_names,
                                n_parses = n_parses,
+                               n_uniques = n_uniques,
                                encounter = encounter,
                                encounter_pretty = encounter_pretty,
                                difficulty = difficulty,
@@ -2878,14 +2898,10 @@ def update_wcl_rankings(spec, dungeon, page):
 
     aggregate = []
     
-    stopFlag = False
     rankings = _rankings(dungeon_id, wcl_specs[spec][0], wcl_specs[spec][1], page=page)
 
     for k in rankings["rankings"]:
-        if int(k["keystoneLevel"]) >= 10: 
-            aggregate += [k]
-        else:
-            stopFlag = True
+        aggregate += [k]
     
     key = ndb.Key('SpecRankings', "%s-%s-%d" % (spec_key, dungeon_slug, page))
     sr = SpecRankings(key=key)
@@ -2894,8 +2910,6 @@ def update_wcl_rankings(spec, dungeon, page):
     sr.page = page
     sr.rankings = json.dumps(aggregate)
     sr.put()
-    
-    return stopFlag
 
 # 4 - heroic
 # 5 - mythic
@@ -2924,11 +2938,10 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty="Mythic"):
     encounter_id = raid_encounters[encounter]
     encounter_slug = slugify.slugify(unicode(encounter))
 
-    logging.info("%s %s %s" % (spec, encounter, difficulty))
+    logging.info("%s %s %s %s" % (spec, encounter, difficulty, page))
     
     aggregate = []
     
-    stopFlag = False
     difficulty_code = 5
     if difficulty == "Normal":
         difficulty_code = 3    
@@ -2984,7 +2997,12 @@ def update_wcl_spec(spec):
 
     aggregate = []
     for k, v in dungeon_encounters.iteritems():
-        stopFlag = update_wcl_rankings(spec, k, 1)
+        i = 1
+        while (i <= 5):
+            options = TaskRetryOptions(task_retry_limit = 1)            
+            deferred.defer(update_wcl_rankings, spec, k, page=i,
+                           _retry_options=options)
+            i += 1
 
     return spec, spec_key,  wcl_specs[spec]
 
@@ -3011,9 +3029,12 @@ def update_wcl_raid_spec(spec, difficulty="Mythic"):
 
     aggregate = []
     for k, v in raid_encounters.iteritems():
-        options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(update_wcl_raid_rankings, spec, k, page=1, difficulty=difficulty,
-                       _retry_options=options)
+        i = 1
+        while (i <= 5):
+            options = TaskRetryOptions(task_retry_limit = 1)
+            deferred.defer(update_wcl_raid_rankings, spec, k, page=i, difficulty=difficulty,
+                           _retry_options=options)
+            i += 1
 
     return spec, spec_key,  wcl_specs[spec]
         
@@ -3044,7 +3065,7 @@ def update_wcl_all():
 # look at what the raw wcl rankings string looks like
 def test_inspect(rh, mode):
     if mode == "mplus":
-        spec = "Havoc Demon Hunter"        
+        spec = "Havoc Demon Hunter"
         wcl_query = SpecRankings.query(SpecRankings.spec==spec)
     elif mode=="raid":
         spec = "Havoc Demon Hunter"
@@ -3126,6 +3147,7 @@ class TestWCLGetRankings(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
         update_wcl_update_subset(["Havoc Demon Hunter"])
+#        update_wcl_update_subset(["Survival Hunter"])
 
 class WCLGetRankingsRaid(webapp2.RequestHandler):
     def get(self):
