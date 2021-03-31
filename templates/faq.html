@@ -13,7 +13,7 @@
 <p>For specs: The site looks at the top 100 keys per dungeon per affix across all region and examine their <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io scores</a>. From these, for each dungeon, for each spec, the site takes the lower bound of a 95% confidence interval. The site then average these lower bounds, one per dungeon, to get an overall average lower bound for each spec, which the site then uses to create the tier list.</p>
 <p>For dungeons: We take the top 100 keys per dungeon for each region for a given affix. For each dungeon, the site calculates the lower bound of a 95% confidence interval and uses that to create the tier list.</p>
 <p>For affixes: We take the top 100 keys for each dungeon for each region per affix. For each affix set, the site calculates the lower bound of a 95% confidence interval and uses that to create the tier list.</p>
-<p>This approach was inspired by pair of articles by Evan Miller:</p>
+<p>This approach was inspired by a pair of articles by Evan Miller:</p>
 <ul>
 <li><a href="https://www.evanmiller.org/how-not-to-sort-by-average-rating.html">How Not To Sort By Average Rating</a></li>
 <li><a href="https://www.evanmiller.org/ranking-items-with-star-ratings.html">Ranking Items With Star Ratings</a></li>
@@ -30,12 +30,19 @@
 <h2 id="do-you-include-abandoned-runs-">Do you include abandoned runs?</h2>
 <p>No. Keys that are not completed do not show up in the API and thus the site doesn&#39;t have visibility into their existence.</p>
 <h2 id="isn-t-this-approach-biased-toward-the-top-end-">Isn&#39;t this approach biased toward the top end?</h2>
-<p>Yes. Because we&#39;re only looking at the top 100 keys per dungeon per affix for each region (since that&#39;s what the raider.io provides), we are necessarily biased toward the top end. We also don&#39;t look at keys below +10, and only consider timed keys.</p>
+<p>Yes. Because we&#39;re only looking at the top 100 keys per dungeon per affix for each region (since that&#39;s what the raider.io provides), we are necessarily biased toward the top end. We also don&#39;t look at keys below +16, and only consider timed keys.</p>
 <p>For a more comprehensive look at the entire set of keys, please check out <a href="https://benched.me">benched.me</a>.</p>
-<p>For interesting statistics on timed vs. untimed keys, please check out <a href="https://bestkeystone.com">bestkeystone.com</a>.</p>
+      <p>For interesting statistics on timed vs. untimed keys, please check out <a href="https://bestkeystone.com">bestkeystone.com</a>.</p>
+      <h2>How do you create the Top Builds?</h2>
+
+      <p><b>For Mythic+</b>: The site looks at the Top 500 logs for each spec, for each dungeon (completed, whether timed or note) in the last four weeks, since the last major patch.
+      <p>
+        <p>Note that the site is only using <b>logged runs</b> for Top Builds, unlike the tier lists, which use all timed runs available on the raider.io API. If Mythic+ runs are not logged, they will not show up in Top Builds. The site relies only on logged runs to avoid issues where a player completes run, changes gear/talents, and then logs out.</p>
+
+      <p><b>For Raid</b>: The site looks at the Top 500 logs for each spec for each boss in the last four weeks, since the last major patch.        </p>
 <h2 id="raid">How do you calculate the tier lists for Raid?</h2>
-<p>The site looks at the top 100 Mythic logs for each spec for each boss. For tanks, melee, and ranged, it considers the top dps logs. For healers, it looks at top hps logs. I am aware that dps for tanks and hps for healers is non-ideal, but don&#39;t have anything better at this time. Open to ideas here.</p>
-      <p>For these top 100 Mythic logs, the site takes the lower bound of a 95% confidence interval again, and then, for the overall raid tier list, averages it across all bosses.</p>
+<p>The site looks at the top 500 Mythic logs for each spec for each boss. For tanks, melee, and ranged, it considers the top dps logs. For healers, it looks at top hps logs. I am aware that dps for tanks and hps for healers is non-ideal, but don&#39;t have anything better at this time. Open to ideas here.</p>
+      <p>For these top 500 Mythic logs, the site takes the lower bound of a 95% confidence interval again, and then, for the overall raid tier list, averages it across all bosses.</p>
       <p>Melee and Ranged DPS are on the same tier list, though displayed separatey for ease of viewing. Healers are on their own tier list (since they use hps). Tanks are also on their own tier list (since tank dps is typically much lower).</p>
 <p>Note that some specs may have very few or no Mythic logs on certain bosses. These specs effectively get a &quot;0&quot; for those bosses, potentially resulting in their overall raid tier list ranking dropping.</p>
 <h2 id="i-have-more-questions-how-can-i-reach-you-">I have more questions. How can I reach you?</h2>
