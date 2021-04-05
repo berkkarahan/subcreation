@@ -33,7 +33,7 @@ from t_interval import t_interval
 from models import Run, DungeonAffixRegion, KnownAffixes
 
 # wcl handling
-from models import SpecRankings, SpecRankingsRaid
+from models import SpecRankings, SpecRankingsRaid, RaidSummary, DungeonEaseTierList
 from auth import api_key
 from wcl import wcl_specs
 from wcl_shadowlands import dungeon_encounters
@@ -2023,6 +2023,10 @@ def localized_time(last_updated):
     return pytz.utc.localize(last_updated).astimezone(pytz.timezone("America/New_York"))
 
 ## initial api
+## todo: eventually we want this to be split into two
+## -- generate the tier list (and store it in datastore)
+## -- render it separately
+## for now, to avoid rewriting this entirely, we're generating it as a side effect
 def api_affixes_dungeons(affixes):
     global last_updated
     dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
@@ -2051,8 +2055,45 @@ def api_affixes_dungeons(affixes):
     rendered["affixes"] = affixes
     rendered["dungeon_ease_tier_list"] = tiers
     rendered["source_url"] = "https://mplus.subcreation.net/"
+
+    ## also store this
+    affixes_slug = slugify.slugify(unicode(affixes))
+    key = ndb.Key('DungeonEaseTierList', affixes_slug)
+    tier_list_entry = DungeonEaseTierList(id=affixes_slug,
+                                          affixes=affixes,
+                                          last_updated=last_updated,
+                                          tier_list=tiers)
+    tier_list_entry.put()
+                  
+    return json.dumps(rendered)
+
+
+# process the overall tier lists
+def process_dungeon_ease_tier_lists_for_all_known_affixes():
+    for af in known_affixes():
+        options = TaskRetryOptions(task_retry_limit = 1)        
+        deferred.defer(api_affixes_dungeons, af, _retry_options=options)
+        
+
+# read from the db to return the overall tier lists
+def api_affixes_dungeons_overall():
+    rendered = {}
+
+    rendered["current_affixes"] = current_affixes()
+    rendered["source_url"] = "https://mplus.subcreation.net/"
+    rendered["last_updated"] = str(localized_time(last_updated))    
+
+    query = DungeonEaseTierList.query()
+    results = query.fetch()
+    
+    
+    for detl in results:
+        affixes = detl.affixes
+        tier_list = detl.tier_list
+        rendered[affixes] = tier_list
         
     return json.dumps(rendered)
+
 
 def api_affixes_specs(affixes):
     global last_updated
@@ -2084,6 +2125,8 @@ def api_affixes_specs(affixes):
     rendered["source_url"] = "https://mplus.subcreation.net/"
         
     return json.dumps(rendered)
+
+
 
 
 def api_affixes_tier_list():
@@ -2391,7 +2434,8 @@ def render_main_covenants(prefix=""):
                                n_parses = n_parses,
                                title = "Top Covenants for Mythic+ Season 1 and Castle Nathria",
                                active_section = "main",
-                               active_page = "main-covenants")
+                               active_page = "main-covenants",
+                               last_updated = localized_time(last_updated))
 
 
     return rendered
@@ -2709,6 +2753,12 @@ def write_api_dungeon_ease():
                           cache_control="public, max-age=28800",
                           content_type="application/json")
 
+def write_api_dungeon_ease_overall():
+    main_write_to_storage("api/v0/dungeon_ease_tier_list_overall",
+                          api_affixes_dungeons_overall(),
+                          cache_control="public, max-age=28800",
+                          content_type="application/json")    
+
 def write_api_dungeon_specs():
     main_write_to_storage("api/v0/mplus_spec_tier_list",
                           api_affixes_specs(current_affixes()),
@@ -2722,9 +2772,15 @@ def write_api_affix_tier_list():
                           content_type="application/json")        
             
 def write_apis():
-    write_api_dungeon_ease()
-    write_api_dungeon_specs()
-    write_api_affix_tier_list()    
+    options = TaskRetryOptions(task_retry_limit = 1)    
+    deferred.defer(write_api_dungeon_ease, _retry_options=options)
+    deferred.defer(write_api_dungeon_specs, _retry_options=options)
+    deferred.defer(write_api_affix_tier_list, _retry_options=options)
+
+    deferred.defer(process_dungeon_ease_tier_lists_for_all_known_affixes,
+                   _retry_options=options)
+
+    deferred.defer(write_api_dungeon_ease_overall, _retry_options=options)
             
 def write_raid_spec_overviews():
     # write the index page
@@ -3235,6 +3291,11 @@ class APIDungeonEase(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/html'
         self.response.write(api_affixes_dungeons(current_affixes()))
 
+class APIDungeonEaseOverall(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.write(api_affixes_dungeons_overall())        
+
 class APIAffixEase(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/html'
@@ -3243,7 +3304,13 @@ class APIAffixEase(webapp2.RequestHandler):
 class APIDungeonSpecs(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/html'
-        self.response.write(api_affixes_specs(current_affixes()))        
+        self.response.write(api_affixes_specs(current_affixes()))
+
+class ProcessDungeonEaseTierLists(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        process_dungeon_ease_tier_lists_for_all_known_affixes()        
+        self.response.write("Queueing generating tier lists...")              
         
 app = webapp2.WSGIApplication([
         ('/update_wcl', WCLGetRankings),
@@ -3252,6 +3319,8 @@ app = webapp2.WSGIApplication([
         ('/refresh/affixes', UpdateCurrentDungeons),
         ('/refresh/dungeons', WCLGetRankingsOnly),
         ('/refresh/raids', WCLGetRankingsRaidOnly),
+
+        ('/process/dungeon_ease_tier_lists', ProcessDungeonEaseTierLists),
     
         ('/generate/affixes', OnlyGenerateHTML),
         ('/generate/all_affixes', OnlyGenerateAllAffixesHTML),
@@ -3263,7 +3332,8 @@ app = webapp2.WSGIApplication([
 
         ('/api/dungeon_ease', APIDungeonEase),
         ('/api/mplus_specs', APIDungeonSpecs),
-        ('/api/mplus_affixes', APIAffixEase),        
+        ('/api/mplus_affixes', APIAffixEase),
+        ('/api/dungeon_ease_overall', APIDungeonEaseOverall),            
     
         ('/view', TestView),
         ('/raid', TestRaidView),

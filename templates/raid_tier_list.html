@@ -5,7 +5,7 @@
   <h2>{{ns}} Tier List</h2>
     <p>
       <b class="affixes">{% if encounter=="all" %}All Bosses{% else %}<img src="images/bosses/castle-nathria/{{encounter_slug}}.jpg" width="20" height="20"> {{encounter}}{% endif %}</b><br/>
-  <i>Based on {{role_stats["n"]}} Mythic parses. More details in the <a href="https://subcreation.net/faq.html#raid">FAQ</a>.</i>
+  <i>Based <b>solely</b> on <b>{%if ns=="Healer"%}hps{%else%}dps{%endif%}</b> from {{role_stats["n"]}} Mythic parses. More details in the <a href="https://subcreation.net/faq.html#raid">FAQ</a>.</i>
     </p>
     {{ tier_list.tier_list(t) }}
   

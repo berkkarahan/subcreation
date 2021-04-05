@@ -62,7 +62,7 @@
         </p>
 <p class="py-1">{% include "blurb-update.html" %}
 </p>
-{% if active_section != "main" %}
+{% if active_section != "main" or active_page=="main-covenants" %}
 <p class="py-1">
   This page last updated: {{last_updated}}.
 </p>

@@ -63,3 +63,19 @@ class SpecRankingsRaid(ndb.Model):
     last_updated = ndb.DateTimeProperty(auto_now_add=True)
 
 
+# for storing affix specific tier lists
+class DungeonEaseTierList(ndb.Model):
+    affixes = ndb.StringProperty()
+    tier_list = ndb.JsonProperty()
+    last_updated = ndb.DateTimeProperty(auto_now_add=True)    
+    
+# for storing high level raid data for making the tier list / cov list
+class RaidSummary(ndb.Model):
+    spec = ndb.StringProperty()
+    encounter = ndb.StringProperty()
+    difficulty = ndb.StringProperty()
+    metric_distribution = ndb.JsonProperty()
+    max_link = ndb.StringProperty() # max_link for an encounter
+
+    # when were these data last updated
+    last_updated = ndb.DateTimeProperty(auto_now_add=True)    
