@@ -33,7 +33,7 @@ from t_interval import t_interval
 from models import Run, DungeonAffixRegion, KnownAffixes
 
 # wcl handling
-from models import SpecRankings, SpecRankingsRaid, RaidSummary, DungeonEaseTierList
+from models import SpecRankings, SpecRankingsRaid, CovenantStats, RaidCounts, DungeonEaseTierList
 from auth import api_key
 from wcl import wcl_specs
 from wcl_shadowlands import dungeon_encounters
@@ -220,12 +220,35 @@ def std(data, ddof=0):
 from math import sqrt
 from ckmeans import ckmeans
 
+def look_up_covenants(spec, mode):
+    spec_slug = slugify.slugify(unicode(spec))
+    mode_slug = slugify.slugify(unicode(mode))
+    
+    key_slug = "%s-%s" % (spec_slug, mode_slug)
+    key = ndb.Key('CovenantStats', key_slug)
+
+    cs = key.get()
+    
+    data = json.loads(cs.data)
+    n_parses = data["n_parses"]
+    n_uniques = data["n_uniques"]
+    covenants = data["covenants"]
+        
+    return n_parses, n_uniques, covenants
+
 def gen_top_covenant_report_for(spec, mode):
 
-    n_parses, n_uniques, _, _, _, _, _, _, _, _, _, covenants, _, _, _, _, _, _, _ = base_gen_spec_report(spec, mode)
+    import timeit
+    start_time = timeit.default_timer()
+    
+    n_parses, n_uniques, covenants = look_up_covenants(spec, mode)
+    
     logging.info("%s %s" % (spec, mode))
     logging.info(covenants)
     logging.info(len(covenants))
+
+    elapsed = timeit.default_timer() - start_time
+    logging.info("took %.2f" % elapsed)
     
     slug = slugify.slugify(unicode(spec))
 
@@ -302,7 +325,7 @@ def gen_covenants_report():
 
     for i, display in enumerate([tanks, healers, melee, ranged]):
         for spec in sorted(display):
-            
+
             n, mplus = gen_top_covenant_report_for(spec, "mplus")
             n_parses["mplus"] += n
             
@@ -809,8 +832,11 @@ def construct_analysis_raid(spec_counts):
 
 # build a spec report for raid
 # build for each boss, and overall
+# save this to the db for each spec
+
+# read from the db
 def gen_raid_spec_analysis():
-    
+    # raid_generate_counts is now a cached call
     raid_counts, raid_max_found, raid_max_link = raid_generate_counts()
 
     analysis = {}
@@ -835,7 +861,7 @@ def gen_raid_spec_analysis():
 
         lb_ci_spec["all"][s] = [average(scores), n_scores, mean(all_scores)]
 
-    return lb_ci_spec, raid_max_found, raid_max_link
+    return lb_ci_spec, raid_max_found, raid_max_link    
 
 def gen_raid_specs_role_package(encounter):
     global role_titles, specs
@@ -1067,12 +1093,12 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
 # we'll have 3 -- all dps against each other (melee and ranged)
 # all tanks against each other (since we only have dps for tanks and tank dps is so much lower)
 # all healers against each other, based on hps
-def raid_generate_counts_spec_encounter(spec, encounter):
+def process_raid_generate_counts_spec_encounter(spec, encounter, difficulty="Mythic"):
     counts = []
     
     # only consider mythic difficulty
     wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
-                                       SpecRankingsRaid.difficulty=="Mythic",
+                                       SpecRankingsRaid.difficulty==difficulty,
                                        SpecRankingsRaid.encounter==encounter)
     results = wcl_query.fetch()
 
@@ -1100,8 +1126,54 @@ def raid_generate_counts_spec_encounter(spec, encounter):
                 max_found = metric
                 max_link = k["reportID"]
             
-            
+
+    
+    data = {}
+    data["counts"] = counts
+    data["max_found"] = max_found
+    data["max_link"] = max_link
+
+    spec_slug = slugify.slugify(unicode(spec))
+    encounter_slug = slugify.slugify(unicode(encounter))
+    difficulty_slug = slugify.slugify(unicode(difficulty))
+
+    key_slug = "%s-%s-%s" % (spec_slug, encounter_slug, difficulty_slug)
+    key = ndb.Key('RaidCounts', key_slug)
+    
+    raid_counts = RaidCounts(id = key_slug,
+                             difficulty = difficulty,
+                             spec = spec,
+                             encounter = encounter,
+                             data = json.dumps(data),
+                             last_updated = last_updated)
+
+    raid_counts.put()
+
+
+def process_generate_raid_counts():
+    for s in specs:
+        for k, v in raid_encounters.iteritems():
+            options = TaskRetryOptions(task_retry_limit = 1)        
+            deferred.defer(process_raid_generate_counts_spec_encounter, s, k,
+                           _retry_options=options)
+
+def raid_generate_counts_spec_encounter(spec, encounter, difficulty="Mythic"):
+    # read from the db
+    spec_slug = slugify.slugify(unicode(spec))
+    encounter_slug = slugify.slugify(unicode(encounter))
+    difficulty_slug = slugify.slugify(unicode(difficulty))
+
+    key_slug = "%s-%s-%s" % (spec_slug, encounter_slug, difficulty_slug)
+    key = ndb.Key('RaidCounts', key_slug)
+    
+    rc = key.get()
+    data = json.loads(rc.data)
+    counts = data["counts"]
+    max_found = data["max_found"]
+    max_link = data["max_link"]
+    
     return counts, max_found, max_link
+
 
 def raid_generate_counts_spec(spec):
     counts = {}
@@ -2003,6 +2075,29 @@ def base_gen_spec_report(spec, mode, encounter="all"):
 
     if mode == "raid":
         max_maxima = difficulty
+
+
+
+
+    if encounter == "all":
+
+        # log cov stats if it's all encounters
+        spec_slug = slugify.slugify(unicode(spec))
+        mode_slug = slugify.slugify(unicode(mode))
+        
+        key_slug = "%s-%s" % (spec_slug, mode_slug)
+
+        data = {}
+        data["n_parses"] = len(rankings)
+        data["n_uniques"] = n_uniques
+        data["covenants"] = covenants
+        
+        cov_stats = CovenantStats(id = key_slug,
+                                  spec = spec,
+                                  mode = mode,
+                                  data = json.dumps(data))
+        cov_stats.put()
+    
         
     # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
     # raid will return difficulty in max_maxima
@@ -2086,11 +2181,15 @@ def api_affixes_dungeons_overall():
     query = DungeonEaseTierList.query()
     results = query.fetch()
     
+
+    tier_lists = {}
     
     for detl in results:
         affixes = detl.affixes
         tier_list = detl.tier_list
-        rendered[affixes] = tier_list
+        tier_lists[affixes] = tier_list
+
+    rendered["tier_lists"] = tier_lists
         
     return json.dumps(rendered)
 
@@ -2783,6 +2882,10 @@ def write_apis():
     deferred.defer(write_api_dungeon_ease_overall, _retry_options=options)
             
 def write_raid_spec_overviews():
+
+    # update the counts
+    process_generate_raid_counts()    
+    
     # write the index page
     options = TaskRetryOptions(task_retry_limit = 1)        
     deferred.defer(create_raid_index,
@@ -3310,8 +3413,14 @@ class ProcessDungeonEaseTierLists(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/html'
         process_dungeon_ease_tier_lists_for_all_known_affixes()        
-        self.response.write("Queueing generating tier lists...")              
-        
+        self.response.write("Queueing processing tier lists...")
+
+class ProcessRaidCounts(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        process_generate_raid_counts()
+        self.response.write("Queueing processing raid counts...")
+
 app = webapp2.WSGIApplication([
         ('/update_wcl', WCLGetRankings),
         ('/update_wcl_raid', WCLGetRankingsRaid),
@@ -3321,6 +3430,7 @@ app = webapp2.WSGIApplication([
         ('/refresh/raids', WCLGetRankingsRaidOnly),
 
         ('/process/dungeon_ease_tier_lists', ProcessDungeonEaseTierLists),
+        ('/process/raid_counts', ProcessRaidCounts),
     
         ('/generate/affixes', OnlyGenerateHTML),
         ('/generate/all_affixes', OnlyGenerateAllAffixesHTML),

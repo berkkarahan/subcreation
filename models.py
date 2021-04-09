@@ -68,14 +68,25 @@ class DungeonEaseTierList(ndb.Model):
     affixes = ndb.StringProperty()
     tier_list = ndb.JsonProperty()
     last_updated = ndb.DateTimeProperty(auto_now_add=True)    
-    
-# for storing high level raid data for making the tier list / cov list
-class RaidSummary(ndb.Model):
+
+# for storing high level raid data for making the tier list
+class RaidCounts(ndb.Model):
     spec = ndb.StringProperty()
-    encounter = ndb.StringProperty()
     difficulty = ndb.StringProperty()
-    metric_distribution = ndb.JsonProperty()
-    max_link = ndb.StringProperty() # max_link for an encounter
+    encounter = ndb.StringProperty()
+    data = ndb.JsonProperty()
 
     # when were these data last updated
     last_updated = ndb.DateTimeProperty(auto_now_add=True)    
+
+
+# for storing high level raid data for making the covenant list
+class CovenantStats(ndb.Model):
+    spec = ndb.StringProperty()
+    mode = ndb.StringProperty()
+    data = ndb.JsonProperty()
+
+    # when were these data last updated
+    last_updated = ndb.DateTimeProperty(auto_now_add=True)    
+    
+    
