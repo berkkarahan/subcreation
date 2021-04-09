@@ -238,24 +238,13 @@ def look_up_covenants(spec, mode):
 
 def gen_top_covenant_report_for(spec, mode):
 
-    import timeit
-    start_time = timeit.default_timer()
-    
     n_parses, n_uniques, covenants = look_up_covenants(spec, mode)
-    
-    logging.info("%s %s" % (spec, mode))
-    logging.info(covenants)
-    logging.info(len(covenants))
-
-    elapsed = timeit.default_timer() - start_time
-    logging.info("took %.2f" % elapsed)
     
     slug = slugify.slugify(unicode(spec))
 
     # no data
     if len(covenants) < 1:
         return 0, ""
-
 
     top_result = covenants[0]
     if len(top_result) < 2:
@@ -265,29 +254,53 @@ def gen_top_covenant_report_for(spec, mode):
         return 0, ""
     
     top_covenant_id = top_result[1][0]
-   
-    logging.info(top_covenant_id)
-    
+
     covenant_ids = []
     for i in [1, 2, 3, 4]:
         covenant_ids += [covenantID_mapping[i]["id"]]
     
-    # invalid covenant
-    logging.info(covenant_ids)    
-    
+   
     if covenants[0][1][0] not in covenant_ids:
         return 0, ""
 
     covenant_spell_id = covenants[0][1][0]
     covenant_id = covenant_ids.index(covenant_spell_id)+1
 
-    logging.info(covenant_spell_id)
-    logging.info(covenant_id)
-
-    
     name = covenantID_mapping[covenant_id]["name"]
+
+    # return n_parses, and then cov dict cov: #
+    data = {}
+    for cc in covenants:
+        if cc[1] == []:
+            continue
+        if cc[1][0] not in covenant_ids:
+            continue
+        cov_id = covenant_ids.index(cc[1][0])+1
+        cov_name = covenantID_mapping[cov_id]["name"]
+        pct = int(round((float(cc[0])/n_parses)*100))
+        data[cov_name] = pct
+
+
+    values = []
+    rev_lu = {}
+    for k, v in data.iteritems():
+        values += [v]
+        rev_lu[v] = k
+        
     
-    return n_parses, name
+    data_sorted = sorted(values, reverse=True)
+
+    cov_colors  = {}
+    cov_colors["Night Fae"] = "#c851ec"
+    cov_colors["Kyrian"] = "#a9dcfc" 
+    cov_colors["Venthyr"] = "#e02d2d"
+    cov_colors["Necrolord"] = "#96b364"
+    
+    output = {}
+    for v in data_sorted:
+        output[rev_lu[v]] = [v, slugify.slugify(unicode(rev_lu[v])), cov_colors[rev_lu[v]]]
+
+    return n_parses, name, output
     
 
 def create_package(name):
@@ -322,25 +335,27 @@ def gen_covenants_report():
     n_parses["raid"] = 0
     n_parses["mplus"] = 0
 
+    mm_data = {}
+    rr_data = {}
+
 
     for i, display in enumerate([tanks, healers, melee, ranged]):
         for spec in sorted(display):
 
-            n, mplus = gen_top_covenant_report_for(spec, "mplus")
+            n, mplus, m_data = gen_top_covenant_report_for(spec, "mplus")
             n_parses["mplus"] += n
+            mm_data[spec] = m_data
             
-            n, raid = gen_top_covenant_report_for(spec, "raid")
+            n, raid, r_data = gen_top_covenant_report_for(spec, "raid")
             n_parses["raid"] += n
+            rr_data[spec] = r_data
             
             report[role_titles[i]] += [[create_package(spec),
                                         create_package(mplus),
                                         create_package(raid)]]
 
 
-    logging.info(report)
-    logging.info(n_parses)
-    
-    return report, n_parses
+    return report, n_parses, mm_data, rr_data
 
 
 # generate a dungeon tier list
@@ -2536,11 +2551,13 @@ def render_main_index(prefix=""):
 def render_main_covenants(prefix=""):
     template = env.get_template("main-covenants.html")
 
-    covenants, n_parses = gen_covenants_report()
+    covenants, n_parses, m_data, r_data = gen_covenants_report()
     
     rendered = template.render(prefix=prefix,
                                covenants = covenants,
                                n_parses = n_parses,
+                               m_data = m_data,
+                               r_data = r_data,
                                title = "Top Covenants for Mythic+ Season 1 and Castle Nathria",
                                active_section = "main",
                                active_page = "main-covenants",

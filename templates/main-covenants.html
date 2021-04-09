@@ -14,10 +14,10 @@
 
   <div class="row">
 {% import 'covenant_report.html' as covenant_report %}
-{{ covenant_report.covenant_report("Tanks", "Tank", "tanks", covenants["Tanks"], prefix) }}
-{{ covenant_report.covenant_report("Healers", "Healer", "healers", covenants["Healers"], prefix) }}
-{{ covenant_report.covenant_report("Melee", "Melee", "melee", covenants["Melee"], prefix) }}
-{{ covenant_report.covenant_report("Ranged", "Ranged", "ranged", covenants["Ranged"], prefix) }}
+{{ covenant_report.covenant_report("Tanks", "Tank", "tanks", covenants["Tanks"], m_data, r_data, prefix) }}
+{{ covenant_report.covenant_report("Healers", "Healer", "healers", covenants["Healers"], m_data, r_data,  prefix) }}
+{{ covenant_report.covenant_report("Melee", "Melee", "melee", covenants["Melee"], m_data, r_data, prefix) }}
+{{ covenant_report.covenant_report("Ranged", "Ranged", "ranged", covenants["Ranged"], m_data, r_data, prefix) }}
   </div>
   
 </div>
