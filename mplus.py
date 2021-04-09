@@ -824,7 +824,7 @@ def construct_analysis_raid(spec_counts):
         stddev = std(data, ddof=1)
         t_bounds = t_interval(n)
         ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
-        # lbci, mean, n
+        # lbci, n, mean, data
         overall[encounter]= [ci[0], n, mean, data]
 
     return overall
@@ -859,6 +859,7 @@ def gen_raid_spec_analysis():
                 lb_ci_spec[e] = {}
             lb_ci_spec[e][s] = [analysis[s][e][0], analysis[s][e][1], analysis[s][e][2]]
 
+        # using the average of the lbcis, n, mean of scores
         lb_ci_spec["all"][s] = [average(scores), n_scores, mean(all_scores)]
 
     return lb_ci_spec, raid_max_found, raid_max_link    
@@ -868,9 +869,7 @@ def gen_raid_specs_role_package(encounter):
 
     logging.info(encounter)
 
-    # to refactor -- this calls gen_raid_spec analysis for each encounter
-    # but the function runs for all encounters, so no need to do this
-    # could memoize / cache to improve performance
+    # gen_raid_spec analysis uses the memoized raid_generate_counts
     lb_ci_spec, raid_max_found, raid_max_link = gen_raid_spec_analysis()
     encounter_overall = lb_ci_spec[encounter]
 
@@ -886,6 +885,8 @@ def gen_raid_specs_role_package(encounter):
         ids = []
 
         for k in display: # for spec k
+            rmf = 0
+            rml = ""
 
             if encounter != "all":
                 rmf = raid_max_found[k][encounter]
@@ -894,10 +895,10 @@ def gen_raid_specs_role_package(encounter):
                 maxf = 0
                 maxe = ""
 
-                for encounter, metric in raid_max_found[k].iteritems():
-                    if metric > maxf:
-                        maxe = encounter
-                        maxf = metric
+                for ee, mm in raid_max_found[k].iteritems():
+                    if mm > maxf:
+                        maxe = ee
+                        maxf = mm
                         
                 rmf = raid_max_found[k][maxe]
                 rml = raid_max_link[k][maxe]                
