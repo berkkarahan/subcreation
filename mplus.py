@@ -1884,8 +1884,9 @@ def wcl_enchants(rankings, slots, type="permanentEnchant"):
     
 
 # pick the top 10, sorted by n
+# filter for blanks
 def wcl_top10(d, pop=None, top_n = 10):
-    # consider sorting by key level / dps instead?
+    # consider sorting by key level / dps instead?   
     dv = sorted(d.items(), key=operator.itemgetter(1), reverse=True)
     output = []
     for i, (s, n) in enumerate(dv):
@@ -1942,16 +1943,24 @@ def base_gen_spec_report(spec, mode, encounter="all"):
             
         latest = json.loads(k.rankings)
 
+        no_blanks = []
+        # filter out reports that lack info (e.g. no covenant)
+        for kk in latest:
+            if kk['covenantID'] == 0:
+                continue
+            no_blanks += [kk]
+
+        latest = no_blanks
+        
         if mode == "mplus":
             filtered_latest = []            
-            for k in latest:
-                if k["keystoneLevel"] < MIN_KEY_LEVEL:
+            for kk in latest:
+                if kk["keystoneLevel"] < MIN_KEY_LEVEL:
                     continue
-                filtered_latest += [k]
+                filtered_latest += [kk]
             
             rankings += filtered_latest
         elif mode == "raid":
-            latest = json.loads(k.rankings)
             rankings += latest
 
 
