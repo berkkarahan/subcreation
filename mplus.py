@@ -295,7 +295,8 @@ def gen_top_covenant_report_for(spec, mode):
     cov_colors["Kyrian"] = "#a9dcfc" 
     cov_colors["Venthyr"] = "#e02d2d"
     cov_colors["Necrolord"] = "#96b364"
-    
+
+   
     output = {}
     for v in data_sorted:
         output[rev_lu[v]] = [v, slugify.slugify(unicode(rev_lu[v])), cov_colors[rev_lu[v]]]
@@ -1963,6 +1964,14 @@ def base_gen_spec_report(spec, mode, encounter="all"):
         for kk in latest:
             if kk['covenantID'] == 0:
                 continue
+            if kk['soulbindPowers'] == []:
+                continue
+            if kk['talents'] == []:
+                continue
+            if kk['legendaryEffects'] == []:
+                continue
+            if kk['conduitPowers'] == []:
+                continue            
             no_blanks += [kk]
 
         latest = no_blanks
