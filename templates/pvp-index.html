@@ -1,0 +1,57 @@
+{% extends "unified-base.html" %}
+{% set page_type = "pvp-index" %}
+
+{% block content %}
+{% import 'raid_role.html' as raid_role %}
+
+    <div class="boss-navbar d-flex py-3 justify-content-center flex-wrap " id="navbarSupportedContent">
+          <div class="boss-box {{ ' active' if mode == "all" else '' }}">
+            <a class="boss-link" href="{{prefix}}index.html">
+              <img src="images/modes/all.jpg" width="51" height="51" alt="All PvP Modes" title="All PvP Modes"><br/>All Rated PvP
+            </a>
+          </div>
+        </li>
+        
+{% for e in pvp_canonical_order %}
+          <div class="boss-box {{ ' active' if mode_slugs[e] in mode_slug else '' }}">
+            <a class="boss-link" href="{{prefix}}{{mode_slugs[e]}}.html">
+              <img src="images/modes/{{mode_slugs[e]}}.jpg" width="51" height="51" alt="{{pvp_pretty_names[e]}}" title="{{pvp_pretty_names[e]}}"><br/>
+             {{pvp_pretty_names[e]}}
+            </a>
+          </div>
+        {% endfor %}
+    </div>
+
+<div class="container-fluid">
+  <div class="row">
+
+{% import 'pvp_tier_list.html' as pvp_tier_list %}
+{{ pvp_tier_list.pvp_tier_list("Healers", "Healer", "healers", healerstl, mode, mode_slug, role_package, prefix, pvp_pretty_names,  affixes_slug, current_season, spec_stats["Healers"]) }}
+{{ pvp_tier_list.pvp_tier_list("Melee", "Melee", "melee", meleetl, mode, mode_slug, role_package, prefix, pvp_pretty_names,  affixes_slug, current_season, spec_stats["Melee"]) }}
+{{ pvp_tier_list.pvp_tier_list("Ranged", "Ranged", "ranged", rangedtl, mode, mode_slug, role_package, prefix, pvp_pretty_names, affixes_slug, current_season, spec_stats["Ranged"]) }}
+{{ pvp_tier_list.pvp_tier_list("Tanks", "Tank", "tanks", tankstl, mode, mode_slug, role_package, prefix, pvp_pretty_names, affixes_slug, current_season, spec_stats["Tanks"]) }}
+
+
+  </div>
+</div>
+
+
+{% endblock content %}
+
+{% block script %}
+  function triggerStatsData(which_table) {
+    var expand_me = document.querySelector(`#${which_table}-stats`);
+    expand_me.addEventListener("toggle", function() {
+        var details = document.querySelector(`#${which_table}-stats-details`);
+        $(`#${which_table}-stats-details`).load(`{{prefix}}pvp-stats-{{mode_slug}}.html #data-${which_table}-stats`, function() {
+            $('[data-toggle="popover"]').popover({container: 'body'})
+            new Tablesort(document.getElementById(`table-${which_table}-stats`));
+        });
+    });
+  } 
+
+triggerStatsData("tanks");
+triggerStatsData("healers");
+triggerStatsData("melee");
+triggerStatsData("ranged");
+{% endblock script %}

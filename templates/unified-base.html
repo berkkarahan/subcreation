@@ -27,7 +27,7 @@
 {% endif %}
 </head>
 <body>
-
+ 
   {% import 'navbar.html' as navbar %}
   {{ navbar.navbar_main(active_section, prefix) }}
   {% if active_section == "mplus" %}
@@ -36,6 +36,10 @@
   {% if active_section == "raid" %}
   {{ navbar.navbar_raid(active_page, prefix, page_type, archetype, known_tanks, known_healers, known_melee, known_ranged) }}
   {% endif %}
+
+  {% if active_section == "pvp" %}
+  {{ navbar.navbar_pvp(active_page, prefix) }}
+  {% endif %}  
 
   {% if active_section == "main" %}
   {{ navbar.navbar_main_secondary(active_section, active_page, prefix) }}

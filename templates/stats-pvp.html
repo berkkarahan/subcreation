@@ -1,0 +1,9 @@
+{% import 'pvp_stats_table.html' as pvp_stats_table %}
+{% set metric = "rating" %}
+{% if mode == "all" %}
+{% set metric = "normalized rating" %}
+{% endif %}
+{{ pvp_stats_table.pvp_stats_table("tanks", "Tank Spec", role_package["Tanks"], metric) }}
+{{ pvp_stats_table.pvp_stats_table("healers", "Healer Spec", role_package["Healers"], metric) }}
+{{ pvp_stats_table.pvp_stats_table("melee", "Melee Spec", role_package["Melee"], metric) }}
+{{ pvp_stats_table.pvp_stats_table("ranged", "Ranged Spec", role_package["Ranged"], metric) }}

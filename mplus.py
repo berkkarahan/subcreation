@@ -26,11 +26,11 @@ from shadowlands import dungeons, dungeon_slugs, dungeon_short_names, slugs_to_d
 from shadowlands import prideful_weeks as affix_rotation_weeks
 from shadowlands import covenantID_mapping
 
-from warcraft import specs, tanks, healers, melee, ranged, role_titles, regions
+from warcraft import specs, tanks, healers, melee, ranged, role_titles, regions, pvp_regions, pvp_modes
 from warcraft import spec_short_names
 from t_interval import t_interval
 
-from models import Run, DungeonAffixRegion, KnownAffixes
+from models import Run, DungeonAffixRegion, KnownAffixes, PvPLadderStats, PvPCounts
 
 # wcl handling
 from models import SpecRankings, SpecRankingsRaid, CovenantStats, RaidCounts, DungeonEaseTierList
@@ -47,6 +47,9 @@ from castle_nathria import castle_nathria_short_names as raid_short_names
 
 # cloudflare cache handling
 from auth import cloudflare_api_key, cloudflare_zone
+
+# ludus labs api
+from auth import ludus_access_key
 
 ## globals
 from config import RIO_MAX_PAGE
@@ -846,6 +849,43 @@ def construct_analysis_raid(spec_counts):
     return overall
 
 
+# for pvp
+def construct_analysis_pvp(spec_counts):
+    counts = spec_counts
+    
+    overall = {}
+    all_data = []
+    
+    for specs, metrics in counts.iteritems():
+        for m in metrics:
+            all_data += [m]
+    
+    master_stddev = 1
+    if len(all_data) >= 2:
+        master_stddev = std(all_data, ddof=1)
+       
+    for spec, metrics in counts.iteritems():
+        data = []
+        for m in metrics:
+            data += [m]
+
+        n = len(data)
+        if n == 0:
+            overall[spec] = [0, 0, 0, []]
+            continue
+        mean = average(data)
+        if n <= 1:
+            overall[spec] = [mean, n, mean, data]
+            continue
+        stddev = std(data, ddof=1)
+        t_bounds = t_interval(n)
+        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
+        # lbci, n, mean, data
+        overall[spec] = [ci[0], n, mean, data]
+
+    return overall
+
+
 # build a spec report for raid
 # build for each boss, and overall
 # save this to the db for each spec
@@ -1022,6 +1062,136 @@ def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix="")
             dtl[tm[i]] += rendered
     
     return dtl   
+
+
+def gen_pvp_specs_role_package(mode):
+    global role_titles, specs
+
+    role_package = {}
+    stats = {}
+
+    # go through all the specs, grouped by role
+    for i, display in enumerate([tanks, healers, melee, ranged]):
+        role_score = []
+        stats[role_titles[i]] = {}
+
+        n_runs = 0
+
+        for k in display: # for spec k
+
+            key_slug = "%s-%s" % (slugify.slugify(unicode(k)), mode)
+            pc = ndb.Key('PvPCounts', key_slug).get()
+
+            data = json.loads(pc.data)
+            
+            role_score += [[str("%.2f" % data["lb_ci"]), # lower bound of ci
+                            str(k), # name of the spec
+                            str("%.2f" % data["mean"]), # mean
+                            str("%d" % data["n"]), # n
+                            slugify.slugify(unicode(str(k))), # slug name
+                            str("%d" % data["max"]), # maximum rating
+                            "", # no links for pvp
+            ]]
+            n_runs += data["n"] # total number of specs at rating
+
+        stats[role_titles[i]]["n"] = n_runs
+
+        # sort role_score by lb_ci
+        role_score = sorted(role_score, key=lambda x: x[0], reverse=True)
+        role_package[role_titles[i]] = role_score
+
+    return role_package, stats
+    
+
+# generate a specs tier list
+# placeholder code for now
+def gen_pvp_spec_tier_list(specs_report, role, mode, api=False, prefix=""):
+    global role_titles
+    
+
+    # for pvp we compare everyone to everyone (just using rating)
+    
+    scores = []
+    for i in range(0, 4):
+        for k in specs_report[role_titles[i]]:
+            if int(k[3]) < 20: # ignore specs with fewer than 20 parses as they would skew the buckets; we'll add them to F later
+                continue
+
+            scores += [float(k[0])]
+
+    if len(scores) < 6: # relax the fewer than 20 rule (early scans)
+        scores = []
+        for i in range(0, 4):
+            for k in specs_report[role_titles[i]]:
+                scores += [float(k[0])]
+        
+    buckets = ckmeans(scores, 6)
+            
+    added = []
+
+    tiers = {}
+    tm = {}
+    tm[5] = "S"
+    tm[4] = "A"
+    tm[3] = "B"
+    tm[2] = "C"
+    tm[1] = "D"
+    tm[0] = "F"
+
+    for i in range(0, 6):
+        tiers[tm[i]] = []
+
+
+    for i in range(0, 6):
+        for k in specs_report[role]:
+            if len(buckets) > i:
+                if float(k[0]) in buckets[i]:
+                    if k not in added:
+                        tiers[tm[i]] += [k]
+                        added += [k]
+
+
+    # add stragglers to last tier
+    for k in specs_report[role]:
+        if k not in added:
+            tiers[tm[0]] += [k]
+            added += [k]
+
+    if api==False:
+        dtl = {}
+        dtl["S"] = ""
+        dtl["A"] = ""
+        dtl["B"] = ""
+        dtl["C"] = ""
+        dtl["D"] = ""
+        dtl["F"] = ""
+
+        global spec_short_names
+        template = env.get_template("pvp-spec-mini-icon.html")
+        for i in range(0, 6):
+            for k in tiers[tm[i]]:
+                rendered = template.render(spec_name = k[1],
+                                           spec_short_name = spec_short_names[k[1]],
+                                           spec_slug = slugify.slugify(unicode(k[1])))
+                dtl[tm[i]] += rendered
+    
+        return dtl
+    else:
+        dtl = {}
+        dtl["S"] = []
+        dtl["A"] = []
+        dtl["B"] = []
+        dtl["C"] = []
+        dtl["D"] = []
+        dtl["F"] = []
+
+        for i in range(0, 6):
+            for k in tiers[tm[i]]:
+                dtl[tm[i]] += [k[1]]
+        
+        return dtl        
+
+
 
 
 ## end data analysis
@@ -1283,6 +1453,129 @@ def current_affixes():
     current_affixes_save = pull_query.fetch(1)[0].affixes
     
     return current_affixes_save
+
+
+
+# generate pvp counts and store them
+# we want counts, n, max_rating
+def process_pvp_counts_for_a_mode(actual_mode):
+    global pvp_regions, pvp_modes, specs
+
+    # for each spec
+    raw_counts = {}
+
+    mode_list = [actual_mode]
+
+    for mode in mode_list:
+        for region in pvp_regions:
+            key_slug = "%s-%s" % (region, mode)
+            key = ndb.Key('PvPLadderStats', key_slug)
+            data = json.loads((key.get()).data)
+
+            for entry in data:
+                full_spec_name = "%s %s" % (entry["active_spec"], entry["character_class"])
+                if full_spec_name not in specs:
+                    continue
+                if full_spec_name not in raw_counts:
+                    raw_counts[full_spec_name] = []
+
+                raw_counts[full_spec_name] += [entry["rating"]]
+
+
+    # overall is a dict per spec
+    # each spec has a list
+    # [ lbci, n, average, [list with actual data]]
+    overall = construct_analysis_pvp(raw_counts)
+
+    for s in specs:
+        key_slug = "%s-%s" % (slugify.slugify(unicode(s)), actual_mode)
+        data = {}
+        if s in overall:
+            data["lb_ci"] = overall[s][0]
+            data["n"] = overall[s][1]
+            data["mean"] = overall[s][2]
+            data["max"] = max(overall[s][3])
+            data["raw"] = overall[s][3]
+        else:
+            data["lb_ci"] = 0
+            data["n"] = 0
+            data["mean"] = 0
+            data["max"] = 0
+            data["raw"] = []
+
+        pc = PvPCounts(id = key_slug,
+                       spec = s,
+                       mode = actual_mode,
+                       data = json.dumps(data))
+        pc.put()
+
+
+def process_pvp_counts_overall():
+    global pvp_regions, pvp_modes, specs
+
+
+    max_rating = {}
+    for mode in pvp_modes:
+        for s in specs:
+            key_slug = "%s-%s" % (slugify.slugify(unicode(s)), mode)
+            pcc = ndb.Key('PvPCounts', key_slug).get()
+            data = json.loads(pcc.data)
+
+            if mode not in max_rating:
+                max_rating[mode] = data["max"]
+                
+            if data["max"] > max_rating[mode]:
+                max_rating[mode] = data["max"]
+    
+    
+    for s in specs:
+        _lbci = []
+        _n = []
+        _mean = []
+        _max = []
+        
+
+        for mode in pvp_modes:
+            key_slug = "%s-%s" % (slugify.slugify(unicode(s)), mode)
+            pcc = ndb.Key('PvPCounts', key_slug).get()
+            data = json.loads(pcc.data)
+            
+            
+            _lbci += [float(data["lb_ci"])/max_rating[mode]*3000]
+            _n += [data["n"]]
+            _mean += [data["mean"]]
+            _max += [data["max"]]
+
+
+        data = {}
+        data["lb_ci"] = average(_lbci)
+        data["n"] = sum(_n)
+        data["mean"] = average(_mean)
+        data["max"] = max(_max)
+
+        key_slug = "%s-%s" % (slugify.slugify(unicode(s)), "all")
+        pc = PvPCounts(id = key_slug,
+                       spec = s,
+                       mode = "all",
+                       data = json.dumps(data))
+        pc.put()
+        
+        
+def process_pvp_counts():
+    global pvp_modes
+    modes_to_process =  []
+    modes_to_process += pvp_modes
+    
+    for mode in modes_to_process:
+        options = TaskRetryOptions(task_retry_limit=1)        
+        deferred.defer(process_pvp_counts_for_a_mode, mode,
+                       _retry_options=options)
+
+    options = TaskRetryOptions(task_retry_limit=1)        
+    deferred.defer(process_pvp_counts_overall,
+                   _retry_options=options)        
+        
+
 
 ## end getting data out into counts
 
@@ -2333,6 +2626,29 @@ def render_affixes(affixes, prefix=""):
                                last_updated = localized_time(last_updated))
     return rendered
 
+
+def api_pvp_specs(mode):
+    global last_updated
+
+    specs_report, spec_stats = gen_pvp_specs_role_package(mode)
+    
+    tankstl = gen_pvp_spec_tier_list(specs_report, "Tanks", mode, api=True)
+    healerstl = gen_pvp_spec_tier_list(specs_report, "Healers", mode, api=True)
+    meleetl = gen_pvp_spec_tier_list(specs_report, "Melee", mode, api=True)
+    rangedtl = gen_pvp_spec_tier_list(specs_report, "Ranged", mode, api=True)
+    
+    last_updated_output = str(localized_time(last_updated))
+
+    rendered = {}
+    rendered["last_updated"] = last_updated_output
+    rendered["melee_tier_list"] = meleetl
+    rendered["ranged_tier_list"] = rangedtl
+    rendered["tank_tier_list"] = tankstl
+    rendered["healer_tier_list"] = healerstl
+    rendered["source_url"] = "https://pvp.subcreation.net/"
+        
+    return json.dumps(rendered)
+
 # render compositions as a separate page from affixes
 def render_compositions(affixes, prefix=""):
     dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
@@ -2509,7 +2825,6 @@ def render_raid_index(encounter="all", prefix=""):
 
     encounter_slug = slugify.slugify(unicode(encounter))
     
-    # todo, include encounter in the tier list so deep links work right
     tankstl = gen_raid_spec_tier_list(specs_report, "Tanks", encounter_slug=encounter_slug, prefix=prefix)
     healerstl = gen_raid_spec_tier_list(specs_report, "Healers",  encounter_slug=encounter_slug, prefix=prefix)
     meleetl = gen_raid_spec_tier_list(specs_report, "Melee",  encounter_slug=encounter_slug, prefix=prefix)
@@ -2542,6 +2857,104 @@ def render_raid_index(encounter="all", prefix=""):
                                last_updated = localized_time(last_updated))
 
 
+    return rendered
+
+
+# for now just overall
+def render_pvp_index(mode="all", prefix=""):
+    template = env.get_template("pvp-index.html")
+
+    specs_report, spec_stats = gen_pvp_specs_role_package(mode)
+
+    global pvp_modes
+    pvp_canonical_order = ["2v2", "3v3", "rbg"]
+    pvp_pretty_names = {}
+    pvp_pretty_names["2v2"] = "2v2 Arena"
+    pvp_pretty_names["3v3"] = "3v3 Arena"
+    pvp_pretty_names["rbg"] = "Rated BGs"
+    
+    mode_slugs = {}
+    for e in pvp_canonical_order:
+        mode_slugs[e] = slugify.slugify(unicode(e))
+
+    mode_slug = slugify.slugify(unicode(mode))
+    
+    tankstl = gen_pvp_spec_tier_list(specs_report, "Tanks", mode, prefix=prefix)
+    healerstl = gen_pvp_spec_tier_list(specs_report, "Healers", mode, prefix=prefix)
+    meleetl = gen_pvp_spec_tier_list(specs_report, "Melee", mode, prefix=prefix)
+    rangedtl = gen_pvp_spec_tier_list(specs_report, "Ranged", mode, prefix=prefix)    
+
+    active_page = "pvp-index"
+    if mode != "all":
+        active_page = "pvp-" + mode_slug
+
+
+    title_override = "Subcreation PvP"
+    if mode != "all":
+        title_override += " - %s" % pvp_pretty_names[mode]
+        
+    rendered = template.render(prefix=prefix,
+                               active_page = active_page,
+                               active_section = "pvp",
+                               title_override = title_override,
+                               tankstl = tankstl,
+                               healerstl = healerstl,
+                               meleetl = meleetl,
+                               rangedtl = rangedtl,
+                               role_package=specs_report,
+                               spec_stats = spec_stats,
+                               mode=mode,
+                               mode_slugs = mode_slugs,
+                               mode_slug = mode_slug,                               
+                               pvp_canonical_order = pvp_canonical_order,
+                               pvp_pretty_names = pvp_pretty_names,
+                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
+                               known_healers = known_specs_subset_links(healers, prefix=prefix),
+                               known_melee = known_specs_subset_links(melee, prefix=prefix),
+                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
+                               known_affixes = known_affixes_links(prefix=prefix),
+                               last_updated = localized_time(last_updated))
+
+
+    return rendered
+
+
+# render pvp stats separately
+def render_pvp_stats(mode, prefix=""):
+    specs_report, spec_stats = gen_pvp_specs_role_package(mode)
+
+    mode_slugs = {}
+    for e in raid_canonical_order:
+        mode_slugs[e] = slugify.slugify(unicode(e))
+
+    pvp_canonical_order = ["2v2", "3v3", "rbg"]
+    pvp_pretty_names = {}
+    pvp_pretty_names["2v2"] = "2v2 Arena"
+    pvp_pretty_names["3v3"] = "3v3 Arena"
+    pvp_pretty_names["rbg"] = "Rated BGs"
+    
+    mode_slugs = {}
+    for e in pvp_canonical_order:
+        mode_slugs[e] = slugify.slugify(unicode(e))
+
+    mode_slug = slugify.slugify(unicode(mode))
+        
+    mode_slug = slugify.slugify(unicode(mode))
+    
+    template = env.get_template('stats-pvp.html')
+    rendered = template.render(title=mode,
+                               active_section = "raid",
+                               prefix=prefix,
+                               mode = mode,
+                               mode_slug = mode_slug,
+                               pvp_stats = spec_stats,
+                               role_package = specs_report,
+                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
+                               known_healers = known_specs_subset_links(healers, prefix=prefix),
+                               known_melee = known_specs_subset_links(melee, prefix=prefix),
+                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
+                               known_affixes = known_affixes_links(prefix=prefix),
+                               last_updated = localized_time(last_updated))
     return rendered
 
 
@@ -2702,6 +3115,21 @@ def main_write_to_storage(filename, content, cache_control="public, max-age=8640
     gcs_file.write(str(content))
     gcs_file.close()
 
+    cloudflare_purge_cache(bucket_name, original_filename)
+
+def pvp_write_to_storage(filename, content, cache_control="public, max-age=86400", content_type="text/html"):
+    bucket_name = 'pvp.subcreation.net'
+    original_filename = filename
+    
+    filename = "/%s/%s" % (bucket_name, filename)
+    write_retry_params = gcs.RetryParams(backoff_factor=1.1)
+    gcs_file = gcs.open(filename,
+                        'w', content_type=content_type,
+                        options={"cache-control" : cache_control},
+                        retry_params=write_retry_params)
+    gcs_file.write(str(content))
+    gcs_file.close()
+
     cloudflare_purge_cache(bucket_name, original_filename)    
 
 def raid_write_to_storage(filename, content):
@@ -2814,6 +3242,59 @@ def create_spec_overview(s, d="all"):
                        _retry_options=options)
 
 
+def create_pvp_pages():
+    global pvp_modes
+    modes_to_generate = []
+    modes_to_generate += ["all"]
+    modes_to_generate += pvp_modes
+    
+    for mode in modes_to_generate:
+        rendered = render_pvp_index(mode)
+        options = TaskRetryOptions(task_retry_limit = 1)
+        filename = "%s.html" % mode
+        if mode == "all":
+            filename = "index.html"
+
+        deferred.defer(pvp_write_to_storage, filename, rendered,
+                       _retry_options=options)
+
+    write_pvp_stats()
+    write_pvp_apis()
+
+
+def write_pvp_stats():
+    global pvp_modes
+    modes_to_generate = []
+    modes_to_generate += ["all"]
+    modes_to_generate += pvp_modes
+    
+    for mode in modes_to_generate:
+        rendered = render_pvp_stats(mode)
+        options = TaskRetryOptions(task_retry_limit = 1)
+        filename = "pvp-stats-%s.html" % mode
+
+        deferred.defer(pvp_write_to_storage, filename, rendered,
+                       _retry_options=options)    
+    
+def write_pvp_apis():
+    global pvp_modes
+    modes_to_generate = []
+    modes_to_generate += ["all"]
+    modes_to_generate += pvp_modes
+    
+    for mode in modes_to_generate:
+        rendered = api_pvp_specs(mode)
+        options = TaskRetryOptions(task_retry_limit = 1)
+        filename = mode
+        deferred.defer(write_api_json, "api/v0/pvp/" + filename, rendered, _retry_options=options)    
+
+
+def write_api_json(filename, rendered):
+    main_write_to_storage(filename,
+                          rendered,
+                          cache_control="public, max-age=28800",
+                          content_type="application/json")
+        
 def create_main_pages():
     main_pages = [["index.html", render_main_index],
                   ["top-covenants.html", render_main_covenants]]
@@ -3052,8 +3533,24 @@ def test_main_view(destination):
         return render_faq(prefix=prefix)    
 
     if "top-covenants" in destination:
-        return render_main_covenants(prefix=prefix)       
+        return render_main_covenants(prefix=prefix)
 
+def test_pvp_view(destination):
+    prefix = "pvp?goto="
+    if "index" in destination:
+        return render_pvp_index(prefix=prefix)
+
+    mode = "all"
+    global pvp_modes
+    for m in pvp_modes:
+        if m in destination:
+            mode = m
+    
+    if "stats" in destination:
+        return render_pvp_stats(mode, prefix=prefix)
+    
+    return render_pvp_index(mode, prefix=prefix)            
+    
 ## wcl querying
 # @@season update
 def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
@@ -3076,7 +3573,7 @@ def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
     wcl_date += "." + "%d000" % (time.mktime(now.timetuple()))
     
     url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&class=%d&spec=%d&page=%d&filter=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, season, class_id, spec, page, wcl_date, api_key)
-    
+
     result = urlfetch.fetch(url, deadline=60)
     data = json.loads(result.content)
     return data
@@ -3255,6 +3752,35 @@ def update_wcl_all():
     options = TaskRetryOptions(task_retry_limit = 1)
     deferred.defer(write_spec_overviews, _retry_options=options)
 
+# update pvp ladder stas
+
+# region = us or eu
+# mode = 2v2 or 3v3 or rbg
+def _pvp_rankings(region, mode):
+    global ludus_access_key
+    url = "https://luduslabs.org/api/leaderboard/%s/%s?access_key=%s" % (region, mode, ludus_access_key)
+    result = urlfetch.fetch(url, deadline=60)
+    data = json.loads(result.content)
+    return data
+
+
+def update_pvp_rankings(region, mode):
+    data = _pvp_rankings(region, mode)
+    key_slug = "%s-%s" % (region, mode)
+    ls = PvPLadderStats(id = key_slug,
+                        region = region,
+                        mode = mode,
+                        data = json.dumps(data))
+    ls.put()   
+
+def update_all_pvp_rankings():
+    global pvp_regions, pvp_modes
+    for region in pvp_regions:
+        for mode in pvp_modes:
+            options = TaskRetryOptions(task_retry_limit = 1)            
+            deferred.defer(update_pvp_rankings, region, mode,
+                           _retry_options=options)
+
 ## handlers
 
 # look at what the raw wcl rankings string looks like
@@ -3335,7 +3861,13 @@ class WCLGetRankingsOnly(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
-        update_wcl_update()        
+        update_wcl_update()
+
+class TestLudusPvP(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Queueing PvP updates...\n")
+        update_all_pvp_rankings()
 
 class TestWCLGetRankings(webapp2.RequestHandler):
     def get(self):
@@ -3400,8 +3932,14 @@ class GenMainHTML(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Writing Main HTML pages...\n")
         options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(create_main_pages, _retry_options=options)              
+        deferred.defer(create_main_pages, _retry_options=options)
 
+class GenPVP(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Writing PvP HTML pages...\n")
+        options = TaskRetryOptions(task_retry_limit = 1)
+        deferred.defer(create_pvp_pages, _retry_options=options)            
 
 class GenAPIs(webapp2.RequestHandler):
     def get(self):
@@ -3457,6 +3995,41 @@ class ProcessRaidCounts(webapp2.RequestHandler):
         process_generate_raid_counts()
         self.response.write("Queueing processing raid counts...")
 
+class ProcessPvPCounts(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.write("Queueing processing pvp counts...")        
+        process_pvp_counts()
+
+class TestPvPView(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        destination = self.request.get("goto", "index.html")        
+        self.response.write(test_pvp_view(destination))
+
+class APIPvPAll(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.write(api_pvp_specs("all"))
+
+
+class APIPvP2v2(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.write(api_pvp_specs("2v2"))
+
+
+class APIPvP3v3(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.write(api_pvp_specs("3v3"))
+
+        
+class APIPvPRBG(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.write(api_pvp_specs("rbg"))     
+
 app = webapp2.WSGIApplication([
         ('/update_wcl', WCLGetRankings),
         ('/update_wcl_raid', WCLGetRankingsRaid),
@@ -3464,9 +4037,11 @@ app = webapp2.WSGIApplication([
         ('/refresh/affixes', UpdateCurrentDungeons),
         ('/refresh/dungeons', WCLGetRankingsOnly),
         ('/refresh/raids', WCLGetRankingsRaidOnly),
+        ('/refresh/pvp', TestLudusPvP),    
 
         ('/process/dungeon_ease_tier_lists', ProcessDungeonEaseTierLists),
         ('/process/raid_counts', ProcessRaidCounts),
+        ('/process/pvp', ProcessPvPCounts),
     
         ('/generate/affixes', OnlyGenerateHTML),
         ('/generate/all_affixes', OnlyGenerateAllAffixesHTML),
@@ -3474,21 +4049,28 @@ app = webapp2.WSGIApplication([
         ('/generate/raids', WCLRaidGenHTML),
         ('/generate/main', GenMainHTML),    
         ('/generate/static', GenStaticHTML),
-        ('/generate/apis', GenAPIs),    
+        ('/generate/apis', GenAPIs), # does not include pvp apis
+        ('/generate/pvp', GenPVP),    
 
         ('/api/dungeon_ease', APIDungeonEase),
         ('/api/mplus_specs', APIDungeonSpecs),
         ('/api/mplus_affixes', APIAffixEase),
-        ('/api/dungeon_ease_overall', APIDungeonEaseOverall),            
+        ('/api/dungeon_ease_overall', APIDungeonEaseOverall),
+        ('/api/pvp/all', APIPvPAll),
+        ('/api/pvp/2v2', APIPvP2v2),
+        ('/api/pvp/3v3', APIPvP3v3),
+        ('/api/pvp/rbg', APIPvPRBG),                    
     
         ('/view', TestView),
         ('/raid', TestRaidView),
+        ('/pvp', TestPvPView),    
         ('/main', TestMainView),    
 
         ('/test/known_affixes', KnownAffixesShow),
         ('/test/affixes', UpdateCurrentDungeons),
         ('/test/dungeons', TestWCLGetRankings),
         ('/test/raids', TestWCLGetRankingsRaid),
+        ('/test/pvp', TestLudusPvP),
         ('/test/inspect_mplus', TestWCLInspectMPlus),
         ('/test/inspect_raid', TestWCLInspectRaid),    
         ('/test/cloudflare_purge', TestCloudflarePurgeCache),

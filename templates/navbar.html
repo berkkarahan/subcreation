@@ -13,6 +13,9 @@
       <li class="nav-item">
         <a class="nav-link{{ ' active' if active_section == 'raid' else '' }}" href="https://castle-nathria.subcreation.net/"><img src="https://castle-nathria.subcreation.net/images/bosses/castle-nathria/castle-nathria.jpg" width="20" height="20" /> Castle Nathria</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link{{ ' active' if active_section == 'pvp' else '' }}" href="https://pvp.subcreation.net/"><img src="https://pvp.subcreation.net/images/modes/all.jpg" width="20" height="20" /> Rated PvP</a>
+      </li>      
     </ul>
     <ul class="navbar-nav justify-content-end">
       <li class="nav-item">
@@ -209,3 +212,49 @@
   </div>
  </nav>
  {%- endmacro %}
+
+{% macro navbar_pvp(active_page, prefix) -%}
+ <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+     <span class="navbar-text">
+       Tier Lists for
+     </span>
+    <ul class="navbar-nav mr-auto">     
+      <li class="nav-item">
+        <a class="nav-link{{ ' active' if active_page == 'pvp-index' else '' }}" href="{{prefix}}index.html">All Rated PvP</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link{{ ' active' if active_page == 'pvp-2v2' else '' }}" href="{{prefix}}2v2.html">2v2</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link{{ ' active' if active_page == 'pvp-3v3' else '' }}" href="{{prefix}}3v3.html">3v3</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link{{ ' active' if active_page == 'pvp-rbg' else '' }}" href="{{prefix}}rbg.html">RBGs</a>
+      </li>      
+     <span class="navbar-text">
+       &nbsp; &nbsp; &nbsp; &nbsp;
+     </span>      
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="addResDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          More Resources
+        </a>
+        <div class="dropdown-menu" aria-labelledby="addResDropdown">
+          <a class="dropdown-item" target="_blank" href="https://luduslabs.org/">Ludus Labs PvP Analysis</a>
+          <div class="dropdown-divider"></div>          
+          <a class="dropdown-item" target="_blank" href="https://thelootdistrict.com/pvphub/">The Loot District PvP Hub</a>
+          <a class="dropdown-item" target="_blank" href="https://drustvar.com/pvp/talents/">Drustvar</a>
+          <a class="dropdown-item" target="_blank" href="https://murlok.io/">Murlok.io</a>
+          <a class="dropdown-item" target="_blank" href="https://banishsoul.com/">Banish Soul</a>
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" target="_blank" href="https://www.xunamate.com/">Xunamate</a>
+          <a class="dropdown-item" target="_blank" href="https://www.skill-capped.com/wow/">Skill Capped</a>          
+
+          <div class="dropdown-divider"></div>
+          <a class="dropdown-item" target="_blank" href="https://discord.gg/X8dyq67">Suggest more resources on the Discord</a>          
+        </div>
+      </li>
+    </ul>
+  </div>
+ </nav>
+{%- endmacro %}

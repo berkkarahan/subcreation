@@ -54,3 +54,28 @@ cron:
   retry_parameters:
     job_retry_limit: 1
     job_age_limit: 5m
+
+
+- description: "data pull for pvp"
+  url: /refresh/pvp
+  schedule: every 24 hours from 06:45 to 07:45
+  timezone: America/New_York  
+  retry_parameters:
+    job_retry_limit: 1
+    job_age_limit: 5m
+
+- description: "processing for pvp"
+  url: /process/pvp
+  schedule: every 24 hours from 06:55 to 07:45
+  timezone: America/New_York  
+  retry_parameters:
+    job_retry_limit: 1
+    job_age_limit: 5m
+
+- description: "re-generate HTML for pvp"
+  url: /generate/pvp
+  schedule: every 24 hours from 07:05 to 07:45
+  timezone: America/New_York  
+  retry_parameters:
+    job_retry_limit: 1
+    job_age_limit: 5m

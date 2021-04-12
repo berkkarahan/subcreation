@@ -90,3 +90,18 @@ class CovenantStats(ndb.Model):
     last_updated = ndb.DateTimeProperty(auto_now_add=True)    
     
     
+class PvPLadderStats(ndb.Model):
+    region = ndb.StringProperty()
+    mode = ndb.StringProperty()
+    data = ndb.JsonProperty()
+
+    # when were these data last updated
+    last_updated = ndb.DateTimeProperty(auto_now_add=True)        
+
+class PvPCounts(ndb.Model):
+    spec = ndb.StringProperty()
+    mode = ndb.StringProperty()
+    data = ndb.JsonProperty()
+
+    # when were these data last updated
+    last_updated = ndb.DateTimeProperty(auto_now_add=True)

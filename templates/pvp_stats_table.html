@@ -1,7 +1,4 @@
-{% macro raid_stats_table(which_table, pretty_title, report, metric="dps") -%}
-
-{% import 'raid_max_link.html' as raid_max_link %}
-{% import 'link_popover.html' as lp %}
+{% macro pvp_stats_table(which_table, pretty_title, report, metric="rating") -%}
 
 <div id="data-{{which_table}}-stats" class="container-fluid">
   <table class="sort table table-striped" id="table-{{which_table}}-stats">
@@ -16,7 +13,8 @@
     <tr>
       <td>{{score}}</td>
       <td>{{indiv}}</td>
-      <td>{{mean}}k</td>{{ raid_max_link.raid_max_link(max_f, max_id, max_level, current_season) }}
+      <td>{{mean}}</td>
+      <td>{{max_f}}</td>
       <td>{{n}}</td>
     </tr>
     {% endfor %}
