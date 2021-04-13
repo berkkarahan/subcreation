@@ -66,7 +66,7 @@ cron:
 
 - description: "processing for pvp"
   url: /process/pvp
-  schedule: every 24 hours from 06:55 to 07:45
+  schedule: every tuesday 06:55
   timezone: America/New_York  
   retry_parameters:
     job_retry_limit: 1
@@ -74,7 +74,7 @@ cron:
 
 - description: "re-generate HTML for pvp"
   url: /generate/pvp
-  schedule: every 24 hours from 07:05 to 07:45
+  schedule: every tuesday 07:05
   timezone: America/New_York  
   retry_parameters:
     job_retry_limit: 1

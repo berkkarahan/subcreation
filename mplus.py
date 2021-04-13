@@ -766,7 +766,7 @@ def gen_dungeon_tier_list_small(dungeons_report):
 # https://www.evanmiller.org/how-not-to-sort-by-average-rating.html
 # https://www.evanmiller.org/ranking-items-with-star-ratings.html 
 
-def construct_analysis(counts, sort_by="lb_ci"):
+def construct_analysis(counts, sort_by="lb_ci", limit=100):
     overall = []
     all_data = []
     for name, runs in counts.iteritems():
@@ -799,9 +799,21 @@ def construct_analysis(counts, sort_by="lb_ci"):
         if n <= 1:
             overall += [[name, mean, 0, n, [0, 0], [max_found, max_id, max_level], all_runs]]
             continue
-        stddev = std(data, ddof=1)
+
+
+        # filter to top 100
+        sorted_data = sorted(data, reverse=True)
+        sorted_data = sorted_data[:limit]
+                
+        stddev = std(sorted_data, ddof=1)
+        sorted_mean = average(sorted_data)
+        sorted_n = len(sorted_data)
         t_bounds = t_interval(n)
-        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
+        ci = [sorted_mean + critval * master_stddev / sqrt(sorted_n) for critval in t_bounds]
+        
+#        stddev = std(data, ddof=1)
+#        t_bounds = t_interval(n)
+#        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
         maxi = [max_found, max_id, max_level]
         all_runs = sorted(all_runs, key=lambda x: x[0], reverse=True)
         overall += [[name, mean, stddev, n, ci, maxi, all_runs]]
@@ -840,9 +852,20 @@ def construct_analysis_raid(spec_counts):
         if n <= 1:
             overall[encounter] = [mean, n, mean, data]
             continue
-        stddev = std(data, ddof=1)
+
+        # filter to top 100
+        sorted_data = sorted(data, reverse=True)
+        sorted_data = sorted_data[:100]
+                
+        stddev = std(sorted_data, ddof=1)
+        sorted_mean = average(sorted_data)
+        sorted_n = len(sorted_data)
         t_bounds = t_interval(n)
-        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
+        ci = [sorted_mean + critval * master_stddev / sqrt(sorted_n) for critval in t_bounds]
+        
+#        stddev = std(data, ddof=1)
+#        t_bounds = t_interval(n)
+#        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
         # lbci, n, mean, data
         overall[encounter]= [ci[0], n, mean, data]
 
@@ -850,6 +873,7 @@ def construct_analysis_raid(spec_counts):
 
 
 # for pvp
+# we filter to the _top 100_ for lb_ci
 def construct_analysis_pvp(spec_counts):
     counts = spec_counts
     
@@ -877,9 +901,17 @@ def construct_analysis_pvp(spec_counts):
         if n <= 1:
             overall[spec] = [mean, n, mean, data]
             continue
-        stddev = std(data, ddof=1)
+
+
+        # filter to top 100
+        sorted_data = sorted(data, reverse=True)
+        sorted_data = sorted_data[:100]
+                
+        stddev = std(sorted_data, ddof=1)
+        sorted_mean = average(sorted_data)
+        sorted_n = len(sorted_data)
         t_bounds = t_interval(n)
-        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
+        ci = [sorted_mean + critval * master_stddev / sqrt(sorted_n) for critval in t_bounds]
         # lbci, n, mean, data
         overall[spec] = [ci[0], n, mean, data]
 
@@ -1652,7 +1684,8 @@ def gen_set_report(set_counts):
     return set_output[:50]
 
 def gen_dungeon_report(dungeon_counts):
-    dungeons_overall = construct_analysis(dungeon_counts)
+    # use a higher limit for dungeons
+    dungeons_overall = construct_analysis(dungeon_counts, limit=400)
 
     stats = {}
 
@@ -1697,7 +1730,7 @@ def gen_dungeon_report(dungeon_counts):
     return dungeon_output, stats
 
 def gen_affix_report(affix_counts):
-    affixes_overall = construct_analysis(affix_counts)
+    affixes_overall = construct_analysis(affix_counts, limit=3200) # look at all runs for affixes
     
     stats = {}
 
@@ -2891,7 +2924,7 @@ def render_pvp_index(mode="all", prefix=""):
 
     title_override = "Subcreation PvP"
     if mode != "all":
-        title_override += " - %s" % pvp_pretty_names[mode]
+        title_override = "%s - Subcreation PvP" % pvp_pretty_names[mode]
         
     rendered = template.render(prefix=prefix,
                                active_page = active_page,
