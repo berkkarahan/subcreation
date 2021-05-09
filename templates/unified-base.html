@@ -41,7 +41,7 @@
   {{ navbar.navbar_pvp(active_page, prefix) }}
   {% endif %}  
 
-  {% if active_section == "main" %}
+  {% if active_section == "main" and not active_page == "main-covenants" %}
   {{ navbar.navbar_main_secondary(active_section, active_page, prefix) }}
   {% else %}
   {% include "advertisement.html" %}

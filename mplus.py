@@ -4092,7 +4092,7 @@ app = webapp2.WSGIApplication([
         ('/api/pvp/all', APIPvPAll),
         ('/api/pvp/2v2', APIPvP2v2),
         ('/api/pvp/3v3', APIPvP3v3),
-        ('/api/pvp/rbg', APIPvPRBG),                    
+        ('/api/pvp/rbg', APIPvPRBG),
     
         ('/view', TestView),
         ('/raid', TestRaidView),
