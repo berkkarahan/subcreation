@@ -1943,6 +1943,10 @@ def wcl_parse(rankings, extractor, is_sorted=True, is_aggregated=True, only_use_
     # get rid of duplicate icons in the look up table / mapping
     no_duplicate_mapping = {}
     for mapping in map_name_id_icon:
+        if "id" not in mapping:
+            logging.info(mapping)
+            logging.info(extractor)
+            continue
         if only_use_ids:
             no_duplicate_mapping[mapping["id"]] = [mapping["id"], ""]
         else:
@@ -2092,7 +2096,13 @@ def wcl_extract_soulbinds(ranking):
         return [], []
         
     names_in_set += [covenantID_mapping[ranking["covenantID"]]["id"]]
-    name_id_icons += [covenantID_mapping[ranking["covenantID"]]]
+    name_id_icons += [
+        {
+            "name": covenantID_mapping[ranking["covenantID"]]["id"], # use id, not name
+            "id": covenantID_mapping[ranking["covenantID"]]["id"],
+            "icon": covenantID_mapping[ranking["covenantID"]]["icon"],
+        }
+    ]
    
     soulbindID_mapping = {}
     soulbindID_mapping[1] = {"name": "Niya"}
@@ -2165,14 +2175,19 @@ def wcl_extract_covenants(ranking):
     if ranking["covenantID"] not in [1, 2, 3, 4]:
         return [], []
     
-    names_in_set += [covenantID_mapping[ranking["covenantID"]]["id"]]
-    name_id_icons += [covenantID_mapping[ranking["covenantID"]]]
+    names_in_set += [covenantID_mapping[ranking["covenantID"]]["name"]]
+    name_id_icons += [
+        {
+            "name": covenantID_mapping[ranking["covenantID"]]["name"],
+            "id": covenantID_mapping[ranking["covenantID"]]["id"],
+            "icon": covenantID_mapping[ranking["covenantID"]]["icon"],
+        }
+    ]
     
     return names_in_set, name_id_icons   
 
 def wcl_covenants(rankings):
-    return wcl_parse(rankings, wcl_extract_covenants, only_use_ids=True)
-
+    return wcl_parse(rankings, wcl_extract_covenants, only_use_ids=False)
 
 def wcl_legendaries(rankings):
     return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "legendaryEffects"))

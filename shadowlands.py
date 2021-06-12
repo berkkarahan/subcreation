@@ -33,16 +33,16 @@ prideful_weeks = {}
 covenantID_mapping = {}
 covenantID_mapping[1] = {"name" : "Kyrian",
                          "id" : 321076,
-                         "icon" : ""}
+                         "icon" : "ui_sigil_kyrian.jpg"}
 covenantID_mapping[2] = {"name" : "Venthyr",
                          "id" : 321079,
-                         "icon" : ""}
+                         "icon" : "ui_sigil_venthyr.jpg"}
 covenantID_mapping[3] = {"name" : "Night Fae",
                          "id" : 321077,
-                         "icon" : ""}
+                         "icon" : "ui_sigil_nightfae.jpg"}
 covenantID_mapping[4] = {"name" : "Necrolord",
                          "id" : 321078,
-                         "icon" : ""}
+                         "icon" : "ui_sigil_necrolord.jpg"}
 
 
 
