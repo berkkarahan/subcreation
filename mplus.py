@@ -231,6 +231,9 @@ def look_up_covenants(spec, mode):
     key = ndb.Key('CovenantStats', key_slug)
 
     cs = key.get()
+
+    if cs == None:
+        return 0, 0, []
     
     data = json.loads(cs.data)
     n_parses = data["n_parses"]
@@ -247,51 +250,28 @@ def gen_top_covenant_report_for(spec, mode):
 
     # no data
     if len(covenants) < 1:
-        return 0, ""
+        return 0, "", {}
 
-    top_result = covenants[0]
-    if len(top_result) < 2:
-        return 0, ""
-
-    if len(top_result[1]) < 1:
-        return 0, ""
-    
-    top_covenant_id = top_result[1][0]
-
-    covenant_ids = []
+    covenant_names = []
     for i in [1, 2, 3, 4]:
-        covenant_ids += [covenantID_mapping[i]["id"]]
-    
-   
-    if covenants[0][1][0] not in covenant_ids:
-        return 0, ""
+        covenant_names += [covenantID_mapping[i]["name"]]        
 
-    covenant_spell_id = covenants[0][1][0]
-    covenant_id = covenant_ids.index(covenant_spell_id)+1
-
-    name = covenantID_mapping[covenant_id]["name"]
+    top_name = covenants[0][1][0]
 
     # return n_parses, and then cov dict cov: #
     data = {}
     for cc in covenants:
         if cc[1] == []:
             continue
-        if cc[1][0] not in covenant_ids:
+        if cc[1][0] not in covenant_names:
             continue
-        cov_id = covenant_ids.index(cc[1][0])+1
-        cov_name = covenantID_mapping[cov_id]["name"]
+        cov_name = cc[1][0]
         pct = int(round((float(cc[0])/n_parses)*100))
         data[cov_name] = pct
 
 
-    values = []
-    rev_lu = {}
-    for k, v in data.iteritems():
-        values += [v]
-        rev_lu[v] = k
-        
-    
-    data_sorted = sorted(values, reverse=True)
+    logging.info("%s %s" % (spec, mode))
+    logging.info(data)
 
     cov_colors  = {}
     cov_colors["Night Fae"] = "#c851ec"
@@ -299,12 +279,11 @@ def gen_top_covenant_report_for(spec, mode):
     cov_colors["Venthyr"] = "#e02d2d"
     cov_colors["Necrolord"] = "#96b364"
 
-   
     output = {}
-    for v in data_sorted:
-        output[rev_lu[v]] = [v, slugify.slugify(unicode(rev_lu[v])), cov_colors[rev_lu[v]]]
+    for k, v in data.iteritems():
+        output[k] = [v, slugify.slugify(unicode(k)), cov_colors[k]]
 
-    return n_parses, name, output
+    return n_parses, top_name, output
     
 
 def create_package(name):
@@ -321,7 +300,7 @@ def gen_covenants_report():
     report["Ranged"] = []
 
     # each report is a list with elements
-    # spec - the spec we're ooking at
+    # spec - the spec we're looking at
     #   name - pretty name of the spec
     #   slug - slug of the spec
     # mplus - the covenant for m+

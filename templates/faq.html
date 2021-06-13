@@ -21,7 +21,7 @@
 <p>It isn&#39;t perfect (no model is), but I&#39;ve found it gives a good sense of what the meta looks like at the top end and generally &quot;feels correct&quot; to folks. Very open to suggestions for how to make it better, if you have ideas.</p>
 <h2 id="how-do-you-calculate-the-tier-lists-for-mythic-">How do you calculate the tier lists for Mythic+?</h2>
 <p>The site takes the lower bounds of the 95% confidence interval calculated as per the question above and then clusters them into 6 buckets using the <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5148156/">Ckmeans</a> algorithm.</p>
-<p>Note that because we&#39;re using the lower bound of the 95% confidence interval of the <strong>raider.io score</strong>, Tanks, Healers, Melee, and Ranged are all on the same scale. They&#39;re just shown separatey for ease of comparison across roles.</p>
+<p>Note that because we&#39;re using the lower bound of the 95% confidence interval of the <strong>raider.io score</strong>, Tanks, Healers, Melee, and Ranged are all on the same scale. They&#39;re just shown separately for ease of comparison across roles.</p>
 <h2 id="for-specs-why-do-you-average-across-dungeons-">For specs, why do you average across dungeons?</h2>
 <p>The site didn&#39;t originally, but this resulted in specs that were used for a pull or two at the start of the dungeon showing up in S-Tier. For example, in Battle for Azeroth, mages would often play Frost for the first pull of Tol Dagor and then swap to Fire for the rest of the dungeon. But Blizzard&#39;s API only considered the spec for each class at the start of each dungeon, not the end, which resulted in Frost Mages, otherwise unplayed at the top end at the time, showing up as S-Tier. Taking the average across dungeons solved this issue.</p>
 <h2 id="do-you-include-untimed-runs-">Do you include untimed runs?</h2>
@@ -43,12 +43,12 @@
 <h2 id="raid">How do you calculate the tier lists for Raid?</h2>
 <p>The site looks at the top 500 Mythic logs for each spec for each boss. For tanks, melee, and ranged, it considers the top dps logs. For healers, it looks at top hps logs. I am aware that dps for tanks and hps for healers is non-ideal, but don&#39;t have anything better at this time. Open to ideas here.</p>
       <p>For these top 500 Mythic logs, the site takes the lower bound of a 95% confidence interval again of the top 100 parses for each spec, on each encounter, and then, for the overall raid tier list, averages it across all bosses.</p>
-      <p>Melee and Ranged DPS are on the same tier list, though displayed separatey for ease of viewing. Healers are on their own tier list (since they use hps). Tanks are also on their own tier list (since tank dps is typically much lower).</p>
+      <p>Melee and Ranged DPS are on the same tier list, though displayed separately for ease of viewing. Healers are on their own tier list (since they use hps). Tanks are also on their own tier list (since tank dps is typically much lower).</p>
       <p>Note that some specs may have very few or no Mythic logs on certain bosses. These specs effectively get a &quot;0&quot; for those bosses, potentially resulting in their overall raid tier list ranking dropping.</p>
 
 <h2 id="pvp">How do you calculate the tier lists for Rated PvP?</h2>
 
-      <p>The site looks at the top leaderboard entries for each mode of PvP, via an API graciously provided by <a href="https://luduslabs.org/">Ludus Labs</a>. It only considers rating, so effecively tanks, healers, melee, and ranged are on the same tier list.</p>
+      <p>The site looks at the top leaderboard entries for each mode of PvP, via an API graciously provided by <a href="https://luduslabs.org/">Ludus Labs</a>. It only considers rating, so effectively tanks, healers, melee, and ranged are on the same tier list.</p>
       <p>For these top leaderboard entries, the site takes the lower bound of a 95% confidence interval of the top 100 leaderboard entries for each spec, and then, for the overall pvp tier list, averages it across all forms of rated PvP.</p>
 
       <p>For the "All Rated PvP Modes" view, the site uses a <b>normalized rating</b> so that the difference in ratings between modes doesn't skew results in favor of the mode with the highest ratings. For lower bounds for each mode are normalized and averaged to produce the lower bound for the "All Rated PvP Modes" view. The intent is for this view to provide an at a glance reference as to which specs are strong across all rated PvP modes.</p>
