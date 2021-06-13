@@ -32,9 +32,8 @@
         {% if loop.index0 == 1 %}
         <img src="https://subcreation.net/images/soulbinds/{{lookup[k][0]}}.jpg" width="36" height="36" title="{{lookup[k][1]}}" alt="{{lookup[k][1]}}">
         {% else %}
-        <a href="https://www.wowhead.com/spell={{lookup[k][0]}}"><img width="36" height="36" src="https://wow.zamimg.com/images/wow/icons/large/{{lookup[k][1]}}" alt="{{lookup[k][0]}}"></a>
+        <a href="https://www.wowhead.com/spell={{lookup[k][0]}}"></a>
         {% endif %}
-        
 
         {% else %}
         {% if title == "Trinkets" %}
@@ -44,7 +43,7 @@
         <a href="https://www.wowhead.com/{{lookup_type}}={{lookup[k][0]}}"></a>
         {% endif %}
         {% else %}        
-        <a href="https://www.wowhead.com/{{lookup_type}}={{lookup[k][0]}}">{% if lookup_type == "spell" %}<img width="36" height="36" src="https://wow.zamimg.com/images/wow/icons/large/{{lookup[k][1]}}" alt="{{lookup[k][0]}}">{% endif %}</a>
+        <a href="https://www.wowhead.com/{{lookup_type}}={{lookup[k][0]}}"></a>
         {% endif %}
         {% endif %}
         {% if loop.index0 in offset_at %}
