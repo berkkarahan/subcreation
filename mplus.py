@@ -23,7 +23,7 @@ import slugify
 import cloudstorage as gcs
 
 from shadowlands import dungeons, dungeon_slugs, dungeon_short_names, slugs_to_dungeons
-from shadowlands import prideful_weeks as affix_rotation_weeks
+from shadowlands import tormented_weeks as affix_rotation_weeks
 from shadowlands import covenantID_mapping
 
 from warcraft import specs, tanks, healers, melee, ranged, role_titles, regions, pvp_regions, pvp_modes
@@ -37,13 +37,13 @@ from models import SpecRankings, SpecRankingsRaid, CovenantStats, RaidCounts, Du
 from auth import api_key
 from wcl import wcl_specs
 from wcl_shadowlands import dungeon_encounters
-from wcl_shadowlands import castle_nathria_encounters as raid_encounters
+from wcl_shadowlands import sanctum_of_domination_encounters as raid_encounters
 
 from enchants import enchant_mapping
 
 
-from castle_nathria import castle_nathria_canonical_order as raid_canonical_order
-from castle_nathria import castle_nathria_short_names as raid_short_names
+from sanctum_of_domination import sanctum_of_domination_canonical_order as raid_canonical_order
+from sanctum_of_domination import sanctum_of_domination_short_names as raid_short_names
 
 # cloudflare cache handling
 from auth import cloudflare_api_key, cloudflare_zone
@@ -58,6 +58,7 @@ from warcraft import regions as REGIONS
 from config import RIO_MAX_PAGE, RIO_SEASON, RAID_NAME
 from config import WCL_SEASON, WCL_PARTITION
 from config import MIN_KEY_LEVEL
+from config import MAX_RAID_DIFFICULTY
 
 ## raider.io handling
 def update_known_affixes(affixes, affixes_slug):
@@ -199,7 +200,7 @@ def mean(data):
     """Return the sample arithmetic mean of data."""
     n = len(data)
     if n < 1:
-        raise ValueError('mean requires at least one data point')
+        return 0
     return sum(data)/float(n) 
 
 def _ss(data):
@@ -214,7 +215,7 @@ def std(data, ddof=0):
     standard deviation."""
     n = len(data)
     if n < 2:
-        raise ValueError('variance requires at least two data points')
+        return 0
     ss = _ss(data)
     pvar = ss/(n-ddof)
     return pvar**0.5
@@ -809,7 +810,7 @@ def construct_analysis_raid(spec_counts):
     
     overall = {}
     all_data = []
-    
+
     for encounter, metrics in counts.iteritems():
         for m in metrics:
             all_data += [m]
@@ -905,7 +906,7 @@ def construct_analysis_pvp(spec_counts):
 def gen_raid_spec_analysis():
     # raid_generate_counts is now a cached call
     raid_counts, raid_max_found, raid_max_link = raid_generate_counts()
-
+    
     analysis = {}
     lb_ci_spec = {}
 
@@ -966,9 +967,10 @@ def gen_raid_specs_role_package(encounter):
                     if mm > maxf:
                         maxe = ee
                         maxf = mm
-                        
-                rmf = raid_max_found[k][maxe]
-                rml = raid_max_link[k][maxe]                
+
+                if maxe != "":
+                    rmf = raid_max_found[k][maxe]
+                    rml = raid_max_link[k][maxe]                
             
             role_score += [[str("%.2f" % encounter_overall[k][0]), # lower bound of ci
                             str(k), # name of the spec
@@ -1291,10 +1293,10 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
 # we'll have 3 -- all dps against each other (melee and ranged)
 # all tanks against each other (since we only have dps for tanks and tank dps is so much lower)
 # all healers against each other, based on hps
-def process_raid_generate_counts_spec_encounter(spec, encounter, difficulty="Mythic"):
+def process_raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_RAID_DIFFICULTY):
     counts = []
     
-    # only consider mythic difficulty
+    # only consider mythic difficulty, unless it's heroic week ... MAX_RAID_DIFFICULTY controls
     wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
                                        SpecRankingsRaid.difficulty==difficulty,
                                        SpecRankingsRaid.encounter==encounter)
@@ -1355,7 +1357,7 @@ def process_generate_raid_counts():
             deferred.defer(process_raid_generate_counts_spec_encounter, s, k,
                            _retry_options=options)
 
-def raid_generate_counts_spec_encounter(spec, encounter, difficulty="Mythic"):
+def raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_RAID_DIFFICULTY):
     # read from the db
     spec_slug = slugify.slugify(unicode(spec))
     encounter_slug = slugify.slugify(unicode(encounter))
@@ -1365,11 +1367,13 @@ def raid_generate_counts_spec_encounter(spec, encounter, difficulty="Mythic"):
     key = ndb.Key('RaidCounts', key_slug)
     
     rc = key.get()
+    if rc == None:
+        return [0], 0.0, ""
     data = json.loads(rc.data)
     counts = data["counts"]
     max_found = data["max_found"]
     max_link = data["max_link"]
-    
+
     return counts, max_found, max_link
 
 
@@ -2881,6 +2885,7 @@ def render_raid_index(encounter="all", prefix=""):
                                known_melee = known_specs_subset_links(melee, prefix=prefix),
                                known_ranged = known_specs_subset_links(ranged, prefix=prefix),
                                known_affixes = known_affixes_links(prefix=prefix),
+                               max_raid_difficulty = MAX_RAID_DIFFICULTY,
                                last_updated = localized_time(last_updated))
 
 
@@ -3007,7 +3012,7 @@ def render_main_covenants(prefix=""):
                                n_parses = n_parses,
                                m_data = m_data,
                                r_data = r_data,
-                               title = "Top Covenants for Mythic+ Season 1 and Castle Nathria",
+                               title = "Top Covenants for Mythic+ Season 2 and Sanctum of Domination",
                                active_section = "main",
                                active_page = "main-covenants",
                                last_updated = localized_time(last_updated))
@@ -3160,7 +3165,7 @@ def pvp_write_to_storage(filename, content, cache_control="public, max-age=86400
     cloudflare_purge_cache(bucket_name, original_filename)    
 
 def raid_write_to_storage(filename, content):
-    bucket_name = 'castle-nathria.subcreation.net'
+    bucket_name = 'raid.subcreation.net'
     original_filename = filename
     
     filename = "/%s/%s" % (bucket_name, filename)
@@ -3366,7 +3371,7 @@ def create_raid_index():
         deferred.defer(render_and_write_raid_stats, encounter,
                        _retry_options=options)        
     
-def create_raid_spec_overview(s, e="all", difficulty="Mythic"):
+def create_raid_spec_overview(s, e="all", difficulty=MAX_RAID_DIFFICULTY):
     spec_slug = slugify.slugify(unicode(s))
     rendered = render_wcl_raid_spec(s, encounter=e)
     if e == "all":
@@ -3648,7 +3653,7 @@ def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=WCL
     return data
 
 
-def update_wcl_raid_rankings(spec, encounter, page=1, difficulty="Mythic"):
+def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFICULTY):
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
     spec_key = slugify.slugify(unicode(spec))
@@ -3740,7 +3745,7 @@ def update_wcl_update_subset(subset):
         deferred.defer(update_wcl_spec, s, _retry_options=options)
         
 
-def update_wcl_raid_spec(spec, difficulty="Mythic"):
+def update_wcl_raid_spec(spec, difficulty=MAX_RAID_DIFFICULTY):
     logging.info("%s %s" % (spec, difficulty))
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
@@ -3761,12 +3766,12 @@ def update_wcl_raid_spec(spec, difficulty="Mythic"):
 def update_wcl_raid_update():
     for i, s in enumerate(specs):
         options = TaskRetryOptions(task_retry_limit = 1)    
-        deferred.defer(update_wcl_raid_spec, s, "Mythic", _retry_options=options)
+        deferred.defer(update_wcl_raid_spec, s, MAX_RAID_DIFFICULTY, _retry_options=options)
 
 def update_wcl_raid_update_subset(subset):
     for i, s in enumerate(subset):
         options = TaskRetryOptions(task_retry_limit = 1)    
-        deferred.defer(update_wcl_raid_spec, s, "Mythic", _retry_options=options)
+        deferred.defer(update_wcl_raid_spec, s, MAX_RAID_DIFFICULTY, _retry_options=options)
         
 def update_wcl_raid_all():
     update_wcl_raid_update()

@@ -28,7 +28,7 @@ for d in dungeons:
     slugs_to_dungeons[slugify.slugify(unicode(d))] = d
 
 # no rotation, will just be a pass through when empty
-prideful_weeks = {}
+tormented_weeks = {}
 
 covenantID_mapping = {}
 covenantID_mapping[1] = {"name" : "Kyrian",

@@ -7,7 +7,7 @@
     <div class="boss-navbar d-flex py-3 justify-content-center flex-wrap " id="navbarSupportedContent">
           <div class="boss-box {{ ' active' if encounter == "all" else '' }}">
             <a class="boss-link" href="{{prefix}}index.html">
-              <img src="images/bosses/castle-nathria/castle-nathria.jpg" width="51" height="51" alt="All Bosses" title="All Bosses"><br/>All Bosses
+              <img src="images/bosses/sanctum/sanctum.jpg" width="51" height="51" alt="All Bosses" title="All Bosses"><br/>All Bosses
             </a>
           </div>
         </li>
@@ -15,7 +15,7 @@
 {% for e in raid_canonical_order %}
           <div class="boss-box {{ ' active' if encounter_slugs[e] in encounter_slug else '' }}">
             <a class="boss-link" href="{{prefix}}{{encounter_slugs[e]}}.html">
-              <img src="images/bosses/castle-nathria/{{encounter_slugs[e]}}.jpg" width="51" height="51" alt="{{e}}" title="{{e}}"><br/>
+              <img src="images/bosses/sanctum/{{encounter_slugs[e]}}.jpg" width="51" height="51" alt="{{e}}" title="{{e}}"><br/>
              {{raid_short_names[e]}}
             </a>
           </div>
@@ -26,10 +26,10 @@
   <div class="row">
 
 {% import 'raid_tier_list.html' as raid_tier_list %}
-{{ raid_tier_list.raid_tier_list("Tanks", "Tank", "tanks", tankstl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Tanks"]) }}
-{{ raid_tier_list.raid_tier_list("Healers", "Healer", "healers", healerstl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Healers"]) }}
-{{ raid_tier_list.raid_tier_list("Melee", "Melee", "melee", meleetl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Melee"]) }}
-{{ raid_tier_list.raid_tier_list("Ranged", "Ranged", "ranged", rangedtl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Ranged"]) }}
+{{ raid_tier_list.raid_tier_list("Melee", "Melee", "melee", meleetl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Melee"], max_raid_difficulty) }}
+{{ raid_tier_list.raid_tier_list("Ranged", "Ranged", "ranged", rangedtl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Ranged"], max_raid_difficulty) }}
+{{ raid_tier_list.raid_tier_list("Tanks", "Tank", "tanks", tankstl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Tanks"], max_raid_difficulty) }}
+{{ raid_tier_list.raid_tier_list("Healers", "Healer", "healers", healerstl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Healers"], max_raid_difficulty) }}
 
   </div>
 </div>
@@ -49,8 +49,8 @@
     });
   } 
 
-triggerStatsData("tanks");
-triggerStatsData("healers");
 triggerStatsData("melee");
 triggerStatsData("ranged");
+triggerStatsData("tanks");
+triggerStatsData("healers");
 {% endblock script %}

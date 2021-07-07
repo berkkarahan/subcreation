@@ -7,7 +7,7 @@
     <div class="col-12 py-3">
       <h1><img src="images/specs/{{spec_slug}}.jpg" width="56" height="56"/> {{spec}} - {{encounter_pretty}}</h1>
       <p>
-        <i>The {%include "blurb-top.html"%} based on data from the top {{n_parses}} {{spec}} {{difficulty}} {{encounter_pretty}} logs ({{n_uniques}} unique characters), by <b>{{metric}}</b>, during patch 9.0.5 from the past 4 weeks.</i>
+        <i>The {%include "blurb-top.html"%} based on data from the top {{n_parses}} {{spec}} {{difficulty}} {{encounter_pretty}} logs ({{n_uniques}} unique characters) by <b>{{metric}}</b> from the past 4 weeks.</i>
       </p>
     </div>
   </div>
@@ -30,7 +30,7 @@
     <div class="boss-navbar d-flex py-3 justify-content-center flex-wrap " id="navbarSupportedContent">
           <div class="boss-box {{ ' active' if encounter == "all" else '' }}">
             <a class="boss-link" href="{{prefix}}{{spec_slug}}.html">
-              <img src="images/bosses/castle-nathria/castle-nathria.jpg" width="51" height="51" alt="All Bosses" title="All Bosses"><br/>All Bosses
+              <img src="images/bosses/sanctum/sanctum.jpg" width="51" height="51" alt="All Bosses" title="All Bosses"><br/>All Bosses
             </a>
           </div>
         </li>
@@ -38,7 +38,7 @@
         {% for e in raid_canonical_order %}
           <div class="boss-box {{ ' active' if encounter_slugs[e] in active_page else '' }}">
             <a class="boss-link" href="{{prefix}}{{spec_slug}}-{{encounter_slugs[e]}}.html">
-              <img src="images/bosses/castle-nathria/{{encounter_slugs[e]}}.jpg" width="51" height="51" alt="{{e}}" title="{{e}}"><br/>
+              <img src="images/bosses/sanctum/{{encounter_slugs[e]}}.jpg" width="51" height="51" alt="{{e}}" title="{{e}}"><br/>
              {{raid_short_names[e]}}
             </a>
           </div>
@@ -61,7 +61,7 @@
 
 <div class="alert alert-warning">
   <h3>
-    No public parses available yet for {{spec}} ({{difficulty}} {{encounter_pretty}})
+    No public parses available yet for {{spec}} ({{encounter_pretty}})
   </h3>
 </div>
 </div>
