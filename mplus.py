@@ -2280,8 +2280,14 @@ def base_gen_spec_report(spec, mode, encounter="all"):
         if k.last_updated > last_updated:
             last_updated = k.last_updated
 
+            
         if mode == "raid":
             seen_difficulties.add(k.difficulty)
+
+        # filter out ignored encounters raid_ignore for all bosses
+        if encounter == "all":
+            if k.encounter in raid_ignore:
+                continue
             
         latest = json.loads(k.rankings)
 
