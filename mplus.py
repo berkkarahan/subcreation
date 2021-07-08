@@ -44,6 +44,7 @@ from enchants import enchant_mapping
 
 from sanctum_of_domination import sanctum_of_domination_canonical_order as raid_canonical_order
 from sanctum_of_domination import sanctum_of_domination_short_names as raid_short_names
+from sanctum_of_domination import sanctum_of_domination_ignore as raid_ignore
 
 # cloudflare cache handling
 from auth import cloudflare_api_key, cloudflare_zone
@@ -920,9 +921,10 @@ def gen_raid_spec_analysis():
         n_scores = 0
         
         for e in raid_encounters:
-            all_scores += analysis[s][e][3]
-            scores += [analysis[s][e][0]]
-            n_scores += analysis[s][e][1]
+            if e not in raid_ignore: # ignore certain encounters for the tier list
+                all_scores += analysis[s][e][3]
+                scores += [analysis[s][e][0]]
+                n_scores += analysis[s][e][1]
             if e not in lb_ci_spec:
                 lb_ci_spec[e] = {}
             lb_ci_spec[e][s] = [analysis[s][e][0], analysis[s][e][1], analysis[s][e][2]]
@@ -2876,6 +2878,7 @@ def render_raid_index(encounter="all", prefix=""):
                                role_package=specs_report,
                                spec_stats = spec_stats,
                                encounter=encounter,
+                               raid_ignore = raid_ignore,
                                encounter_slugs = encounter_slugs,
                                encounter_slug = encounter_slug,                               
                                raid_canonical_order = raid_canonical_order,

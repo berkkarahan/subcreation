@@ -21,3 +21,6 @@ sanctum_of_domination_short_names["Guardian of the First Ones"] = "Guardian"
 sanctum_of_domination_short_names["Fatescribe Roh-Kalo"] = "Fatescribe"
 sanctum_of_domination_short_names["Kel'Thuzad"] = "Kel'Thuzad"
 sanctum_of_domination_short_names["Sylvanas Windrunner"] = "Sylvanas"
+
+# ignore these bosses for the tier list
+sanctum_of_domination_ignore = ["Tarragrue"]

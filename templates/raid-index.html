@@ -26,10 +26,10 @@
   <div class="row">
 
 {% import 'raid_tier_list.html' as raid_tier_list %}
-{{ raid_tier_list.raid_tier_list("Melee", "Melee", "melee", meleetl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Melee"], max_raid_difficulty) }}
-{{ raid_tier_list.raid_tier_list("Ranged", "Ranged", "ranged", rangedtl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Ranged"], max_raid_difficulty) }}
-{{ raid_tier_list.raid_tier_list("Tanks", "Tank", "tanks", tankstl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Tanks"], max_raid_difficulty) }}
-{{ raid_tier_list.raid_tier_list("Healers", "Healer", "healers", healerstl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Healers"], max_raid_difficulty) }}
+{{ raid_tier_list.raid_tier_list("Melee", "Melee", "melee", meleetl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Melee"], max_raid_difficulty, raid_ignore) }}
+{{ raid_tier_list.raid_tier_list("Ranged", "Ranged", "ranged", rangedtl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Ranged"], max_raid_difficulty, raid_ignore) }}
+{{ raid_tier_list.raid_tier_list("Tanks", "Tank", "tanks", tankstl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Tanks"], max_raid_difficulty, raid_ignore) }}
+{{ raid_tier_list.raid_tier_list("Healers", "Healer", "healers", healerstl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Healers"], max_raid_difficulty, raid_ignore) }}
 
   </div>
 </div>
