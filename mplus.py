@@ -271,7 +271,7 @@ def gen_top_covenant_report_for(spec, mode):
         pct = int(round((float(cc[0])/n_parses)*100))
         data[cov_name] = pct
 
-
+       
     logging.info("%s %s" % (spec, mode))
     logging.info(data)
 
@@ -284,6 +284,11 @@ def gen_top_covenant_report_for(spec, mode):
     output = {}
     for k, v in data.iteritems():
         output[k] = [v, slugify.slugify(unicode(k)), cov_colors[k]]
+
+
+    output["max_cov"] = max(data.iteritems(), key=operator.itemgetter(1))[0]
+    logging.info(output)
+        
 
     return n_parses, top_name, output
     
@@ -2283,11 +2288,10 @@ def base_gen_spec_report(spec, mode, encounter="all"):
             
         if mode == "raid":
             seen_difficulties.add(k.difficulty)
-
-        # filter out ignored encounters raid_ignore for all bosses
-        if encounter == "all":
-            if k.encounter in raid_ignore:
-                continue
+            # filter out ignored encounters raid_ignore for all bosses
+            if encounter == "all":
+                if k.encounter in raid_ignore:
+                    continue
             
         latest = json.loads(k.rankings)
 

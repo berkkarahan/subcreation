@@ -37,7 +37,7 @@
       {% else %}
       
       {% for cov in ["Kyrian", "Necrolord", "Night Fae", "Venthyr"] %}
-      <td style="vertical-align: middle;">
+      <td style="vertical-align: middle; {% if cov == m_data[spec["name"]]["max_cov"] %} background-color: {{m_data[spec["name"]][m_data[spec["name"]]["max_cov"]][2]}}; {% endif %}">
         {% if cov in m_data[spec["name"]] %}
         {% if m_data[spec["name"]][cov][0] >= 40 %}
         <b>
@@ -45,14 +45,14 @@
         {% if m_data[spec["name"]][cov][0] < 5 %}
         <i>
           {% endif %}
-        <a href="https://mplus.subcreation.net/{{spec["slug"]}}.html#covenants" style="color: {% if m_data[spec["name"]][cov][0] >= 5 %}{{m_data[spec["name"]][cov][2]}}{% else %}gray{%endif%};">{%if m_data[spec["name"]][cov][0]==0%}{%else%}{{m_data[spec["name"]][cov][0]}}%{%endif%}</a>
+        <a href="https://mplus.subcreation.net/{{spec["slug"]}}.html#covenants" style="color: {% if cov == m_data[spec["name"]]["max_cov"] %}black;{% elif m_data[spec["name"]][cov][0] >= 5 %}{{m_data[spec["name"]][cov][2]}}{% else %}gray{%endif%};">{%if m_data[spec["name"]][cov][0]==0%}{%else%}{{m_data[spec["name"]][cov][0]}}%{%endif%}</a>
         {% if m_data[spec["name"]][cov][0] >= 40 %}
         </b>
         {% endif %}
         {% if m_data[spec["name"]][cov][0] < 5 %}
         </i>
         {% endif %}         
-        {% endif %}         
+        {% endif %}
       </td>
       {% endfor %}
       
@@ -66,15 +66,15 @@
       {% else %}
 
       {% for cov in ["Kyrian", "Necrolord", "Night Fae", "Venthyr"] %}
-      <td style="vertical-align: middle; {% if cov == "Kyrian" %} border-left: 1px solid gray; {% endif %}">
-        {% if cov in r_data[spec["name"]] %}
+<td style="vertical-align: middle; {% if cov == "Kyrian" %} border-left: 1px solid gray; {% endif %}  {% if cov == r_data[spec["name"]]["max_cov"] %} background-color: {{r_data[spec["name"]][r_data[spec["name"]]["max_cov"]][2]}}; {% endif %}">
+  {% if cov in r_data[spec["name"]] %}
         {% if r_data[spec["name"]][cov][0] >= 40 %}
         <b>
           {% endif %}
         {% if r_data[spec["name"]][cov][0] < 5 %}
         <i>
         {% endif %}          
-        <a href="https://mplus.subcreation.net/{{spec["slug"]}}.html#covenants" style="color: {% if r_data[spec["name"]][cov][0] >= 5 %}{{r_data[spec["name"]][cov][2]}}{% else %}gray{%endif%};">{%if r_data[spec["name"]][cov][0]==0%}{%else%}{{r_data[spec["name"]][cov][0]}}%{%endif%}</a>
+        <a href="https://mplus.subcreation.net/{{spec["slug"]}}.html#covenants" style="color: {% if cov == r_data[spec["name"]]["max_cov"] %}black;{% elif r_data[spec["name"]][cov][0] >= 5 %}{{r_data[spec["name"]][cov][2]}}{% else %}gray{%endif%};">{%if r_data[spec["name"]][cov][0]==0%}{%else%}{{r_data[spec["name"]][cov][0]}}%{%endif%}</a>
         {% if r_data[spec["name"]][cov][0] >= 40 %}
         </b>
         {% endif %}
