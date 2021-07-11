@@ -25,6 +25,7 @@ import cloudstorage as gcs
 from shadowlands import dungeons, dungeon_slugs, dungeon_short_names, slugs_to_dungeons
 from shadowlands import tormented_weeks as affix_rotation_weeks
 from shadowlands import covenantID_mapping
+from shadowlands import shards_of_domination # shards of dominaion ids
 
 from warcraft import specs, tanks, healers, melee, ranged, role_titles, regions, pvp_regions, pvp_modes
 from warcraft import spec_short_names
@@ -1982,13 +1983,19 @@ def wcl_gear(rankings, slots):
                      lambda e: wcl_extract_gear(e, slots),
                      is_sorted = is_sorted)
 
-def wcl_extract_gems(ranking):
+def wcl_extract_gems(ranking, shards=False):
     names_in_set = []
     name_id_icons = []
     
     for i, j in enumerate(ranking["gear"]):
         if "gems" in j:
             for each_gem in j["gems"]:
+                if shards: # filter to shards
+                    if each_gem["id"] not in shards_of_domination:
+                        continue
+                else: # filter out shards
+                    if each_gem["id"] in shards_of_domination:                    
+                        continue
                 names_in_set += [each_gem["id"]]
                 name_id_icons += [each_gem]
 
@@ -2003,6 +2010,17 @@ def wcl_gems(rankings):
 def wcl_gem_builds(rankings):
     return wcl_parse(rankings,
                      wcl_extract_gems,
+                     only_use_ids=True)
+
+def wcl_shards(rankings):
+    return wcl_parse(rankings,
+                     lambda e: wcl_extract_gems(e, shards=True),
+                     only_use_ids=True,
+                     flatten=True)
+
+def wcl_shard_builds(rankings):
+    return wcl_parse(rankings,
+                     lambda e: wcl_extract_gems(e, shards=True),                     
                      only_use_ids=True)
 
 def wcl_hsc(rankings):
@@ -2410,6 +2428,12 @@ def base_gen_spec_report(spec, mode, encounter="all"):
             
     gem_builds, update_items = wcl_gem_builds(rankings)
     items.update(update_items)
+
+    shards, update_items = wcl_shards(rankings)
+    items.update(update_items)
+            
+    shard_builds, update_items = wcl_shard_builds(rankings)
+    items.update(update_items)    
     
     enchants = {}
     enchant_ids = {}
@@ -2472,7 +2496,7 @@ def base_gen_spec_report(spec, mode, encounter="all"):
     # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
     # raid will return difficulty in max_maxima
     return len(rankings), n_uniques, max_maxima, min_maxima, tea, talents, legendaries, \
-        gear, enchants, gems, gem_builds, \
+        gear, enchants, gems, gem_builds, shards, shard_builds, \
         covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, \
         spells, items, enchant_ids
 
@@ -2802,7 +2826,7 @@ def get_archetype(spec):
 def render_wcl_spec(spec, dungeon="all", prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, n_uniques, key_max, key_min, tea, talents, legendaries, gear, enchants, gems, gem_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids = gen_wcl_spec_report(spec, dungeon)
+    n_parses, n_uniques, key_max, key_min, tea, talents, legendaries, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids = gen_wcl_spec_report(spec, dungeon)
 
 
     title = spec + " - Mythic+"
@@ -2834,6 +2858,8 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
                                enchant_mapping = enchant_mapping,
                                gems = gems,
                                gem_builds = gem_builds,
+                               shards = shards,
+                               shard_builds = shard_builds,                               
                                covenants = covenants,
                                soulbinds = soulbinds,
                                soulbind_abilities = soulbind_abilities,
@@ -3057,7 +3083,7 @@ def render_faq(prefix=""):
 def render_wcl_raid_spec(spec, encounter="all", prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, n_uniques, difficulty, _, tea, talents, legendaries, gear, enchants, gems, gem_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids = gen_wcl_raid_spec_report(spec, encounter)
+    n_parses, n_uniques, difficulty, _, tea, talents, legendaries, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids = gen_wcl_raid_spec_report(spec, encounter)
 
     encounter_pretty = encounter
     if encounter_pretty == "all":
@@ -3094,6 +3120,8 @@ def render_wcl_raid_spec(spec, encounter="all", prefix=""):
                                metric = metric,
                                gems = gems,
                                gem_builds = gem_builds,
+                               shards = shards,
+                               shard_builds = shard_builds,                               
                                covenants = covenants,
                                soulbinds = soulbinds,
                                soulbind_abilities = soulbind_abilities,

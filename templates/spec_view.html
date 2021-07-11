@@ -1,48 +1,29 @@
-{% macro spec_view(n_parses, tea, talents, legendaries, gear, enchants, gems, gem_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, enchant_mapping={}, metric="dps") -%}
+{% macro spec_view(n_parses, tea, talents, legendaries, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, enchant_mapping={}, metric="dps") -%}
 {% import 'spec_overview_table.html' as spec_overview_table %}
 
 <div class="quicknav">
   <a href="#top"><button type="button" class="btn btn-light">&uarr; Top</button></a>
   <a href="#talents"><button type="button" class="btn btn-primary">Talents</button></a>
-
   <a href="#legendaries"><button type="button" class="btn btn-primary">Legendaries</button></a>
   <a href="#covenants"><button type="button" class="btn btn-primary">Covenants</button></a>
   <a href="#soulbinds"><button type="button" class="btn btn-primary">Soulbinds</button></a>
   <a href="#conduits"><button type="button" class="btn btn-primary">Conduits</button></a>
-
- 
+  <a href="#shards"><button type="button" class="btn btn-primary">Shards</button></a>
+  <a href="#gems"><button type="button" class="btn btn-primary">Gems</button></a>      
+  <a href="#enchants"><button type="button" class="btn btn-primary">Enchants</button></a>
+  <a href="#weapons"><button type="button" class="btn btn-primary">Weapon</button></a>
+  <a href="#trinkets"><button type="button" class="btn btn-primary">Trinkets</button></a>
   <a href="#head"><button type="button" class="btn btn-primary">Head</button></a>
   <a href="#neck"><button type="button" class="btn btn-primary">Neck</button></a>  
   <a href="#shoulders"><button type="button" class="btn btn-primary">Shoulder</button></a>
   <a href="#back"><button type="button" class="btn btn-primary">Back</button></a>
-<!--  <a href="#back_enchants"><button type="button" class="btn btn-primary">Back Enchants</button></a>  -->
-  
   <a href="#chests"><button type="button" class="btn btn-primary">Chest</button></a>
-<!--  <a href="#chest_enchants"><button type="button" class="btn btn-primary">Chest Enchants</button></a> -->
-  
   <a href="#wrists"><button type="button" class="btn btn-primary">Wrist</button></a>
-<!--  <a href="#wrist_enchants"><button type="button" class="btn btn-primary">Wrist Enchants</button></a> -->
-
   <a href="#hands"><button type="button" class="btn btn-primary">Hands</button></a>
   <a href="#waists"><button type="button" class="btn btn-primary">Waist</button></a>
-<!--  <a href="#engineering_belt_enhancements"><button type="button" class="btn btn-primary">Eng. Belt Enh.</button></a> -->
-
   <a href="#legs"><button type="button" class="btn btn-primary">Leg</button></a>
   <a href="#feet"><button type="button" class="btn btn-primary">Feet</button></a>
-<!--  <a href="#feet_enchants"><button type="button" class="btn btn-primary">Feet Enchants</button></a> -->
-
   <a href="#rings"><button type="button" class="btn btn-primary">Rings</button></a>
-<!--  <a href="#ring_enchants"><button type="button" class="btn btn-primary">Ring Enchants</button></a> -->
-  
-  <a href="#trinkets"><button type="button" class="btn btn-primary">Trinkets</button></a>
-  
-  <a href="#weapons"><button type="button" class="btn btn-primary">Weapon</button></a>
-<!--  <a href="#weapon_enchants"><button type="button" class="btn btn-primary">Weapon Enchants</button></a> -->
-  
- 
-  <a href="#gems"><button type="button" class="btn btn-primary">Gems</button></a>
-<!--  <a href="#gem_builds"><button type="button" class="btn btn-primary">Gems</button></a> -->
-  
   <a href="#combos"><button type="button" class="btn btn-primary">Combos</button></a>
 </div>
 
@@ -50,16 +31,41 @@
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Legendaries", "Legendary Power", legendaries, spells, "spell", n_parses, anchor_id="legendaries", metric=metric) }}
 
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-6", "Covenants", "Covenant", covenants, spells, "spell", n_parses, anchor_id="covenants", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Soulbinds", "Soulbind", soulbinds, spells, "soulbind", n_parses, anchor_id="soulbinds", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Soulbinds", "Soulbind", soulbinds, spells, "soulbind", n_parses, anchor_id="soulbinds", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-7", "Soulbind Abilities", "Soulbind Abilities", soulbind_abilities, spells, "soulbind", n_parses, anchor_id="soulbind_abilities", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-6", "Soulbind Abilities", "Soulbind Abilities", soulbind_abilities, spells, "soulbind", n_parses, anchor_id="soulbind_abilities", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Conduits", "Conduits", conduits, spells, "spell", n_parses, anchor_id="conduits", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-6", "Conduits", "Conduits", conduits, spells, "spell", n_parses, anchor_id="conduits", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-7", "Conduit Builds", "Conduit Builds", conduit_builds, spells, "spell", n_parses, anchor_id="conduit_builds", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Conduit Builds", "Conduit Builds", conduit_builds, spells, "spell", n_parses, anchor_id="conduit_builds", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Covenants", "Covenant", covenants, spells, "spell", n_parses, anchor_id="covenants", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Shards", "Shard", shards, items, "item", n_parses, anchor_id="shards", metric=metric) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Shard Builds", "Shard(s)", shard_builds, items, "item", n_parses, anchor_id="shard_builds", metric=metric) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Gems", "Gem", gems, items, "item", n_parses, anchor_id="gems", metric=metric) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Gem Builds", "Gem(s)", gem_builds, items, "item", n_parses, anchor_id="gem_builds", metric=metric) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Back Enchants", "Enchant(s)", enchants["cloaks"], enchant_ids, "enchant", n_parses, anchor_id="enchants", metric=metric, enchant_mapping=enchant_mapping) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Chest Enchants", "Enchant(s)", enchants["chests"], enchant_ids, "enchant", n_parses, anchor_id="chest_enchants", metric=metric, enchant_mapping=enchant_mapping) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Wrist Enchants", "Enchant(s)", enchants["wrists"], enchant_ids, "enchant", n_parses, anchor_id="wrist_enchants", metric=metric, enchant_mapping=enchant_mapping) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Engineering Belt Enhancements", "Enhancement(s)", enchants["belts"], enchant_ids, "enchant", n_parses, anchor_id="engineering_belt_enhancements", metric=metric, enchant_mapping=enchant_mapping) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Feet Enchants", "Enchant(s)", enchants["feet"], enchant_ids, "enchant", n_parses, anchor_id="feet_enchants", metric=metric, enchant_mapping=enchant_mapping) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Ring Enchants", "Enchant(s)", enchants["rings"], enchant_ids, "enchant", n_parses, anchor_id="ring_enchants", metric=metric, enchant_mapping=enchant_mapping) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Weapon Enchants", "Enchant(s)", enchants["weapons"], enchant_ids, "enchant", n_parses, anchor_id="weapon_enchants", metric=metric, enchant_mapping=enchant_mapping) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Weapons", "Item(s)", gear["weapons"], items, "item", n_parses, anchor_id="weapons", metric=metric) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Trinkets", "Items", gear["trinkets"], items, "item", n_parses, anchor_id="trinkets", expanded="true", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Head", "Item", gear["helms"], items, "item", n_parses, anchor_id="head", metric=metric) }}
 
@@ -69,44 +75,19 @@
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Back", "Item", gear["cloaks"], items, "item", n_parses, anchor_id="back", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Back Enchants", "Enchant(s)", enchants["cloaks"], enchant_ids, "enchant", n_parses, anchor_id="back_enchants", metric=metric, enchant_mapping=enchant_mapping) }}
-
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Chest", "Item", gear["chests"], items, "item", n_parses, anchor_id="chests", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Chest Enchants", "Enchant(s)", enchants["chests"], enchant_ids, "enchant", n_parses, anchor_id="chest_enchants", metric=metric, enchant_mapping=enchant_mapping) }}
-
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Wrist", "Item", gear["wrists"], items, "item", n_parses, anchor_id="wrists", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Wrist Enchants", "Enchant(s)", enchants["wrists"], enchant_ids, "enchant", n_parses, anchor_id="wrist_enchants", metric=metric, enchant_mapping=enchant_mapping) }}
-
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Hands", "Item", gear["gloves"], items, "item", n_parses, anchor_id="hands", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Waists", "Item", gear["belts"], items, "item", n_parses, anchor_id="waists", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Engineering Belt Enhancements", "Enhancement(s)", enchants["belts"], enchant_ids, "enchant", n_parses, anchor_id="engineering_belt_enhancements", metric=metric, enchant_mapping=enchant_mapping) }}
-
-
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Legs", "Item", gear["legs"], items, "item", n_parses, anchor_id="legs", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Feet", "Item", gear["feet"], items, "item", n_parses, anchor_id="feet", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Feet Enchants", "Enchant(s)", enchants["feet"], enchant_ids, "enchant", n_parses, anchor_id="feet_enchants", metric=metric, enchant_mapping=enchant_mapping) }}
-
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Rings", "Items", gear["rings"], items, "item", n_parses, anchor_id="rings", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Ring Enchants", "Enchant(s)", enchants["rings"], enchant_ids, "enchant", n_parses, anchor_id="ring_enchants", metric=metric, enchant_mapping=enchant_mapping) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Trinkets", "Items", gear["trinkets"], items, "item", n_parses, anchor_id="trinkets", expanded="true", metric=metric) }}
-
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Weapons", "Item(s)", gear["weapons"], items, "item", n_parses, anchor_id="weapons", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Weapon Enchants", "Enchant(s)", enchants["weapons"], enchant_ids, "enchant", n_parses, anchor_id="weapon_enchants", metric=metric, enchant_mapping=enchant_mapping) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Gems", "Gem", gems, items, "item", n_parses, anchor_id="gems", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Gem Builds", "Gem(s)", gem_builds, items, "item", n_parses, anchor_id="gem_builds", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-12 col-lg-12", "Talent / Legendary / Soulbind / Conduit Combinations", "Combination", tea, spells, "spell", n_parses, offset_first="&nbsp;", offset_at = [6], anchor_id="combos", metric=metric) }}
 {%- endmacro %}
