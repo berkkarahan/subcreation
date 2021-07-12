@@ -36,15 +36,7 @@
         {% endif %}
 
         {% else %}
-        {% if title == "Trinkets" %}
-        {% if lookup[k][0] == 178708 %}
-        <a href="https://www.wowhead.com/?item=178708"><img width="36" height="36" src="https://mplus.subcreation.net/images/items/unbound_changeling.jpg"></a>
-        {% else %}
         <a href="https://www.wowhead.com/{{lookup_type}}={{lookup[k][0]}}"></a>
-        {% endif %}
-        {% else %}        
-        <a href="https://www.wowhead.com/{{lookup_type}}={{lookup[k][0]}}"></a>
-        {% endif %}
         {% endif %}
         {% if loop.index0 in offset_at %}
         {{offset_first}}
