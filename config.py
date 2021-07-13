@@ -16,8 +16,8 @@ RAID_NAME = "Sanctum of Domination"
 
 # late in the season, set this at 16
 # early in the seaseon, set this at 10
-MIN_KEY_LEVEL = 10
+MIN_KEY_LEVEL = 16
 
 
 # to generate a tier list based on heroic week data
-MAX_RAID_DIFFICULTY = "Heroic"
+MAX_RAID_DIFFICULTY = "Mythic"
