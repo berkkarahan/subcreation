@@ -5,29 +5,63 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col-12 py-3">
-      <h1><img src="images/specs/{{spec_slug}}.jpg" width="56" height="56"/> {{spec}} - {{encounter_pretty}}</h1>
+      <h1><img src="images/specs/{{spec_slug}}.jpg" width="56" height="56"/> {{spec}} - {{encounter_pretty}}{% if difficulty == "Heroic" %} (Heroic){% endif %}</h1>
       <p>
-        <i>The {%include "blurb-top.html"%} based on data from the top {{n_parses}} {{spec}} {{difficulty}} {{encounter_pretty}} {%if encounter=="all"%}(except Tarragrue){%endif%} logs ({{n_uniques}} unique characters) by <b>{{metric}}</b> from the past 4 weeks.</i>
+        <i>The {%include "blurb-top.html"%} based on data from the top {{n_parses}} {{spec}} {{available_difficulty}} {{encounter_pretty}} {%if encounter=="all"%}(except Tarragrue){%endif%} logs ({{n_uniques}} unique characters) by <b>{{metric}}</b> from the past 4 weeks.</i>
       </p>
     </div>
   </div>
 
-  {% if "Mythic" not in difficulty and "Heroic" not in difficulty and n_parses > 0 %}
+  {% if difficulty == "Mythic" %}
+  {% if "Mythic" not in available_difficulty and "Heroic" not in available_difficulty and n_parses > 0 %}
   <div class="alert alert-danger">
     <h3>
-      There are no public Mythic or Heroic parses for {{spec}} on {{encounter_pretty}}. Until there are, temporarily using <b>Normal</b> data below.
+      Temporarily using <b>Normal</b> parses because there are no public Mythic or Heroic parses.
     </h3>
   </div>  
-
-  {% elif "Mythic" not in difficulty and n_parses > 0 %}
+  {% elif "Mythic" not in available_difficulty and n_parses > 0 %}
   <div class="alert alert-warning">
     <h3>
-      There are no public Mythic parses for {{spec}} on {{encounter_pretty}}. Until there are, temporarily using <b>{{difficulty}}</b> data below.
+      Temporarily using <b>{{available_difficulty}}</b> parses because there are no public Mythic parses.
     </h3>
   </div>
   {% endif %}  
+  {% else %}
+  {% if "Heroic" not in available_difficulty and n_parses > 0 %}
+  <div class="alert alert-danger">
+    <h3>
+      Temporarily using <b>Normal</b> parses because there are no public Heroic parses.
+    </h3>
+  </div>  
+  {% endif %}  
+  {% endif %}
 
-    <div class="boss-navbar d-flex py-3 justify-content-center flex-wrap " id="navbarSupportedContent">
+ 
+  <div class="boss-navbar d-flex py-3 justify-content-center flex-wrap " id="navbarSupportedContent">
+
+    <div style="height: 73.5px;">
+      {% if max_raid_difficulty == "Mythic" %}
+      <div style="height: 50%;">
+      {% if difficulty == "Mythic" %}
+      <b>Mythic</b>
+      {% else %}
+      <a href="{{prefix}}{{spec_slug}}{% if encounter!="all" %}-{{encounter_slug}}{% endif %}.html">
+        Mythic
+      </a>
+      {% endif %}
+    </div>
+      {% endif %}    
+    <div style="height: 50%;">
+      {% if difficulty == "Heroic" %}
+      <b>Heroic</b>
+      {% else %}
+      <a href="{{prefix}}{{spec_slug}}{% if encounter!="all" %}-{{encounter_slug}}{% endif %}-heroic.html">
+        Heroic
+      </a>
+      {% endif %}
+    </div>
+  </div>
+    
           <div class="boss-box {{ ' active' if encounter == "all" else '' }}">
             <a class="boss-link" href="{{prefix}}{{spec_slug}}.html">
               <img src="images/bosses/sanctum/sanctum.jpg" width="51" height="51" alt="All Bosses" title="All Bosses"><br/>All Bosses
@@ -37,7 +71,7 @@
         
         {% for e in raid_canonical_order %}
           <div class="boss-box {{ ' active' if encounter_slugs[e] in active_page else '' }}">
-            <a class="boss-link" href="{{prefix}}{{spec_slug}}-{{encounter_slugs[e]}}.html">
+            <a class="boss-link" href="{{prefix}}{{spec_slug}}-{{encounter_slugs[e]}}{% if difficulty == "Heroic" %}-heroic{% endif %}.html">
               <img src="images/bosses/sanctum/{{encounter_slugs[e]}}.jpg" width="51" height="51" alt="{{e}}" title="{{e}}"><br/>
              {{raid_short_names[e]}}
             </a>
@@ -61,7 +95,7 @@
 
 <div class="alert alert-warning">
   <h3>
-    No public parses available yet for {{spec}} ({{encounter_pretty}})
+    No public parses available yet
   </h3>
 </div>
 </div>
