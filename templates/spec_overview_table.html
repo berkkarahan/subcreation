@@ -34,7 +34,8 @@
         {% else %}
         <a href="https://www.wowhead.com/spell={{lookup[k][0]}}"></a>
         {% endif %}
-
+        {% elif lookup_type == "covenant" %}
+        <a href="https://www.wowhead.com/spell={{lookup[k]}}" title="{{lookup[k]}}"></a>
         {% else %}
         <a href="https://www.wowhead.com/{{lookup_type}}={{lookup[k][0]}}"></a>
         {% endif %}

@@ -1,4 +1,4 @@
-{% macro spec_view(n_parses, tea, talents, legendaries, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, enchant_mapping={}, metric="dps") -%}
+{% macro spec_view(n_parses, tea, talents, legendaries, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, covenantNameToID, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, enchant_mapping={}, metric="dps") -%}
 {% import 'spec_overview_table.html' as spec_overview_table %}
 
 <div class="quicknav">
@@ -31,7 +31,7 @@
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Legendaries", "Legendary Power", legendaries, spells, "spell", n_parses, anchor_id="legendaries", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-6", "Covenants", "Covenant", covenants, spells, "spell", n_parses, anchor_id="covenants", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-6", "Covenants", "Covenant", covenants, covenantNameToID, "covenant", n_parses, anchor_id="covenants", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Soulbinds", "Soulbind", soulbinds, spells, "soulbind", n_parses, anchor_id="soulbinds", metric=metric) }}
 

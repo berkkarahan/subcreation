@@ -25,6 +25,7 @@ import cloudstorage as gcs
 from shadowlands import dungeons, dungeon_slugs, dungeon_short_names, slugs_to_dungeons
 from shadowlands import tormented_weeks as affix_rotation_weeks
 from shadowlands import covenantID_mapping
+from shadowlands import covenantNameToID
 from shadowlands import shards_of_domination # shards of dominaion ids
 
 from warcraft import specs, tanks, healers, melee, ranged, role_titles, regions, pvp_regions, pvp_modes
@@ -2926,6 +2927,7 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
                                shards = shards,
                                shard_builds = shard_builds,                               
                                covenants = covenants,
+                               covenantNameToID = covenantNameToID,
                                soulbinds = soulbinds,
                                soulbind_abilities = soulbind_abilities,
                                conduits = conduits,
@@ -3200,6 +3202,7 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
                                shards = shards,
                                shard_builds = shard_builds,                               
                                covenants = covenants,
+                               covenantNameToID = covenantNameToID,
                                soulbinds = soulbinds,
                                soulbind_abilities = soulbind_abilities,
                                conduits = conduits, 

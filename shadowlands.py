@@ -44,6 +44,10 @@ covenantID_mapping[4] = {"name" : "Necrolord",
                          "id" : 321078,
                          "icon" : "ui_sigil_necrolord.jpg"}
 
+covenantNameToID = {}
+for k, v in covenantID_mapping.iteritems():
+    covenantNameToID[v["name"]] = v["id"]
+
 
 # itemIds for shards of domination
 
