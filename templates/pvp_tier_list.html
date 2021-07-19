@@ -4,7 +4,7 @@
 <div class="col-xl-4 col-lg-6 py-2">
   <h2>{{ns}} Tier List</h2>
     <p>
-      <b class="affixes">{% if mode=="all" %}<img src="images/modes/rbg.jpg" width="20" height="20"> All Rated PvP Modes{% else %}<img src="images/modes/{{mode_slug}}.jpg" width="20" height="20"> {{pvp_pretty_names[mode]}}{% endif %}</b><br/>
+      <b class="affixes">{% if mode=="all" %}<img src="images/modes/rbg.jpg" width="20" height="20"> All Rated PvP Modes (across 2v2, 3v3, RBG){% else %}<img src="images/modes/{{mode_slug}}.jpg" width="20" height="20"> {{pvp_pretty_names[mode]}}{% endif %}</b><br/>
   <i>Based {%if mode != "all" %}<b>solely</b> {%endif%}on <b>{%if mode == "all"%}normalized {%endif%}rating</b> from {{role_stats["n"]}} leaderboard entries. Please see the <a href="https://subcreation.net/faq.html#pvp">FAQ</a> for more info, including important caveats.</i>
     </p>
     {{ tier_list.tier_list(t) }}
