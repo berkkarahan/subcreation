@@ -43,8 +43,10 @@
 
   {% if active_section == "main" and not active_page == "main-covenants" %}
   {{ navbar.navbar_main_secondary(active_section, active_page, prefix) }}
-  {% else %}
+  {% elif active_page == "main-covenants" %}
   {{ navbar.navbar_main_secondary(active_section, active_page, prefix) }}
+  {% include "advertisement.html" %}
+  {% else %}
   {% include "advertisement.html" %}
   {% endif %} 
   
