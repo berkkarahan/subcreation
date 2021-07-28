@@ -148,7 +148,12 @@ def parse_response(data, dungeon, affixes, region, page):
 def update_dungeon_affix_region(dungeon, affixes, region, season=RIO_SEASON, page=0):
     '''For a given dungeon, affixes, region, season, and page, get top M+ runs'''
     dungeon_slug = slugify.slugify(unicode(dungeon))
+
+    if region == "cn" and affixes == "current": # not working properly for cn
+        affixes = current_affixes()
+    
     affixes_slug = slugify.slugify(unicode(affixes))
+
 
     req_url = "https://raider.io/api/v1/mythic-plus/runs?"
     req_url += "season=%s&region=%s&affixes=%s&dungeon=%s&page=%d" \
