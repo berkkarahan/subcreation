@@ -74,7 +74,7 @@
         {% if r_data[spec["name"]][cov][0] < 5 %}
         <i>
         {% endif %}          
-        <a href="https://mplus.subcreation.net/{{spec["slug"]}}.html#covenants" style="color: {% if cov == r_data[spec["name"]]["max_cov"] %}black;{% elif r_data[spec["name"]][cov][0] >= 5 %}{{r_data[spec["name"]][cov][2]}}{% else %}gray{%endif%};">{%if r_data[spec["name"]][cov][0]==0%}{%else%}{{r_data[spec["name"]][cov][0]}}%{%endif%}</a>
+        <a href="https://raid.subcreation.net/{{spec["slug"]}}.html#covenants" style="color: {% if cov == r_data[spec["name"]]["max_cov"] %}black;{% elif r_data[spec["name"]][cov][0] >= 5 %}{{r_data[spec["name"]][cov][2]}}{% else %}gray{%endif%};">{%if r_data[spec["name"]][cov][0]==0%}{%else%}{{r_data[spec["name"]][cov][0]}}%{%endif%}</a>
         {% if r_data[spec["name"]][cov][0] >= 40 %}
         </b>
         {% endif %}
