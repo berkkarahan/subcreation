@@ -8,7 +8,7 @@ RIO_MAX_PAGE = 5
 # need to update in templates/navbar.html
 RIO_SEASON = "season-sl-3" 
 
-WCL_SEASON = 2
+WCL_SEASON = 3
 WCL_PARTITION = 1
 
 # config
