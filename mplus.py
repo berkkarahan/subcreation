@@ -3520,6 +3520,14 @@ def create_raid_spec_overview(s, e="all", difficulty=MAX_RAID_DIFFICULTY):
     else:
         encounter_slug = slugify.slugify(unicode(e))
         filename_slug = "%s-%s" % (spec_slug, encounter_slug)
+
+    # special handling for heroic week -- write both files
+    if MAX_RAID_DIFFICULTY == "Heroic":
+        filename = filename_slug + ".html"
+        options = TaskRetryOptions(task_retry_limit = 1)        
+        deferred.defer(raid_write_to_storage, filename, rendered,
+                       _retry_options=options)
+    
     if difficulty == "Heroic":
         filename_slug += "-heroic"
     filename = filename_slug + ".html"

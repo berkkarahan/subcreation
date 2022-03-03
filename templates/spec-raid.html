@@ -63,7 +63,7 @@
   </div>
     
           <div class="boss-box {{ ' active' if encounter == "all" else '' }}">
-            <a class="boss-link" href="{{prefix}}{{spec_slug}}.html">
+            <a class="boss-link" href="{{prefix}}{{spec_slug}}{% if difficulty == "Heroic" %}-heroic{% endif %}.html">
               <img src="images/bosses/sepulcher/sepulcher.jpg" width="51" height="51" alt="All Bosses" title="All Bosses"><br/>All Bosses
             </a>
           </div>
