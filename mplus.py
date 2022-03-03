@@ -26,7 +26,6 @@ from shadowlands import dungeons, dungeon_slugs, dungeon_short_names, slugs_to_d
 from shadowlands import tormented_weeks as affix_rotation_weeks
 from shadowlands import covenantID_mapping
 from shadowlands import covenantNameToID
-from shadowlands import shards_of_domination # shards of dominaion ids
 
 from warcraft import specs, tanks, healers, melee, ranged, role_titles, regions, pvp_regions, pvp_modes
 from warcraft import spec_short_names
@@ -39,14 +38,15 @@ from models import SpecRankings, SpecRankingsRaid, CovenantStats, RaidCounts, Du
 from auth import api_key
 from wcl import wcl_specs
 from wcl_shadowlands import dungeon_encounters
-from wcl_shadowlands import sanctum_of_domination_encounters as raid_encounters
+from wcl_shadowlands import sepulcher_encounters as raid_encounters
+from shadowlands import shards_of_domination
 
 from enchants import enchant_mapping
 
 
-from sanctum_of_domination import sanctum_of_domination_canonical_order as raid_canonical_order
-from sanctum_of_domination import sanctum_of_domination_short_names as raid_short_names
-from sanctum_of_domination import sanctum_of_domination_ignore as raid_ignore
+from sepulcher import sepulcher_canonical_order as raid_canonical_order
+from sepulcher import sepulcher_short_names as raid_short_names
+from sepulcher import sepulcher_ignore as raid_ignore
 
 # cloudflare cache handling
 from auth import cloudflare_api_key, cloudflare_zone
@@ -2492,7 +2492,7 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     conduit_builds, update_spells = wcl_conduit_builds(rankings)
     spells.update(update_spells)
 
-    # legendary powers
+    # legendary power
     legendaries, update_spells = wcl_legendaries(rankings)
     spells.update(update_spells)
 
@@ -2502,8 +2502,10 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     gem_builds, update_items = wcl_gem_builds(rankings)
     items.update(update_items)
 
-    shards, update_items = wcl_shards(rankings)
-    items.update(update_items)
+    # 9.2: bye bye shards
+    shards = {}
+#    shards, update_items = wcl_shards(rankings)
+#    items.update(update_items)
             
     shard_builds, update_items = wcl_shard_builds(rankings)
     items.update(update_items)    
@@ -3134,7 +3136,7 @@ def render_main_covenants(prefix=""):
                                n_parses = n_parses,
                                m_data = m_data,
                                r_data = r_data,
-                               title = "Top Covenants for Mythic+ Season 2 and Sanctum of Domination",
+                               title = "Top Covenants for Mythic+ Season 3 and Sepulcher of the First Ones",
                                active_section = "main",
                                active_page = "main-covenants",
                                last_updated = localized_time(last_updated))
