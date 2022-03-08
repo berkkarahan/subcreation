@@ -14,12 +14,11 @@ WCL_PARTITION = 1
 # config
 RAID_NAME = "Sepulcher of the First Ones"
 
-# late in the season, set this at 16
-# early in the seaseon, set this at 10
-MIN_KEY_LEVEL = 10
-
+# for heroic week, set this to 10
+# after that in the season, set this at 16
+MIN_KEY_LEVEL = 16
 
 # to generate a tier list based on heroic week data
 # have to manually toggle this
-#MAX_RAID_DIFFICULTY = "Mythic"
-MAX_RAID_DIFFICULTY = "Heroic"
+MAX_RAID_DIFFICULTY = "Mythic"
+#MAX_RAID_DIFFICULTY = "Heroic"
