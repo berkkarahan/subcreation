@@ -26,11 +26,14 @@
   <a href="#combos"><button type="button" class="btn btn-primary">Combos</button></a>
 </div>
 
-{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-7", "Talent Builds", "Talents", talents, spells, "spell", n_parses, anchor_id="talents", expanded="true", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-7", "Talent Builds", "Talents", talents, spells, "spell", n_parses, anchor_id="talents", expanded="true", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-6", "Legendaries", "Legendary Power", single_legendaries, spells, "spell", n_parses, anchor_id="single_legendaries", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Legendaries", "Legendary Power", legendaries, spells, "spell", n_parses, anchor_id="legendaries", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-6", "Legendary combos", "Legendary Combos", legendaries, spells, "spell", n_parses, anchor_id="legendaries", metric=metric) }}
+<!-- Enable below when double legendaries hits, remove the above two lines. -->
+<!-- {{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-7", "Talent Builds", "Talents", talents, spells, "spell", n_parses, anchor_id="talents", expanded="true", metric=metric) }} -->
+<!-- {{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-6", "Legendaries", "Legendary Power", single_legendaries, spells, "spell", n_parses, anchor_id="single_legendaries", metric=metric) }} -->
+<!-- {{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-6", "Legendary combos", "Legendary Combos", legendaries, spells, "spell", n_parses, anchor_id="legendaries", metric=metric) }} -->
 
 {{ spec_overview_table.spec_overview_table("col-xl-3 col-lg-6", "Covenants", "Covenant", covenants, covenantNameToID, "covenant", n_parses, anchor_id="covenants", metric=metric) }}
 
