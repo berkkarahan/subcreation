@@ -2210,6 +2210,9 @@ def wcl_covenants(rankings):
 def wcl_legendaries(rankings):
     return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "legendaryEffects"))
 
+def wcl_single_legendaries(rankings):
+    return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "legendaryEffects"), flatten=True)
+
 def wcl_conduit_builds(rankings):
     return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "conduitPowers"))
 
@@ -2496,6 +2499,9 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     legendaries, update_spells = wcl_legendaries(rankings)
     spells.update(update_spells)
 
+    single_legendaries, update_spells = wcl_single_legendaries(rankings)
+    spells.update(update_spells)
+
     gems, update_items = wcl_gems(rankings)
     items.update(update_items)
             
@@ -2570,7 +2576,7 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     return len(rankings), n_uniques, max_maxima, min_maxima, tea, talents, legendaries, \
         gear, enchants, gems, gem_builds, shards, shard_builds, \
         covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, \
-        spells, items, enchant_ids
+        spells, items, enchant_ids, single_legendaries
 
 
 ## end wcl parsing code
@@ -2899,7 +2905,7 @@ def get_archetype(spec):
 def render_wcl_spec(spec, dungeon="all", prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, n_uniques, key_max, key_min, tea, talents, legendaries, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids = gen_wcl_spec_report(spec, dungeon)
+    n_parses, n_uniques, key_max, key_min, tea, talents, legendaries, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, single_legendaries = gen_wcl_spec_report(spec, dungeon)
 
 
     title = spec + " - Mythic+"
@@ -2924,6 +2930,7 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
                                tea = tea,
                                talents = talents,
                                legendaries = legendaries,
+                               single_legendaries = single_legendaries,
                                affixes = affixes,
                                gear = gear,
                                enchants = enchants,
@@ -3169,7 +3176,7 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
     logging.info("%s %s %s" % (spec, encounter, difficulty))
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, n_uniques, available_difficulty, _, tea, talents, legendaries, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty)
+    n_parses, n_uniques, available_difficulty, _, tea, talents, legendaries, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, single_legendaries = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty)
 
     encounter_pretty = encounter
     if encounter_pretty == "all":
