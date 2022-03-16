@@ -38,11 +38,11 @@ ludus_access_key = ""
 
 if you just want m+ tier lists, you can leave this file as is, as the raider.io api doesn't require any api keys
 
-api_key refers to the warcraft logs api key, which you'll need to provide if youwant to pull information from the WCL v1 api
+api_key refers to the warcraft logs api key, which you'll need to provide if youwant to pull information from the WCL v1 api. You can get a v1 API key by creating and logging into an account on warcraftlogs and then scrolling to the bottom https://www.warcraftlogs.com/profile and copying it from where it says "V1 Client Key." Please note the rate limit and be a good netizen.
 
-cloudflare api keys shouldn't matter unless you're deploying the site somewhere (I use them to update caching once a page is updated)
+Cloudflare api keys shouldn't matter unless you're deploying the site somewhere (I use them to update caching once a page is updated). You can likely safely ignore this.
 
-the ludus_access_key is for updating from ludus lab's pvp api; you'll need to ask ludus labs to see if they'd be willing to provide a key
+The ludus_access_key is for updating from ludus labs' pvp api; you'll need to ask ludus labs to see if they'd be willing to provide a key. If you don't care about PvP tier lists you can safely ignore this.
 
 2. In the mplus.subcreation.net folder, run `dev_appserver ./`
 
