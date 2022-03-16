@@ -2230,8 +2230,11 @@ def wcl_extract_covenants(ranking):
 def wcl_covenants(rankings):
     return wcl_parse(rankings, wcl_extract_covenants, only_use_ids=False)
 
-def wcl_legendaries(rankings):
+def wcl_legendary_builds(rankings):
     return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "legendaryEffects"))
+
+def wcl_legendaries(rankings):
+    return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "legendaryEffects"), flatten=True)
 
 def wcl_conduit_builds(rankings):
     return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "conduitPowers"))
@@ -2516,6 +2519,9 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     spells.update(update_spells)
 
     # legendary power
+    legendary_builds, update_spells = wcl_legendary_builds(rankings)
+    spells.update(update_spells)
+
     legendaries, update_spells = wcl_legendaries(rankings)
     spells.update(update_spells)
 
@@ -2597,9 +2603,11 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
     # raid will return available_difficulty in max_maxima
     return len(rankings), n_uniques, max_maxima, min_maxima, tea, talents, legendaries, \
+        legendary_builds, \
         gear, enchants, gems, gem_builds, shards, shard_builds, \
         covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, \
         spells, items, enchant_ids, tier_items, tier_builds
+
 
 
 ## end wcl parsing code
@@ -2928,7 +2936,8 @@ def get_archetype(spec):
 def render_wcl_spec(spec, dungeon="all", prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, n_uniques, key_max, key_min, tea, talents, legendaries, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, tier_items, tier_builds = gen_wcl_spec_report(spec, dungeon)
+    n_parses, n_uniques, key_max, key_min, tea, talents, legendaries, legendary_builds, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, tier_items, tier_builds = gen_wcl_spec_report(spec, dungeon)
+
 
 
     title = spec + " - Mythic+"
@@ -2953,6 +2962,7 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
                                tea = tea,
                                talents = talents,
                                legendaries = legendaries,
+                               legendary_builds = legendary_builds,
                                affixes = affixes,
                                gear = gear,
                                enchants = enchants,
@@ -3200,7 +3210,7 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
     logging.info("%s %s %s" % (spec, encounter, difficulty))
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, n_uniques, available_difficulty, _, tea, talents, legendaries, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, tier_items, tier_builds = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty)
+    n_parses, n_uniques, available_difficulty, _, tea, talents, legendaries, legendary_builds, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, tier_items, tier_builds = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty)
 
     encounter_pretty = encounter
     if encounter_pretty == "all":
@@ -3227,6 +3237,7 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
                                tea = tea,
                                talents = talents,
                                legendaries = legendaries,
+                               legendary_builds = legendary_builds,
                                affixes = affixes,
                                gear = gear,
                                spells = spells,
