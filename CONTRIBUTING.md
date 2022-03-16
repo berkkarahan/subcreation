@@ -55,7 +55,7 @@ INFO     2022-03-15 19:47:24,062 admin_server.py:150] Starting admin server at: 
 INFO     2022-03-15 19:47:26,094 instance.py:294] Instance PID: 23580
 ```
 
-3. If you go to http://localhost:8000 you should see a Google App Engine page.
+3. If you go to http://localhost:8000 you should see a Google App Engine page. Notably, you can use http://localhost:8000/taskqueue to check taskqueue progress (e.g. when pulling test data, such as below).
 
 4. If you go to http://localhost:8080 you should get a 404 page.
 
