@@ -57,6 +57,8 @@ from auth import ludus_access_key
 ## globals
 from config import RIO_MAX_PAGE
 from shadowlands import dungeons as DUNGEONS
+from wcl_shadowlands import covenant_legendaries as covenant_legendaries
+
 from warcraft import regions as REGIONS
 from config import RIO_MAX_PAGE, RIO_SEASON, RAID_NAME
 from config import WCL_SEASON, WCL_PARTITION
@@ -1972,6 +1974,34 @@ def wcl_generic_extract(ranking, category):
 
     return names_in_set, name_id_icons
 
+# extract legendaries
+# have to handle covenant legendaries
+def wcl_extract_legendaries(ranking):
+    category = "legendaryEffects"
+    names_in_set = []
+    name_id_icons = []
+    if category not in ranking:
+        return [], []
+
+    # need class info
+    if "class" not in ranking:
+        return [], []
+    
+    # need covenant info
+    if "covenantID" not in ranking:
+        return [], []
+    
+    for i, j in enumerate(ranking[category]):
+        if j["id"] == 364824: # Unity ... map to the appropriate cov
+            if ranking["class"] in covenant_legendaries:
+                # hacky as hell but well, it works
+                j["id"] = covenant_legendaries[ranking["class"]][ranking["covenantID"]-1]
+                            
+        names_in_set += [j["id"]]
+        name_id_icons += [j]
+
+    return names_in_set, name_id_icons
+
 
 # extract gear a single ranking
 def wcl_extract_gear(ranking, slots):
@@ -2231,10 +2261,10 @@ def wcl_covenants(rankings):
     return wcl_parse(rankings, wcl_extract_covenants, only_use_ids=False)
 
 def wcl_legendary_builds(rankings):
-    return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "legendaryEffects"))
+    return wcl_parse(rankings, lambda e: wcl_extract_legendaries(e))
 
 def wcl_legendaries(rankings):
-    return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "legendaryEffects"), flatten=True)
+    return wcl_parse(rankings, lambda e: wcl_extract_legendaries(e), flatten=True)
 
 def wcl_conduit_builds(rankings):
     return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "conduitPowers"))
@@ -2251,7 +2281,7 @@ def wcl_extract_tea(ranking):
     names_in_set += add_names
     name_id_icons += add_icons
 
-    add_names, add_icons = wcl_generic_extract(ranking, "legendaryEffects")
+    add_names, add_icons = wcl_extract_legendaries(ranking)
     names_in_set += add_names
     name_id_icons += add_icons
 
