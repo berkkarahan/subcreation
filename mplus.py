@@ -58,6 +58,7 @@ from auth import ludus_access_key
 from config import RIO_MAX_PAGE
 from shadowlands import dungeons as DUNGEONS
 from wcl_shadowlands import covenant_legendaries as covenant_legendaries
+from wcl_shadowlands import unity_ids as unity_ids
 
 from warcraft import regions as REGIONS
 from config import RIO_MAX_PAGE, RIO_SEASON, RAID_NAME
@@ -1992,7 +1993,8 @@ def wcl_extract_legendaries(ranking):
         return [], []
     
     for i, j in enumerate(ranking[category]):
-        if j["id"] == 364824: # Unity ... map to the appropriate cov
+        # each class has its own unity id >.>
+        if j["id"] == unity_ids[ranking["class"]]: 
             if ranking["class"] in covenant_legendaries:
                 # hacky as hell but well, it works
                 j["id"] = covenant_legendaries[ranking["class"]][ranking["covenantID"]-1]
@@ -4179,7 +4181,7 @@ class TestWCLGetRankings(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
-        update_wcl_update_subset(["Havoc Demon Hunter"])
+        update_wcl_update_subset(["Havoc Demon Hunter", "Fury Warrior"])
 #        update_wcl_update_subset(["Survival Hunter"])
 
 class WCLGetRankingsRaid(webapp2.RequestHandler):
@@ -4210,7 +4212,7 @@ class TestWCLGetRankingsRaid(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
-        update_wcl_raid_update_subset(["Havoc Demon Hunter"]) 
+        update_wcl_raid_update_subset(["Havoc Demon Hunter", "Fury Warrior"]) 
 
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):

@@ -23,19 +23,34 @@ sepulcher_encounters["Lords of Dread"] = 2543
 sepulcher_encounters["Rygelon"] = 2549
 sepulcher_encounters["The Jailer"] = 2537
 
-
-
-
-
-
 # aligning with specs since use that
 # this is using wcl ids
 
 covenant_legendaries = {}
+unity_ids = {}
+
+# unity ids -- each class has its own unity id
+
+unity_ids[1] = 364758 # dk
+unity_ids[2] = 364814 # druid
+unity_ids[3] = 364743 # hunter
+unity_ids[4] = 364852 # mage
+unity_ids[5] = 364857 # monk
+unity_ids[6] = 364642 # paladin
+unity_ids[7] = 364911 # priest
+unity_ids[8] = 364922 # rogue
+unity_ids[9] = 364738 # shaman
+unity_ids[10] = 364939 # warlock
+unity_ids[11] = 364929 # warrior
+unity_ids[12] = 364824 # dh
 
 # ids from https://www.wowhead.com/guides/covenant-specific-legendaries-in-shadowlands-9-1
 # ordering:
 # kyrian, necrolord, night fae, venthyr
+
+
+
+
 covenant_legendaries[1] = [353822, 353447, 353882, 353699] # dk
 covenant_legendaries[2] = [354115, 354123, 354118, 354109] # druid
 covenant_legendaries[3] = [356262, 356264, 356375, 356618] # hunter
