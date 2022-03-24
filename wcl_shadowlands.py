@@ -45,21 +45,19 @@ unity_ids[11] = 364929 # warrior
 unity_ids[12] = 364824 # dh
 
 # ids from https://www.wowhead.com/guides/covenant-specific-legendaries-in-shadowlands-9-1
-# ordering:
-# kyrian, necrolord, night fae, venthyr
+# ordering according to cov id
+# kyrian, venthyr, night fae, necrolord
+# note the ordering on the wowhead page does NOT correspod to cov id
 
-
-
-
-covenant_legendaries[1] = [353822, 353447, 353882, 353699] # dk
-covenant_legendaries[2] = [354115, 354123, 354118, 354109] # druid
-covenant_legendaries[3] = [356262, 356264, 356375, 356618] # hunter
-covenant_legendaries[4] = [354186, 354294, 356877, 354333] # mage
-covenant_legendaries[5] = [356684, 356592, 356705, 356818] # monk
-covenant_legendaries[6] = [355098, 355099, 355100, 355447] # paladin
-covenant_legendaries[7] = [356395, 356390, 356391, 356392] # priest
-covenant_legendaries[8] = [354837, 354731, 354473, 354703] # rogue
-covenant_legendaries[9] = [356789, 356218, 354647, 356250] # shaman
-covenant_legendaries[10] = [356254, 356342, 356362, 356259] # warlock
-covenant_legendaries[11] = [357996, 353577, 354161, 354131] # warrior
-covenant_legendaries[12] = [355893, 355996, 355890, 355886] # dh
+covenant_legendaries[1] = [353822, 353699, 353882, 353447] # dk
+covenant_legendaries[2] = [354115, 354109, 354118, 354123] # druid
+covenant_legendaries[3] = [356262, 356618, 356375, 356264] # hunter
+covenant_legendaries[4] = [354186, 354333, 356877, 354294] # mage
+covenant_legendaries[5] = [356684, 356818, 356705, 356592] # monk
+covenant_legendaries[6] = [355098, 355447, 355100, 355099] # paladin
+covenant_legendaries[7] = [356395, 356392, 356391, 356390] # priest
+covenant_legendaries[8] = [354837, 354703, 354473, 354731] # rogue
+covenant_legendaries[9] = [356789, 356250, 354647, 356218] # shaman
+covenant_legendaries[10] = [356254, 356259, 356362, 356342] # warlock
+covenant_legendaries[11] = [357996, 354131, 354161, 353577] # warrior
+covenant_legendaries[12] = [355893, 355886, 355890, 355996] # dh
