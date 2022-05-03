@@ -2627,11 +2627,12 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
 
         store_in_stats = False
 
+        # always store mplus stats
         if mode == "mplus":
             store_in_stats = True
 
-
-        # only store stats from the top difficulty
+        # for raid
+        # only store stats from the max difficulty
         # otherwise lesser difficulties will overwrite this
         if mode == "raid":
             if MAX_RAID_DIFFICULTY == difficulty:
