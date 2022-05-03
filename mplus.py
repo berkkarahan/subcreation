@@ -2613,7 +2613,7 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
         max_maxima = available_difficulty
 
     if encounter == "all":
-
+       
         # log cov stats if it's all encounters
         spec_slug = slugify.slugify(unicode(spec))
         mode_slug = slugify.slugify(unicode(mode))
@@ -2625,11 +2625,24 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
         data["n_uniques"] = n_uniques
         data["covenants"] = covenants
 
-        cov_stats = CovenantStats(id = key_slug,
-                                  spec = spec,
-                                  mode = mode,
-                                  data = json.dumps(data))
-        cov_stats.put()
+        store_in_stats = False
+
+        if mode == "mplus":
+            store_in_stats = True
+
+
+        # only store stats from the top difficulty
+        # otherwise lesser difficulties will overwrite this
+        if mode == "raid":
+            if MAX_RAID_DIFFICULTY == difficulty:
+                store_in_stats = True
+
+        if store_in_stats:
+            cov_stats = CovenantStats(id = key_slug,
+                                      spec = spec,
+                                      mode = mode,
+                                      data = json.dumps(data))
+            cov_stats.put()
     
         
     # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
