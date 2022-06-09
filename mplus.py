@@ -583,8 +583,7 @@ def render_affix_tier_list(tiers, tm, api=False):
             this_set = k[1]
             affix_set = ""
             
-            # @@ link issue -- we're pulling in (A) (B) during s4
-            slug_link = slugify.slugify(k[1][:-4])
+            slug_link = slugify.slugify(k[1])
             if current_set in this_set:
                 slug_link = "index"
 
