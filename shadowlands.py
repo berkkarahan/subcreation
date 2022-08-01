@@ -1,27 +1,23 @@
 import slugify
 
-dungeons = ["De Other Side",
-            "Halls of Atonement",
-            "Mists of Tirna Scithe",
-            "The Necrotic Wake",            
-            "Plaguefall",
-            "Sanguine Depths",
-            "Spires of Ascension",
-            "Theater of Pain",
-            "Tazavesh: Streets of Wonder",
-            "Tazavesh: So'leah's Gambit"]            
+dungeons = ["Tazavesh: Streets of Wonder",
+            "Tazavesh: So'leah's Gambit",
+            "Mechagon: Junkyard",
+            "Mechagon: Workshop",
+            "Upper Karazhan",
+            "Lower Karazhan",
+            "Iron Docks",
+            "Grimrail Depot"]            
 
 dungeon_short_names = {}
-dungeon_short_names["De Other Side"] = "DOS"
-dungeon_short_names["Halls of Atonement"] = "HOA"
-dungeon_short_names["Mists of Tirna Scithe"] = "MISTS"
-dungeon_short_names["Plaguefall"] = "PF"
-dungeon_short_names["Sanguine Depths"] = "SD"
-dungeon_short_names["Spires of Ascension"] = "SOA"
-dungeon_short_names["The Necrotic Wake"] = "NW"
-dungeon_short_names["Theater of Pain"] = "TOP"
 dungeon_short_names["Tazavesh: Streets of Wonder"] = "STRT"
 dungeon_short_names["Tazavesh: So'leah's Gambit"] = "GMBT"
+dungeon_short_names["Mechagon: Junkyard"] = "JUNK"
+dungeon_short_names["Mechagon: Workshop"] = "WORK"
+dungeon_short_names["Upper Karazhan"] = "UPPR"
+dungeon_short_names["Lower Karazhan"] = "LOWR"
+dungeon_short_names["Iron Docks"] = "DOCK"
+dungeon_short_names["Grimrail Depot"] = "GRIM"
 
 dungeon_slugs = []
 for d in dungeons:
