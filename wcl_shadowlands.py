@@ -9,6 +9,12 @@ dungeon_encounters["The Necrotic Wake"] = 12286
 dungeon_encounters["Theater of Pain"] = 12293
 dungeon_encounters["Tazavesh: Streets of Wonder"] = 12441
 dungeon_encounters["Tazavesh: So'leah's Gambit"] = 12442
+dungeon_encounters["Mechagon: Junkyard"] = 12097
+dungeon_encounters["Mechagon: Workshop"] = 12098
+dungeon_encounters["Upper Karazhan"] = 11652
+dungeon_encounters["Lower Karazhan"] = 11651
+dungeon_encounters["Iron Docks"] = 11195
+dungeon_encounters["Grimrail Depot"] = 11208
 
 sepulcher_encounters = {}
 sepulcher_encounters["Vigilant Guardian"] = 2512
