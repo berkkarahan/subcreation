@@ -12,7 +12,7 @@ WCL_SEASON = 4
 WCL_PARTITION = 4
 
 # config
-RAID_NAME = "Sepulcher of the First Ones"
+RAID_NAME = "Castle Nathria"
 
 # for heroic week, set this to 10
 # after that in the season, set this at 16
