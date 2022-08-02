@@ -3920,7 +3920,7 @@ def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=WCL
 
     #partition = 4 # for prepatch
     # &partition=%d
-    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?difficulty=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, difficulty, class_id, spec, page, wcl_date, metric, api_key)
+    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?difficulty=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&includeCombatantInfo=true&api_key=%s&partition=%s" % (encounterId, difficulty, class_id, spec, page, wcl_date, metric, api_key, season)
 
     result = urlfetch.fetch(url, deadline=60)
     data = json.loads(result.content)

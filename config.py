@@ -9,7 +9,7 @@ RIO_MAX_PAGE = 5
 RIO_SEASON = "season-sl-4" 
 
 WCL_SEASON = 4
-WCL_PARTITION = 1
+WCL_PARTITION = 4
 
 # config
 RAID_NAME = "Sepulcher of the First Ones"
