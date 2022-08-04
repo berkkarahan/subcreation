@@ -3748,7 +3748,7 @@ def cloudflare_purge_cache(bucket, filename):
 ## test reset db
 
 def reset_db():
-    kind_list = [DungeonAffixRegion, KnownAffixes, SpecRankings, SpecRankingsRaid]
+    kind_list = [DungeonAffixRegion, KnownAffixes, SpecRankings, SpecRankingsRaid, CovenantStats, DungeonEaseTierList, PvPCounts, PvPLadderStats, RaidCounts ]
     for a_kind in kind_list:
         kind_keys = a_kind.gql("").fetch(keys_only=True)
         ndb.delete_multi(kind_keys)
