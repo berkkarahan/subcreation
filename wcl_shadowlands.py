@@ -7,14 +7,40 @@ dungeon_encounters["Sanguine Depths"] = 12284
 dungeon_encounters["Spires of Ascension"] = 12285
 dungeon_encounters["The Necrotic Wake"] = 12286
 dungeon_encounters["Theater of Pain"] = 12293
-dungeon_encounters["Tazavesh: Streets of Wonder"] = 12441
-dungeon_encounters["Tazavesh: So'leah's Gambit"] = 12442
-dungeon_encounters["Mechagon: Junkyard"] = 12097
-dungeon_encounters["Mechagon: Workshop"] = 12098
-dungeon_encounters["Upper Karazhan"] = 11652
-dungeon_encounters["Lower Karazhan"] = 11651
-dungeon_encounters["Iron Docks"] = 11195
-dungeon_encounters["Grimrail Depot"] = 11208
+
+
+dungeon_encounters["Tazavesh: Streets of Wonder"] = 62441
+dungeon_encounters["Tazavesh: So'leah's Gambit"] = 62442
+dungeon_encounters["Operation Mechagon: Junkyard"] = 62097
+dungeon_encounters["Operation Mechagon: Workshop"] = 62098
+dungeon_encounters["Return to Karazhan: Upper"] = 61652
+dungeon_encounters["Return to Karazhan: Lower"] = 61651
+dungeon_encounters["Iron Docks"] = 61195
+dungeon_encounters["Grimrail Depot"] = 61208
+
+castle_nathria_encounters = {}
+castle_nathria_encounters["Shriekwing"] = 2398
+castle_nathria_encounters["Huntsman Altimor"] = 2418
+castle_nathria_encounters["Sun King's Salvation"] = 2402
+castle_nathria_encounters["Artificer Xy'mox"] = 2405
+castle_nathria_encounters["Hungering Destroyer"] = 2383
+castle_nathria_encounters["Lady Inerva Darkvein"] = 2406
+castle_nathria_encounters["The Council of Blood"] = 2412
+castle_nathria_encounters["Sludgefist"] = 2399
+castle_nathria_encounters["Stone Legion Generals"] = 2417
+castle_nathria_encounters["Sire Denathrius"] = 2407
+
+sanctum_of_domination_encounters = {}
+sanctum_of_domination_encounters["Tarragrue"] = 2423
+sanctum_of_domination_encounters["Eye of the Jailer"] = 2433
+sanctum_of_domination_encounters["The Nine"] = 2429
+sanctum_of_domination_encounters["Soulrender Dormazain"] = 2434
+sanctum_of_domination_encounters["Remnant of Ner'zhul"] = 2432
+sanctum_of_domination_encounters["Painsmith Raznal"] = 2430
+sanctum_of_domination_encounters["Guardian of the First Ones"] = 2436
+sanctum_of_domination_encounters["Fatescribe Roh-Kalo"] = 2431
+sanctum_of_domination_encounters["Kel'Thuzad"] = 2422
+sanctum_of_domination_encounters["Sylvanas Windrunner"] = 2435
 
 sepulcher_encounters = {}
 sepulcher_encounters["Vigilant Guardian"] = 2512

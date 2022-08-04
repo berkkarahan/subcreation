@@ -38,15 +38,23 @@ from models import SpecRankings, SpecRankingsRaid, CovenantStats, RaidCounts, Du
 from auth import api_key
 from wcl import wcl_specs
 from wcl_shadowlands import dungeon_encounters
-from wcl_shadowlands import sepulcher_encounters as raid_encounters
+
+
 from shadowlands import shards_of_domination, t29_items
 
 from enchants import enchant_mapping
 
+# todo: handle all three raids :cry:
 
-from sepulcher import sepulcher_canonical_order as raid_canonical_order
-from sepulcher import sepulcher_short_names as raid_short_names
-from sepulcher import sepulcher_ignore as raid_ignore
+from wcl_shadowlands import castle_nathria_encounters as raid_encounters
+from castle_nathria import castle_nathria_canonical_order as raid_canonical_order
+from castle_nathria import castle_nathria_short_names as raid_short_names
+from castle_nathria import castle_nathria_ignore as raid_ignore
+
+#from wcl_shadowlands import sepulcher_encounters as raid_encounters
+#from sepulcher import sepulcher_canonical_order as raid_canonical_order
+#from sepulcher import sepulcher_short_names as raid_short_names
+#from sepulcher import sepulcher_ignore as raid_ignore
 
 # cloudflare cache handling
 from auth import cloudflare_api_key, cloudflare_zone
@@ -529,15 +537,17 @@ def icon_affix(dname, size=28):
     
     def miniaffix(aname, aslug, size):
         return '<img src="images/affixes/%s.jpg" width="%d" height="%d" title="%s" alt="%s" />' % (aslug, size, size, aname, aname)
-    
+
+
     affixen = dname.split(", ")
     output = []
+
     
     for af in affixen:
         afname = af
         afslug = slugify.slugify(af)
         output += [miniaffix(afname, afslug, size=size)]
-        
+
     output_string = output[0]
     output_string += output[1]
     output_string += output[2]
@@ -3222,7 +3232,7 @@ def render_main_covenants(prefix=""):
                                n_parses = n_parses,
                                m_data = m_data,
                                r_data = r_data,
-                               title = "Top Covenants for Mythic+ Season 3 and Sepulcher of the First Ones",
+                               title = "Top Covenants for Season 4",
                                active_section = "main",
                                active_page = "main-covenants",
                                last_updated = localized_time(last_updated))
@@ -3918,9 +3928,7 @@ def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=WCL
     wcl_date += "%d000" % (time.mktime(now.timetuple())-4*7*60*60*24 )
     wcl_date += "." + "%d000" % (time.mktime(now.timetuple()))
 
-    #partition = 4 # for prepatch
-    # &partition=%d
-    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?difficulty=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&includeCombatantInfo=true&api_key=%s&partition=%s" % (encounterId, difficulty, class_id, spec, page, wcl_date, metric, api_key, season)
+    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?difficulty=%d&partition=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&includeCombatantInfo=true&api_key=%s&partition=%s" % (encounterId, difficulty, season, class_id, spec, page, wcl_date, metric, api_key, season)
 
     result = urlfetch.fetch(url, deadline=60)
     data = json.loads(result.content)
@@ -4194,8 +4202,8 @@ class TestWCLGetRankings(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
-        update_wcl_update_subset(["Havoc Demon Hunter", "Fury Warrior"])
-#        update_wcl_update_subset(["Survival Hunter"])
+#        update_wcl_update_subset(["Havoc Demon Hunter", "Fury Warrior"])
+        update_wcl_update_subset(["Survival Hunter"])
 
 class WCLGetRankingsRaid(webapp2.RequestHandler):
     def get(self):
@@ -4225,7 +4233,8 @@ class TestWCLGetRankingsRaid(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
-        update_wcl_raid_update_subset(["Havoc Demon Hunter", "Fury Warrior"]) 
+#        update_wcl_raid_update_subset(["Havoc Demon Hunter", "Fury Warrior"])
+        update_wcl_raid_update_subset(["Survival Hunter"])
 
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):

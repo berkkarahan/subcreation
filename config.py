@@ -8,11 +8,11 @@ RIO_MAX_PAGE = 5
 # need to update in templates/navbar.html
 RIO_SEASON = "season-sl-4" 
 
-WCL_SEASON = 4
+WCL_SEASON = 1 # just one partition since it's a different set of dungeons
 WCL_PARTITION = 4
 
 # config
-RAID_NAME = "Castle Nathria"
+RAID_NAME = "Fated Raids"
 
 # for heroic week, set this to 10
 # after that in the season, set this at 16

@@ -2,22 +2,22 @@ import slugify
 
 dungeons = ["Tazavesh: Streets of Wonder",
             "Tazavesh: So'leah's Gambit",
-            "Mechagon: Junkyard",
-            "Mechagon: Workshop",
-            "Upper Karazhan",
-            "Lower Karazhan",
+            "Operation Mechagon: Junkyard",
+            "Operation Mechagon: Workshop",
+            "Return to Karazhan: Upper",
+            "Return to Karazhan: Lower",
             "Iron Docks",
             "Grimrail Depot"]            
 
 dungeon_short_names = {}
 dungeon_short_names["Tazavesh: Streets of Wonder"] = "STRT"
 dungeon_short_names["Tazavesh: So'leah's Gambit"] = "GMBT"
-dungeon_short_names["Mechagon: Junkyard"] = "JUNK"
-dungeon_short_names["Mechagon: Workshop"] = "WORK"
-dungeon_short_names["Upper Karazhan"] = "UPPR"
-dungeon_short_names["Lower Karazhan"] = "LOWR"
-dungeon_short_names["Iron Docks"] = "DOCK"
-dungeon_short_names["Grimrail Depot"] = "GRIM"
+dungeon_short_names["Operation Mechagon: Junkyard"] = "YARD"
+dungeon_short_names["Operation Mechagon: Workshop"] = "WORK"
+dungeon_short_names["Return to Karazhan: Upper"] = "UPPR"
+dungeon_short_names["Return to Karazhan: Lower"] = "LOWR"
+dungeon_short_names["Iron Docks"] = "ID"
+dungeon_short_names["Grimrail Depot"] = "GD"
 
 dungeon_slugs = []
 for d in dungeons:

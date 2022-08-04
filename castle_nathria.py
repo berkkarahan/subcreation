@@ -22,3 +22,5 @@ castle_nathria_short_names["Sludgefist"] = "Sludgefist"
 castle_nathria_short_names["Stone Legion Generals"] = "Generals"
 castle_nathria_short_names["Sire Denathrius"] = "Denathrius"
 
+# ignore these bosses for the tier list
+castle_nathria_ignore = []
