@@ -1,3 +1,7 @@
 lib
 auth.py
 *.pyc
+*~
+.#*
+env/
+.gcloudignore
