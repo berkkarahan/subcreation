@@ -4,11 +4,10 @@
 {% block content %}
 {% import 'raid_role.html' as raid_role %}
 
-<div class="boss-navbar d-flex py-3 justify-content-center flex-wrap " id="navbarSupportedContent">
-
-  <div style="height: 73.5px;">
+<div class="boss-navbar d-flex py-3 justify-content-center flex-wrap" id="navbarSupportedContent">
+  <div class="d-flex justify-content-center">
       {% if max_raid_difficulty == "Mythic" %}
-    <div style="height: 50%;">
+    <div class="px-3 {{ ' active' if difficulty == "Mythic" else '' }}">
       {% if difficulty == "Mythic" %}
       <b>Mythic</b>
       {% else %}
@@ -18,7 +17,7 @@
       {% endif %}
     </div>
       {% endif %}    
-    <div style="height: 50%;">
+    <div class="px-3 {{ ' active' if difficulty == "Heroic" else '' }}">
       {% if difficulty == "Heroic" %}
       <b>Heroic</b>
       {% else %}
@@ -27,26 +26,44 @@
       </a>
       {% endif %}
     </div>
+    <div class="px-3 fated nathria">
+      <img class="fated-icon" src="images/modes/fated.png" width="20" height="20" />
+      <a class="boss-link" href="{{prefix}}index{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
+        Castle Nathria
+      </a>
+    </div>
+    <div class="px-3 fated sod inactive">
+      <!-- <a class="boss-link" href="{{prefix}}index{% if difficulty == "Heroic" %}-heroic{%endif%}.html"> -->
+        Sanctum of Domination
+      <!-- </a> -->
+    </div>
+    <div class="px-3 fated sotfo inactive">
+      <!-- <a class="boss-link" href="{{prefix}}index{% if difficulty == "Heroic" %}-heroic{%endif%}.html"> -->
+        Sepulcher of the First Ones
+      <!-- </a> -->
+    </div>
   </div>
   
-          <div class="boss-box {{ ' active' if encounter == "all" else '' }}">
-            <a class="boss-link" href="{{prefix}}index{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
-              <img src="images/bosses/castle-nathria/castle-nathria.jpg" width="51" height="51" alt="Castle Nathria" title="Castle Nathria"><br/>Castle Nathria
-            </a>
-          </div>
-        
-{% for e in raid_canonical_order %}
-          <div class="boss-box {{ ' active' if encounter_slugs[e] in encounter_slug else '' }}">
-            <a class="boss-link" href="{{prefix}}{{encounter_slugs[e]}}{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
-              <img src="images/bosses/castle-nathria/{{encounter_slugs[e]}}.jpg" width="51" height="51" alt="{{e}}" title="{{e}}"><br/>
-             {{raid_short_names[e]}}
-            </a>
-          </div>
-        {% endfor %}
+  </div>
+  <div class="boss-navbar d-flex py-3 justify-content-center flex-wrap" id="navbarSupportedContent"></div>
+    <div class="boss-box {{ ' active' if encounter == "all" else '' }}">
+      <a class="boss-link" href="{{prefix}}index{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
+        <img src="images/bosses/castle-nathria/castle-nathria.jpg" width="51" height="51" alt="Castle Nathria" title="Castle Nathria"><br/>Castle Nathria
+      </a>
     </div>
+        
+    {% for e in raid_canonical_order %}
+      <div class="boss-box {{ ' active' if encounter_slugs[e] in encounter_slug else '' }}">
+        <a class="boss-link" href="{{prefix}}{{encounter_slugs[e]}}{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
+          <img src="images/bosses/castle-nathria/{{encounter_slugs[e]}}.jpg" width="51" height="51" alt="{{e}}" title="{{e}}"><br/>
+          {{raid_short_names[e]}}
+        </a>
+      </div>
+    {% endfor %}
+  </div>
 
-<div class="container-fluid">
-  <div class="row">
+  <div class="container-fluid">
+    <div class="row">
 
 {% import 'raid_tier_list.html' as raid_tier_list %}
 {{ raid_tier_list.raid_tier_list("Melee", "Melee", "melee", meleetl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Melee"], difficulty, raid_ignore) }}

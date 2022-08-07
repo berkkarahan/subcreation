@@ -1,0 +1,49 @@
+
+.active-item {
+    border: 1px solid white;
+    padding: 0.5em;
+}
+
+
+.fated {
+    width: 200px;
+    color: white;
+    background-color: white;
+    background-repeat: no-repeat;
+    background-blend-mode: initial;
+    background-size: cover;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.fated .fated-icon {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    z-index: 999;
+}
+
+.fated .boss-link {
+    overflow-wrap: break-word;
+    height: 100%;
+    width: 100%;
+}
+
+.fated.inactive {
+    background-blend-mode: luminosity;
+}
+
+.fated.nathria {
+    background-image: url("/images/bosses/castle-nathria/castle-nathria.jpg");
+}
+
+.fated.sod {
+    background-image: url("/images/bosses/sanctum/sanctum.jpg");
+}
+
+.fated.sotfo {
+    background-image: url("/images/bosses/sepulcher/sepulcher.jpg");
+}
