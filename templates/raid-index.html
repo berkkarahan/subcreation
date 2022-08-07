@@ -7,7 +7,7 @@
 <div class="boss-navbar d-flex py-3 justify-content-center flex-wrap" id="navbarSupportedContent">
   <div class="d-flex justify-content-center">
       {% if max_raid_difficulty == "Mythic" %}
-    <div class="px-3 {{ ' active' if difficulty == "Mythic" else '' }}">
+    <div class="px-3 {{ ' active-item' if difficulty == "Mythic" else '' }}">
       {% if difficulty == "Mythic" %}
       <b>Mythic</b>
       {% else %}
@@ -17,7 +17,7 @@
       {% endif %}
     </div>
       {% endif %}    
-    <div class="px-3 {{ ' active' if difficulty == "Heroic" else '' }}">
+    <div class="px-3 {{ ' active-item' if difficulty == "Heroic" else '' }}">
       {% if difficulty == "Heroic" %}
       <b>Heroic</b>
       {% else %}
