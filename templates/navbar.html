@@ -49,7 +49,7 @@
  
  {%- endmacro %}
 
-{% macro navbar_top_builds(prefix, suffix, archetype, active_page, known_tanks, known_healers, known_melee, known_ranged) -%}
+{% macro navbar_top_builds(prefix, suffix, archetype, active_page, known_tanks, known_healers, known_melee, known_ranged, active_raid) -%}
  <span class="navbar-text">
    Top Builds for 
  </span>
@@ -59,7 +59,7 @@
   </a>
   <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
     {% for (name, slug, icon) in known_tanks %}
-    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{%if active_raid!="nathria"%}{{active_raid}}-{%endif%}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
           {% endfor %}
   </div>
 </li>
@@ -70,7 +70,7 @@
   </a>
   <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
     {% for (name, slug, icon) in known_healers %}
-    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{%if active_raid!="nathria"%}{{active_raid}}-{%endif%}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
     {% endfor %}
   </div>
 </li>
@@ -82,7 +82,7 @@
   <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
     
     {% for (name, slug, icon) in known_melee %}
-    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{%if active_raid!="nathria"%}{{active_raid}}-{%endif%}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
           {% endfor %}
   </div>
 </li>
@@ -93,13 +93,13 @@
   </a>
   <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
     {% for (name, slug, icon) in known_ranged %}
-    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{%if active_raid!="nathria"%}{{active_raid}}-{%endif%}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
     {% endfor %}
   </div>
 </li>
 {%- endmacro %}
 
-{% macro navbar_mplus(affixes, known_affixes, active_page, prefix, page_type, archetype, known_tanks, known_healers, known_melee, known_ranged) -%}
+{% macro navbar_mplus(affixes, known_affixes, active_page, prefix, page_type, archetype, known_tanks, known_healers, known_melee, known_ranged, active_raid="nathria") -%}
  
  <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
    <div class="collapse navbar-collapse" id="navbarSupportedContent">
@@ -132,7 +132,7 @@
       </li>
       <span class="navbar-text" style="width: 2em; text-align: center;">
       </span>
-      {{navbar_top_builds(prefix, "", archetype, active_page, known_tanks, known_healers, known_melee, known_ranged)}}
+      {{navbar_top_builds(prefix, "", archetype, active_page, known_tanks, known_healers, known_melee, known_ranged, active_raid)}}
      <span class="navbar-text">
        &nbsp; &nbsp; &nbsp; &nbsp;
      </span>      
@@ -173,7 +173,7 @@
  {%- endmacro %}
 
 
- {% macro navbar_raid(active_page, prefix, page_type, archetype, known_tanks, known_healers, known_melee, known_ranged) -%}
+ {% macro navbar_raid(active_page, prefix, page_type, archetype, known_tanks, known_healers, known_melee, known_ranged, active_raid="nathria") -%}
  <nav class="navbar navbar-expand-lg navbar-dark bg-secondary">
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
      <span class="navbar-text">
@@ -185,7 +185,7 @@
       </li>
       <span class="navbar-text" style="width: 2em; text-align: center;">
       </span>      
-      {{navbar_top_builds(prefix, "", archetype, active_page, known_tanks, known_healers, known_melee, known_ranged)}}
+      {{navbar_top_builds(prefix, "", archetype, active_page, known_tanks, known_healers, known_melee, known_ranged, active_raid)}}
      <span class="navbar-text">
        &nbsp; &nbsp; &nbsp; &nbsp;
      </span>      

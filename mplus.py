@@ -46,15 +46,53 @@ from enchants import enchant_mapping
 
 # todo: handle all three raids :cry:
 
-from wcl_shadowlands import castle_nathria_encounters as raid_encounters
-from castle_nathria import castle_nathria_canonical_order as raid_canonical_order
-from castle_nathria import castle_nathria_short_names as raid_short_names
-from castle_nathria import castle_nathria_ignore as raid_ignore
+from wcl_shadowlands import nathria_encounters 
+from nathria import nathria_canonical_order
+from nathria import nathria_short_names 
+from nathria import nathria_ignore
 
-#from wcl_shadowlands import sepulcher_encounters as raid_encounters
-#from sepulcher import sepulcher_canonical_order as raid_canonical_order
-#from sepulcher import sepulcher_short_names as raid_short_names
-#from sepulcher import sepulcher_ignore as raid_ignore
+from wcl_shadowlands import sanctum_encounters
+from sanctum import sanctum_canonical_order
+from sanctum import sanctum_short_names
+from sanctum import sanctum_ignore
+
+from wcl_shadowlands import sepulcher_encounters
+from sepulcher import sepulcher_canonical_order
+from sepulcher import sepulcher_short_names
+from sepulcher import sepulcher_ignore
+
+
+def get_raid_encounters(active_raid):
+    if active_raid == "nathria":
+        return nathria_encounters
+    if active_raid == "sanctum":
+        return sanctum_encounters
+    if active_raid == "sepulcher":
+        return sepulcher_encounters
+
+def get_raid_canonical_order(active_raid):
+    if active_raid == "nathria":
+        return nathria_canonical_order
+    if active_raid == "sanctum":
+        return sanctum_canonical_order
+    if active_raid == "sepulcher":
+        return sepulcher_canonical_order    
+
+def get_raid_short_names(active_raid):
+    if active_raid == "nathria":
+        return nathria_short_names
+    if active_raid == "sanctum":
+        return sanctum_short_names
+    if active_raid == "sepulcher":
+        return sepulcher_short_names
+
+def get_raid_ignore(active_raid):
+    if active_raid == "nathria":
+        return nathria_ignore
+    if active_raid == "sanctum":
+        return sanctum_ignore
+    if active_raid == "sepulcher":
+        return sepulcher_ignore    
 
 # cloudflare cache handling
 from auth import cloudflare_api_key, cloudflare_zone
@@ -73,6 +111,13 @@ from config import RIO_MAX_PAGE, RIO_SEASON, RAID_NAME
 from config import WCL_SEASON, WCL_PARTITION
 from config import MIN_KEY_LEVEL
 from config import MAX_RAID_DIFFICULTY
+
+# nathria, sanctum, or sepulcher
+# eventually make this automatically determine the rotation
+
+# refresh only fated on thu, fri, sat, sun, mon, tues
+# on wed refresh fated and previously fated (to update navigation)
+fated_raid = "nathria"
 
 ## raider.io handling
 def update_known_affixes(affixes, affixes_slug):
@@ -536,7 +581,7 @@ def icon_affix(dname, size=28):
     dslug = slugify.slugify(unicode(dname))
     
     def miniaffix(aname, aslug, size):
-        return '<img src="images/affixes/%s.jpg" width="%d" height="%d" title="%s" alt="%s" />' % (aslug, size, size, aname, aname)
+        return '<img src="images/affixes/%s.jpg" class="zoom-icon" width="%d" height="%d" title="%s" alt="%s" />' % (aslug, size, size, aname, aname)
 
 
     affixen = dname.split(", ")
@@ -929,9 +974,9 @@ def construct_analysis_pvp(spec_counts):
 # save this to the db for each spec
 
 # read from the db
-def gen_raid_spec_analysis(difficulty=MAX_RAID_DIFFICULTY):
+def gen_raid_spec_analysis(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     # raid_generate_counts is now a cached call
-    raid_counts, raid_max_found, raid_max_link = raid_generate_counts(difficulty=difficulty)
+    raid_counts, raid_max_found, raid_max_link = raid_generate_counts(difficulty=difficulty, active_raid=active_raid)
     
     analysis = {}
     lb_ci_spec = {}
@@ -944,8 +989,10 @@ def gen_raid_spec_analysis(difficulty=MAX_RAID_DIFFICULTY):
         scores = []
         all_scores = []
         n_scores = 0
-        
+
+        raid_encounters = get_raid_encounters(active_raid)
         for e in raid_encounters:
+            raid_ignore = get_raid_ignore(active_raid)
             if e not in raid_ignore: # ignore certain encounters for the tier list
                 all_scores += analysis[s][e][3]
                 scores += [analysis[s][e][0]]
@@ -959,11 +1006,11 @@ def gen_raid_spec_analysis(difficulty=MAX_RAID_DIFFICULTY):
 
     return lb_ci_spec, raid_max_found, raid_max_link    
 
-def gen_raid_specs_role_package(encounter, difficulty=MAX_RAID_DIFFICULTY):
+def gen_raid_specs_role_package(encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     global role_titles, specs
 
     # gen_raid_spec analysis uses the memoized raid_generate_counts
-    lb_ci_spec, raid_max_found, raid_max_link = gen_raid_spec_analysis(difficulty=difficulty)
+    lb_ci_spec, raid_max_found, raid_max_link = gen_raid_spec_analysis(difficulty=difficulty, active_raid=active_raid)
     encounter_overall = lb_ci_spec[encounter]
 
     role_package = {}
@@ -1018,7 +1065,7 @@ def gen_raid_specs_role_package(encounter, difficulty=MAX_RAID_DIFFICULTY):
 
 # generate a specs tier list
 # placeholder code for now
-def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix="", difficulty=MAX_RAID_DIFFICULTY):
+def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid="nathria"):
     global role_titles
 
     # for raid, we compare tanks to tanks
@@ -1097,7 +1144,9 @@ def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix="",
                                        spec_short_name = spec_short_names[k[1]],
                                        spec_slug = slugify.slugify(unicode(k[1])),
                                        encounter_slug = encounter_slug,
-                                       difficulty = difficulty)
+                                       difficulty = difficulty,
+                                       active_raid = active_raid,
+                                       prefix = prefix)
             dtl[tm[i]] += rendered
     
     return dtl   
@@ -1376,24 +1425,26 @@ def process_raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_
     raid_counts.put()
 
 
-def process_generate_raid_counts():
+def process_generate_raid_counts(active_raid=""):
     difficulties = ["Heroic"]
     if MAX_RAID_DIFFICULTY == "Mythic":
         difficulties = ["Mythic", "Heroic"]
     for d in difficulties:
         for s in specs:
+            raid_encounters = get_raid_encounters(active_raid)
             for k, v in raid_encounters.iteritems():
                 options = TaskRetryOptions(task_retry_limit = 1)        
                 deferred.defer(process_raid_generate_counts_spec_encounter, s, k, d,
                                _retry_options=options)
 
-def raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_RAID_DIFFICULTY):
+def raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     # read from the db
     spec_slug = slugify.slugify(unicode(spec))
     encounter_slug = slugify.slugify(unicode(encounter))
     difficulty_slug = slugify.slugify(unicode(difficulty))
+    active_raid_slug = slugify.slugify(unicode(active_raid))
 
-    key_slug = "%s-%s-%s" % (spec_slug, encounter_slug, difficulty_slug)
+    key_slug = "%s-%s-%s-%s" % (spec_slug, encounter_slug, difficulty_slug, active_raid_slug)
     key = ndb.Key('RaidCounts', key_slug)
     
     rc = key.get()
@@ -1407,21 +1458,22 @@ def raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_RAID_DIF
     return counts, max_found, max_link
 
 
-def raid_generate_counts_spec(spec, difficulty=MAX_RAID_DIFFICULTY):
+def raid_generate_counts_spec(spec, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     counts = {}
     max_found = {}
     max_link = {}
+    raid_encounters = get_raid_encounters(active_raid)
     for k, v in raid_encounters.iteritems():
-        counts[k], max_found[k], max_link[k] = raid_generate_counts_spec_encounter(spec, k, difficulty=difficulty)
+        counts[k], max_found[k], max_link[k] = raid_generate_counts_spec_encounter(spec, k, difficulty=difficulty, active_raid=active_raid)
     return counts, max_found, max_link
         
 
-def raid_generate_counts(difficulty=MAX_RAID_DIFFICULTY):
+def raid_generate_counts(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     counts = {}
     max_found = {}
     max_link = {}    
     for s in specs:
-        counts[s], max_found[s], max_link[s] = raid_generate_counts_spec(s, difficulty=difficulty)
+        counts[s], max_found[s], max_link[s] = raid_generate_counts_spec(s, difficulty=difficulty, active_raid=active_raid)
 
     return counts, max_found, max_link
        
@@ -2345,10 +2397,10 @@ def wcl_top10(d, pop=None, top_n = 10):
 def gen_wcl_spec_report(spec, dungeon="all"):
     return base_gen_spec_report(spec, "mplus", dungeon)
 
-def gen_wcl_raid_spec_report(spec, encounter="all", difficulty=MAX_RAID_DIFFICULTY):
-    return base_gen_spec_report(spec, "raid", encounter, difficulty=difficulty)
+def gen_wcl_raid_spec_report(spec, encounter="all", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
+    return base_gen_spec_report(spec, "raid", encounter, difficulty=difficulty, active_raid=active_raid)
 
-def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFICULTY):
+def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     wcl_query = None
 
     if mode == "mplus":
@@ -2357,12 +2409,14 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
         else:
             wcl_query = SpecRankings.query(SpecRankings.spec==spec,
                                            SpecRankings.dungeon==encounter)            
-    elif mode=="raid":
+    elif mode=="raid":       
         if encounter == "all":
-            wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec)
+            wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
+                                               SpecRankingsRaid.raid==active_raid)
         else:
             wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
-                                               SpecRankingsRaid.encounter==encounter)
+                                               SpecRankingsRaid.encounter==encounter,
+                                               SpecRankingsRaid.raid==active_raid)
            
     results = wcl_query.fetch()
     global last_updated
@@ -2388,6 +2442,7 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
         if mode == "raid":
             # filter out ignored encounters raid_ignore for all bosses
             if encounter == "all":
+                raid_ignore = get_raid_ignore(active_raid)
                 if k.encounter in raid_ignore:
                     continue
             
@@ -2438,6 +2493,8 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
         if encounter == "all":
             seen_difficulties = set()
 
+            raid_encounters = get_raid_encounters(active_raid)
+            
             # go through encounter by encounter
             for k, v in raid_encounters.iteritems():
                 if difficulty == "Mythic":
@@ -2950,10 +3007,11 @@ def render_stats(affixes, prefix=""):
     return rendered
 
 # render raid stats separately
-def render_raid_stats(encounter, prefix="", difficulty=MAX_RAID_DIFFICULTY):
+def render_raid_stats(encounter, prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid="nathria"):
     specs_report, spec_stats = gen_raid_specs_role_package(encounter, difficulty=difficulty)
 
     encounter_slugs = {}
+    raid_canonical_order = get_raid_canonical_order(active_raid)
     for e in raid_canonical_order:
         encounter_slugs[e] = slugify.slugify(unicode(e))
 
@@ -2966,6 +3024,7 @@ def render_raid_stats(encounter, prefix="", difficulty=MAX_RAID_DIFFICULTY):
                                difficulty = difficulty,
                                encounter = encounter,
                                encounter_slug = encounter_slug,
+                               active_raid = active_raid,
                                raid_stats = spec_stats,
                                role_package = specs_report,
                                known_tanks = known_specs_subset_links(tanks, prefix=prefix),
@@ -3052,12 +3111,13 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
 
     return rendered
 
-def render_raid_index(encounter="all", difficulty=MAX_RAID_DIFFICULTY, prefix=""):
+def render_raid_index(encounter="all", difficulty=MAX_RAID_DIFFICULTY, prefix="", active_raid="nathria"):
     template = env.get_template("raid-index.html")
-
-    specs_report, spec_stats = gen_raid_specs_role_package(encounter, difficulty=difficulty)
-
+    
+    specs_report, spec_stats = gen_raid_specs_role_package(encounter, difficulty=difficulty, active_raid=active_raid)
+    
     encounter_slugs = {}
+    raid_canonical_order = get_raid_canonical_order(active_raid)    
     for e in raid_canonical_order:
         encounter_slugs[e] = slugify.slugify(unicode(e))
 
@@ -3065,23 +3125,30 @@ def render_raid_index(encounter="all", difficulty=MAX_RAID_DIFFICULTY, prefix=""
    
     tankstl = gen_raid_spec_tier_list(specs_report, "Tanks",
                                       encounter_slug=encounter_slug, prefix=prefix,
-                                      difficulty=difficulty)
+                                      difficulty=difficulty,
+                                      active_raid=active_raid)
     healerstl = gen_raid_spec_tier_list(specs_report, "Healers",
                                         encounter_slug=encounter_slug,
                                         prefix=prefix,
-                                        difficulty=difficulty)
+                                        difficulty=difficulty,
+                                        active_raid=active_raid)
     meleetl = gen_raid_spec_tier_list(specs_report, "Melee",
                                       encounter_slug=encounter_slug,
                                       prefix=prefix,
-                                      difficulty=difficulty)
+                                      difficulty=difficulty,
+                                      active_raid=active_raid)
     rangedtl = gen_raid_spec_tier_list(specs_report, "Ranged",
                                        encounter_slug=encounter_slug,
                                        prefix=prefix,
-                                       difficulty=difficulty)
-
+                                       difficulty=difficulty,
+                                       active_raid=active_raid)
+  
     active_page = "raid-index"
     if encounter != "all":
         active_page = "raid-" + encounter_slug
+
+    raid_short_names = get_raid_short_names(active_raid)    
+    raid_ignore = get_raid_ignore(active_raid)
     
     rendered = template.render(prefix=prefix,
                                active_page = active_page,
@@ -3095,6 +3162,8 @@ def render_raid_index(encounter="all", difficulty=MAX_RAID_DIFFICULTY, prefix=""
                                role_package=specs_report,
                                spec_stats = spec_stats,
                                encounter=encounter,
+                               fated_raid=fated_raid,
+                               active_raid=active_raid,
                                raid_ignore = raid_ignore,
                                encounter_slugs = encounter_slugs,
                                encounter_slug = encounter_slug,                               
@@ -3174,10 +3243,6 @@ def render_pvp_index(mode="all", prefix=""):
 # render pvp stats separately
 def render_pvp_stats(mode, prefix=""):
     specs_report, spec_stats = gen_pvp_specs_role_package(mode)
-
-    mode_slugs = {}
-    for e in raid_canonical_order:
-        mode_slugs[e] = slugify.slugify(unicode(e))
 
     pvp_canonical_order = ["2v2", "3v3", "rbg"]
     pvp_pretty_names = {}
@@ -3261,17 +3326,18 @@ def render_faq(prefix=""):
 
     return rendered
 
-def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_DIFFICULTY):
+def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid="nathria"):
     logging.info("%s %s %s" % (spec, encounter, difficulty))
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, n_uniques, available_difficulty, _, tea, talents, legendaries, legendary_builds, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, tier_items, tier_builds = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty)
+    n_parses, n_uniques, available_difficulty, _, tea, talents, legendaries, legendary_builds, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, tier_items, tier_builds = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty, active_raid=active_raid)
 
     encounter_pretty = encounter
     if encounter_pretty == "all":
         encounter_pretty = "All Bosses"
 
     encounter_slugs = {}
+    raid_canonical_order = get_raid_canonical_order(active_raid)
     for e in raid_canonical_order:
         encounter_slugs[e] = slugify.slugify(unicode(e))
 
@@ -3281,6 +3347,8 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
     metric = "dps"
     if spec in healers:
         metric = "hps"
+
+    raid_short_names = get_raid_short_names(active_raid)    
         
     template = env.get_template('spec-raid.html')
     rendered = template.render(title = "%s - %s - %s" % (encounter_pretty, spec, RAID_NAME),
@@ -3321,6 +3389,8 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
                                encounter = encounter,
                                encounter_slug = encounter_slug,
                                encounter_pretty = encounter_pretty,
+                               fated_raid=fated_raid,
+                               active_raid=active_raid,
                                difficulty = difficulty,
                                available_difficulty = available_difficulty,
                                max_raid_difficulty = MAX_RAID_DIFFICULTY,
@@ -3445,13 +3515,17 @@ def render_and_write_stats(af):
     deferred.defer(write_to_storage, "stats-" + filename_slug + ".html", rendered,
                    _retry_options=options)
 
-def render_and_write_raid_stats(encounter, difficulty=MAX_RAID_DIFFICULTY):
+def render_and_write_raid_stats(encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid="nathria"):
     rendered = render_raid_stats(encounter, difficulty)
     
     filename_slug = slugify.slugify(unicode(encounter))
+
+    if active_raid != "nathria":
+        filename_slug += "-" + active_raid
+    
     if difficulty == "Heroic":
         filename_slug += "-heroic"
-
+            
     options = TaskRetryOptions(task_retry_limit = 1)
     deferred.defer(raid_write_to_storage, "raid-stats-" + filename_slug + ".html", rendered,
                    _retry_options=options)        
@@ -3575,7 +3649,7 @@ def create_static_pages():
         deferred.defer(main_write_to_storage, filename, rendered,
                        _retry_options=options) 
     
-def create_raid_index(difficulty=MAX_RAID_DIFFICULTY):
+def create_raid_index(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     rendered = render_raid_index(difficulty=difficulty)
     filename = "index.html"
     if difficulty == "Heroic":
@@ -3591,6 +3665,7 @@ def create_raid_index(difficulty=MAX_RAID_DIFFICULTY):
                        _retry_options=options)
 
     encounters_to_write = []
+    raid_canonical_order = get_raid_canonical_order(active_raid)    
     encounters_to_write += raid_canonical_order
 
     for encounter in encounters_to_write:
@@ -3696,7 +3771,7 @@ def write_raid_indices():
                        _retry_options=options)   
 
     
-def write_raid_spec_overviews():
+def write_raid_spec_overviews(active_raid=""):
 
     # update the counts
     process_generate_raid_counts()    
@@ -3716,7 +3791,8 @@ def write_raid_spec_overviews():
             options = TaskRetryOptions(task_retry_limit = 1)        
             deferred.defer(create_raid_spec_overview, s, "all", d,
                            _retry_options=options)
-        
+
+            raid_encounters = get_raid_encounters(active_raid)
             for k, v in raid_encounters.iteritems():
                 options = TaskRetryOptions(task_retry_limit = 1)        
                 deferred.defer(create_raid_spec_overview, s, k, d,
@@ -3819,22 +3895,40 @@ def test_raid_view(destination):
         if slugify.slugify(unicode(s)) in destination:
             spec = s
 
+    active_raid = ""
+    if "nathria" in destination:
+        active_raid = "nathria"
+        
+    if "sanctum" in destination:
+        active_raid = "sanctum"
+
+    if "sepulcher" in destination:
+        active_raid = "sepulcher"
+
+    if active_raid == "":
+        active_raid = fated_raid
+
+    raid_canonical_order = nathria_canonical_order
+    if active_raid == "sanctum":
+        raid_canonical_order = sanctum_canonical_order
+    if active_raid == "sepulcher":
+        raid_canonical_order = sepulcher_canonical_order        
+                    
     for e in raid_canonical_order:
         if slugify.slugify(unicode(e)) in destination:
             encounter = e
-
+            
     if "index" in destination:
-        return render_raid_index(prefix=prefix, difficulty=difficulty)
+        return render_raid_index(prefix=prefix, difficulty=difficulty, active_raid=active_raid)
 
     if "stats" in destination:
-        return render_raid_stats(encounter, prefix=prefix, difficulty=difficulty)
+        return render_raid_stats(encounter, prefix=prefix, difficulty=difficulty, active_raid=active_raid)
     
     if spec == "all":
-        if encounter != "all":
-            return render_raid_index(prefix=prefix, encounter=encounter, difficulty=difficulty)            
+        return render_raid_index(prefix=prefix, encounter=encounter, difficulty=difficulty, active_raid=active_raid)            
             
 
-    return render_wcl_raid_spec(spec, encounter=encounter, prefix=prefix, difficulty=difficulty)
+    return render_wcl_raid_spec(spec, encounter=encounter, prefix=prefix, difficulty=difficulty, active_raid=active_raid)
 
 
 def test_main_view(destination):
@@ -3935,10 +4029,11 @@ def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=WCL
     return data
 
 
-def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFICULTY):
+def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
     spec_key = slugify.slugify(unicode(spec))
+    raid_encounters = get_raid_encounters(active_raid)
     if encounter not in raid_encounters:
         return "invalid encounter [%s]" % encounter
     encounter_id = raid_encounters[encounter]
@@ -3971,7 +4066,7 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
     
     # no data yet
     if no_data_yet:
-        logging.info("No parses found for %s %s %s (page %d)." % (spec, difficulty, encounter, page))
+        logging.info("No parses found for %s %s %s %s (page %d)." % (active_raid, spec, difficulty, encounter, page))
         if difficulty == "Heroic" and page == 1: # fall back to normal only if no heroic parses at all
             logging.info("Falling back to Normal")
             # queue up all pages for normal
@@ -3989,11 +4084,12 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
     for k in rankings["rankings"]:
         aggregate += [k]
 
-    key = ndb.Key('SpecRankingsRaid', "%s-%s-%s-%d" % (spec_key, encounter_slug, slugify.slugify(unicode(difficulty)), page))
+    key = ndb.Key('SpecRankingsRaid', "%s-%s-%s-%s-%d" % (spec_key, encounter_slug, slugify.slugify(unicode(difficulty)), active_raid, page))
     sr = SpecRankingsRaid(key=key)
     sr.spec = spec
     sr.encounter = encounter
     sr.difficulty = difficulty
+    sr.raid = active_raid
     sr.page = page
     sr.rankings = json.dumps(aggregate)
     sr.put()
@@ -4032,25 +4128,27 @@ def update_wcl_update_subset(subset):
         deferred.defer(update_wcl_spec, s, _retry_options=options)
         
 
-def update_wcl_raid_spec(spec, difficulty=MAX_RAID_DIFFICULTY):
+def update_wcl_raid_spec(spec, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     logging.info("%s %s" % (spec, difficulty))
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
     spec_key = slugify.slugify(unicode(spec))
 
     aggregate = []
+    raid_encounters = get_raid_encounters(active_raid)
     for k, v in raid_encounters.iteritems():
         i = 1
         while (i <= 5):
             options = TaskRetryOptions(task_retry_limit = 1)
             deferred.defer(update_wcl_raid_rankings, spec, k, page=i, difficulty=difficulty,
+                           active_raid=active_raid,
                            _retry_options=options)
             i += 1
 
     return spec, spec_key,  wcl_specs[spec]
         
 # update wcl for raids
-def update_wcl_raid_update():
+def update_wcl_raid_update(active_raid=""):
     difficulties = ["Heroic"]
     if MAX_RAID_DIFFICULTY == "Mythic":
         difficulties = ["Mythic", "Heroic"]
@@ -4058,9 +4156,9 @@ def update_wcl_raid_update():
     for i, s in enumerate(specs):
         for d in difficulties:
             options = TaskRetryOptions(task_retry_limit = 1)    
-            deferred.defer(update_wcl_raid_spec, s, d, _retry_options=options)
+            deferred.defer(update_wcl_raid_spec, s, d, active_raid, _retry_options=options)
 
-def update_wcl_raid_update_subset(subset):
+def update_wcl_raid_update_subset(subset, active_raid=""):
     difficulties = ["Heroic"]
     if MAX_RAID_DIFFICULTY == "Mythic":
         difficulties = ["Mythic", "Heroic"]
@@ -4068,7 +4166,7 @@ def update_wcl_raid_update_subset(subset):
     for i, s in enumerate(subset):
         for d in difficulties:
             options = TaskRetryOptions(task_retry_limit = 1)    
-            deferred.defer(update_wcl_raid_spec, s, d, _retry_options=options)
+            deferred.defer(update_wcl_raid_spec, s, d, active_raid, _retry_options=options)
         
 def update_wcl_raid_all():
     update_wcl_raid_update()
@@ -4234,7 +4332,7 @@ class TestWCLGetRankingsRaid(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
 #        update_wcl_raid_update_subset(["Havoc Demon Hunter", "Fury Warrior"])
-        update_wcl_raid_update_subset(["Survival Hunter"])
+        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="nathria")
 
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):

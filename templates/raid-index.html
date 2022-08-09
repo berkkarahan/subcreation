@@ -4,72 +4,20 @@
 {% block content %}
 {% import 'raid_role.html' as raid_role %}
 
-<div class="boss-navbar d-flex py-3 justify-content-center flex-wrap" id="navbarSupportedContent">
-  <div class="d-flex justify-content-center">
-      {% if max_raid_difficulty == "Mythic" %}
-    <div class="px-3 {{ ' active-item' if difficulty == "Mythic" else '' }}">
-      {% if difficulty == "Mythic" %}
-      <b>Mythic</b>
-      {% else %}
-      <a href="{{prefix}}{% if encounter=="all" %}index{% else %}{{encounter_slug}}{% endif %}.html">
-        Mythic
-      </a>
-      {% endif %}
-    </div>
-      {% endif %}    
-    <div class="px-3 {{ ' active-item' if difficulty == "Heroic" else '' }}">
-      {% if difficulty == "Heroic" %}
-      <b>Heroic</b>
-      {% else %}
-      <a href="{{prefix}}{% if encounter=="all" %}index{% else %}{{encounter_slug}}{% endif %}-heroic.html">
-        Heroic
-      </a>
-      {% endif %}
-    </div>
-    <div class="px-3 fated nathria">
-      <img class="fated-icon" src="images/modes/fated.png" width="20" height="20" />
-      <a class="boss-link" href="{{prefix}}index{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
-        Castle Nathria
-      </a>
-    </div>
-    <div class="px-3 fated sod inactive">
-      <!-- <a class="boss-link" href="{{prefix}}index{% if difficulty == "Heroic" %}-heroic{%endif%}.html"> -->
-        Sanctum of Domination
-      <!-- </a> -->
-    </div>
-    <div class="px-3 fated sotfo inactive">
-      <!-- <a class="boss-link" href="{{prefix}}index{% if difficulty == "Heroic" %}-heroic{%endif%}.html"> -->
-        Sepulcher of the First Ones
-      <!-- </a> -->
-    </div>
-  </div>
-  
-  </div>
-  <div class="boss-navbar d-flex py-3 justify-content-center flex-wrap" id="navbarSupportedContent"></div>
-    <div class="boss-box {{ ' active' if encounter == "all" else '' }}">
-      <a class="boss-link" href="{{prefix}}index{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
-        <img src="images/bosses/castle-nathria/castle-nathria.jpg" width="51" height="51" alt="Castle Nathria" title="Castle Nathria"><br/>Castle Nathria
-      </a>
-    </div>
-        
-    {% for e in raid_canonical_order %}
-      <div class="boss-box {{ ' active' if encounter_slugs[e] in encounter_slug else '' }}">
-        <a class="boss-link" href="{{prefix}}{{encounter_slugs[e]}}{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
-          <img src="images/bosses/castle-nathria/{{encounter_slugs[e]}}.jpg" width="51" height="51" alt="{{e}}" title="{{e}}"><br/>
-          {{raid_short_names[e]}}
-        </a>
-      </div>
-    {% endfor %}
-  </div>
+<p />
+
+{% import 'raid-boss-bar.html' as raid_boss_bar %}
+{{ raid_boss_bar.raid_boss_bar(prefix=prefix, raid_canonical_order=raid_canonical_order, raid_short_names=raid_short_names, spec_slug="", encounter=encounter, encounter_slug=encounter_slug, encounter_slugs=encounter_slugs, difficulty=difficulty, max_raid_difficulty=max_raid_difficulty, fated_raid=fated_raid, active_raid=active_raid) }}
+
 
   <div class="container-fluid">
     <div class="row">
 
 {% import 'raid_tier_list.html' as raid_tier_list %}
-{{ raid_tier_list.raid_tier_list("Melee", "Melee", "melee", meleetl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Melee"], difficulty, raid_ignore) }}
-{{ raid_tier_list.raid_tier_list("Ranged", "Ranged", "ranged", rangedtl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Ranged"], difficulty, raid_ignore) }}
-{{ raid_tier_list.raid_tier_list("Tanks", "Tank", "tanks", tankstl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Tanks"], difficulty, raid_ignore) }}
-{{ raid_tier_list.raid_tier_list("Healers", "Healer", "healers", healerstl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Healers"], difficulty, raid_ignore) }}
+{{ raid_tier_list.raid_tier_list("Melee", "Melee", "melee", meleetl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Melee"], difficulty, raid_ignore, active_raid) }}
+{{ raid_tier_list.raid_tier_list("Ranged", "Ranged", "ranged", rangedtl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Ranged"], difficulty, raid_ignore, active_raid) }}
+{{ raid_tier_list.raid_tier_list("Tanks", "Tank", "tanks", tankstl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Tanks"], difficulty, raid_ignore, active_raid) }}
+{{ raid_tier_list.raid_tier_list("Healers", "Healer", "healers", healerstl, encounter, encounter_slug,  role_package, prefix, affixes_slug, current_season, spec_stats["Healers"], difficulty, raid_ignore, active_raid) }}
 
   </div>
 </div>
@@ -82,7 +30,7 @@
     var expand_me = document.querySelector(`#${which_table}-stats`);
     expand_me.addEventListener("toggle", function() {
         var details = document.querySelector(`#${which_table}-stats-details`);
-        $(`#${which_table}-stats-details`).load(`{{prefix}}raid-stats-{{encounter_slug}}{% if difficulty == "Heroic" %}-heroic{% endif %}.html #data-${which_table}-stats`, function() {
+        $(`#${which_table}-stats-details`).load(`{{prefix}}raid-stats-{%if active_raid !="nathria"%}{{active_raid}}-{%endif%}{{encounter_slug}}{% if difficulty == "Heroic" %}-heroic{% endif %}.html #data-${which_table}-stats`, function() {
             $('[data-toggle="popover"]').popover({container: 'body'})
             new Tablesort(document.getElementById(`table-${which_table}-stats`));
         });

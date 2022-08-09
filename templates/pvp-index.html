@@ -5,7 +5,7 @@
 {% import 'raid_role.html' as raid_role %}
 
     <div class="boss-navbar d-flex py-3 justify-content-center flex-wrap " id="navbarSupportedContent">
-          <div class="boss-box {{ ' active' if mode == "all" else '' }}">
+          <div class="zoom-icon boss-box {{ ' active' if mode == "all" else '' }}">
             <a class="boss-link" href="{{prefix}}index.html">
               <img src="images/modes/all.jpg" width="51" height="51" alt="All PvP Modes" title="All PvP Modes"><br/>All Rated PvP
             </a>
@@ -13,7 +13,7 @@
         </li>
         
 {% for e in pvp_canonical_order %}
-          <div class="boss-box {{ ' active' if mode_slugs[e] in mode_slug else '' }}">
+          <div class="zoom-icon boss-box {{ ' active' if mode_slugs[e] in mode_slug else '' }}">
             <a class="boss-link" href="{{prefix}}{{mode_slugs[e]}}.html">
               <img src="images/modes/{{mode_slugs[e]}}.jpg" width="51" height="51" alt="{{pvp_pretty_names[e]}}" title="{{pvp_pretty_names[e]}}"><br/>
              {{pvp_pretty_names[e]}}

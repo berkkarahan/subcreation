@@ -6,7 +6,7 @@
 <div class="container-fluid">
   <div class="row">
 <div class="col-12 py-3">
-  <h1><img src="images/specs/{{spec_slug}}.jpg" width="56" height="56"/> {{spec}}{%if dungeon!="all"%} - {{ dungeon }}{%endif%}</h1>
+  <h1><img src="images/specs/{{spec_slug}}.jpg" class="zoom-icon" width="56" height="56"/> {{spec}}{%if dungeon!="all"%} - {{ dungeon }}{%endif%}</h1>
   <p>
     <i>The {%include "blurb-top.html"%} based on the top {{n_parses}} {{spec}} M+ {%if dungeon!="all"%}<b>{{ dungeon }}</b>{%endif%} logs ({{n_uniques}} unique characters) from the past 4 weeks, ranging in difficulty from +{{key_min}} to +{{key_max}}.</i>
   </p>
@@ -14,7 +14,7 @@
 
   </div>
 
-    <div class="boss-navbar d-flex py-3 justify-content-center flex-wrap " id="navbarSupportedContent">
+    <div class="zoom-icon boss-navbar d-flex py-3 justify-content-center flex-wrap " id="navbarSupportedContent">
           <div class="boss-box {{ ' active' if dungeon == "all" else '' }}">
             <a class="boss-link" href="{{prefix}}{{spec_slug}}.html">
               <img src="images/affixes/shrouded.jpg" width="51" height="51" alt="All Dungeons" title="All Bosses"><br/>All Dungeons
@@ -23,7 +23,7 @@
         </li>
         
         {% for e in dungeon_slugs %}
-          <div class="boss-box {{ ' active' if e in active_page else '' }}">
+          <div class="zoom-icon boss-box {{ ' active' if e in active_page else '' }}">
             <a class="boss-link" href="{{prefix}}{{spec_slug}}-{{e}}.html">
               <img src="images/dungeons/{{e}}.jpg" width="51" height="51" alt="{{slugs_to_dungeons[e]}}" title="{{slugs_to_dungeons[e]}}"><br/>
              {{dungeon_short_names[slugs_to_dungeons[e]]}}

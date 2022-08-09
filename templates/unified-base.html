@@ -9,7 +9,7 @@
 
 <link href="https://mplus.subcreation.net/css/bootstrap-darkly-452.css" rel="stylesheet">
 <link href='https://mplus.subcreation.net/css/subc-2020nov28.css' rel='stylesheet'>
-<link href='https://mplus.subcreation.net/css/fated.css' rel='stylesheet'>
+<link href='/css/fated.css' rel='stylesheet'>
 <link href='https://mplus.subcreation.net/css/tablesort.css' rel='stylesheet'>
 
 <script src='https://mplus.subcreation.net/js/tablesort.js'></script>
@@ -44,7 +44,7 @@
   {{ navbar.navbar_mplus(affixes, known_affixes, active_page, prefix, page_type, archetype, known_tanks, known_healers, known_melee, known_ranged) }}
   {% endif %}
   {% if active_section == "raid" %}
-  {{ navbar.navbar_raid(active_page, prefix, page_type, archetype, known_tanks, known_healers, known_melee, known_ranged) }}
+  {{ navbar.navbar_raid(active_page, prefix, page_type, archetype, known_tanks, known_healers, known_melee, known_ranged, active_raid) }}
   {% endif %}
 
   {% if active_section == "pvp" %}

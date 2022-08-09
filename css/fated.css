@@ -4,9 +4,13 @@
     padding: 0.5em;
 }
 
+.raid-link-active {
+    font-weight: bold;
+}
 
 .fated {
     width: 200px;
+    height: 30px;
     color: white;
     background-color: white;
     background-repeat: no-repeat;
@@ -14,9 +18,17 @@
     background-size: cover;
     padding: 10px;
     display: flex;
+    border: solid 1px black;
+    border-radius: 4px;
     justify-content: center;
+    vertical-align: text-center;
     align-items: center;
     position: relative;
+    text-shadow:
+        -1px -1px 0 #000,  
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
 }
 
 .fated .fated-icon {
@@ -37,13 +49,23 @@
 }
 
 .fated.nathria {
-    background-image: url("/images/bosses/castle-nathria/castle-nathria.jpg");
+    background-image: url("https://raid.subcreation.net/images/raids/castle-nathria-small.jpg");
 }
 
-.fated.sod {
-    background-image: url("/images/bosses/sanctum/sanctum.jpg");
+.fated.sanctum {
+    background-image: url("https://raid.subcreation.net/images/raids/sanctum-of-domination-small.jpg");
 }
 
-.fated.sotfo {
-    background-image: url("/images/bosses/sepulcher/sepulcher.jpg");
+.fated.sepulcher {
+    background-image: url("https://raid.subcreation.net/images/raids/sepulcher-of-the-first-ones-small.jpg");
+}
+
+.zoom-icon img {
+    border: solid 1px black;
+    border-radius: 4px;
+}
+
+img.zoom-icon {
+    border: solid 1px black;
+    border-radius: 4px;
 }

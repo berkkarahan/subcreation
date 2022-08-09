@@ -1,0 +1,64 @@
+{% macro raid_boss_bar(prefix, raid_canonical_order, raid_short_names, spec_slug, encounter, encounter_slug, encounter_slugs, difficulty, max_raid_difficulty, fated_raid, active_raid) -%}
+  <div class="d-flex justify-content-center">
+    <a class="raid-link-{%if active_raid!=""%}in{%endif%}active" href="{{prefix}}{% if spec_slug=="" %}nathria{% else %}{{spec_slug}}{%endif%}{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
+      <div class="px-3 fated nathria {%if active_raid!="nathria"%}in{%endif%}active">
+        {% if fated_raid == "nathria" %}<img class="fated-icon" src="images/modes/fated.png" width="20" height="20" />{% endif %}
+          Castle Nathria
+        </div>
+      </a>
+    <a class="raid-link-{%if active_raid!="sanctum"%}in{%endif%}active" href="{{prefix}}{% if spec_slug=="" %}sanctum{% else %}{{spec_slug}}-sanctum{%endif%}{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
+      <div class="px-3 fated sanctum {%if active_raid!="sanctum"%}in{%endif%}active">
+       {% if fated_raid == "sanctum" %}<img class="fated-icon" src="images/modes/fated.png" width="20" height="20" />{% endif %}
+        Sanctum
+      </div>
+    </a>
+    <a class="raid-link-{%if active_raid!="sepulcher"%}in{%endif%}active" href="{{prefix}}{% if spec_slug=="" %}sepulcher{% else %}{{spec_slug}}-sepulcher{%endif%}{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
+      <div class="px-3 fated sepulcher {%if active_raid!="sepulcher"%}in{%endif%}active">
+       {% if fated_raid == "sepulcher" %}<img class="fated-icon" src="images/modes/fated.png" width="20" height="20" />{% endif %}
+          Sepulcher
+        </div>          
+    </a>
+  </div>
+
+  <div class="boss-navbar d-flex py-3 justify-content-center flex-wrap " id="navbarSupportedContent">
+    <div style="height: 73.5px;">
+      {% if max_raid_difficulty == "Mythic" %}
+    <div style="height: 50%;">
+      {% if difficulty == "Mythic" %}
+      <b>Mythic</b>
+      {% else %}
+      <a href="{{prefix}}{{spec_slug}}{%if spec_slug == "" and active_raid =="nathria"%}nathria{%endif%}{%if active_raid!="nathria" %}{%if spec_slug!=""%}-{%endif%}{{active_raid}}{%endif%}{% if encounter!="all" %}-{{encounter_slug}}{% endif %}.html">
+        Mythic
+      </a>
+      {% endif %}
+    </div>
+      {% endif %}    
+    <div style="height: 50%;">
+      {% if difficulty == "Heroic" %}
+      <b>Heroic</b>
+      {% else %}
+      <a href="{{prefix}}{{spec_slug}}{%if spec_slug == "" and active_raid =="nathria"%}nathria{%endif%}{%if active_raid!="nathria"%}{%if spec_slug!=""%}-{%endif%}{{active_raid}}{%endif%}{% if encounter!="all" %}-{{encounter_slug}}{% endif %}-heroic.html">
+        Heroic
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  
+          <div class="zoom-icon boss-box {{ ' active' if encounter == "all" else '' }}">
+            <a class="boss-link" href="{{prefix}}{{spec_slug}}{%if spec_slug == "" and active_raid =="nathria"%}nathria{%endif%}{%if active_raid!="nathria"%}{%if spec_slug!=""%}-{%endif%}{{active_raid}}{%endif%}{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
+              <img src="images/bosses/{% if active_raid == "nathria" %}castle-nathria/castle-nathria.jpg{% else %}{{active_raid}}/{{active_raid}}.jpg{% endif %}" width="51" height="51" alt="All Bosses" title="All Bosses"><br/>All Bosses
+            </a>
+          </div>
+        
+{% for e in raid_canonical_order %}
+          <div class="zoom-icon boss-box {{ ' active' if encounter_slugs[e] in encounter_slug else '' }}">
+            <a class="boss-link" href="{{prefix}}{{spec_slug}}{%if spec_slug!=""%}-{%endif%}{%if active_raid!="nathria"%}{{active_raid}}-{%endif%}{{encounter_slugs[e]}}{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
+              <img src="images/bosses/{% if active_raid == "nathria" %}castle-nathria{% else %}{{active_raid}}{% endif %}/{{encounter_slugs[e]}}.jpg" width="51" height="51" alt="{{e}}" title="{{e}}"><br/>
+             {{raid_short_names[e]}}
+            </a>
+          </div>
+        {% endfor %}
+  </div>
+
+
+{%- endmacro %}
