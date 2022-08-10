@@ -85,7 +85,8 @@ class RaidCounts(ndb.Model):
 # for storing high level raid data for making the covenant list
 class CovenantStats(ndb.Model):
     spec = ndb.StringProperty()
-    mode = ndb.StringProperty() # should we encode raid here?
+    mode = ndb.StringProperty()
+    raid = ndb.StringProperty() # which raid
     data = ndb.JsonProperty()
 
     # when were these data last updated

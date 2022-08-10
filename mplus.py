@@ -22,6 +22,9 @@ vendor.add('lib')
 import slugify
 import cloudstorage as gcs
 
+import datetime
+import pytz
+
 from shadowlands import dungeons, dungeon_slugs, dungeon_short_names, slugs_to_dungeons
 from shadowlands import tormented_weeks as affix_rotation_weeks
 from shadowlands import covenantID_mapping
@@ -44,56 +47,6 @@ from shadowlands import shards_of_domination, t29_items
 
 from enchants import enchant_mapping
 
-# todo: handle all three raids :cry:
-
-from wcl_shadowlands import nathria_encounters 
-from nathria import nathria_canonical_order
-from nathria import nathria_short_names 
-from nathria import nathria_ignore
-
-from wcl_shadowlands import sanctum_encounters
-from sanctum import sanctum_canonical_order
-from sanctum import sanctum_short_names
-from sanctum import sanctum_ignore
-
-from wcl_shadowlands import sepulcher_encounters
-from sepulcher import sepulcher_canonical_order
-from sepulcher import sepulcher_short_names
-from sepulcher import sepulcher_ignore
-
-
-def get_raid_encounters(active_raid):
-    if active_raid == "nathria":
-        return nathria_encounters
-    if active_raid == "sanctum":
-        return sanctum_encounters
-    if active_raid == "sepulcher":
-        return sepulcher_encounters
-
-def get_raid_canonical_order(active_raid):
-    if active_raid == "nathria":
-        return nathria_canonical_order
-    if active_raid == "sanctum":
-        return sanctum_canonical_order
-    if active_raid == "sepulcher":
-        return sepulcher_canonical_order    
-
-def get_raid_short_names(active_raid):
-    if active_raid == "nathria":
-        return nathria_short_names
-    if active_raid == "sanctum":
-        return sanctum_short_names
-    if active_raid == "sepulcher":
-        return sepulcher_short_names
-
-def get_raid_ignore(active_raid):
-    if active_raid == "nathria":
-        return nathria_ignore
-    if active_raid == "sanctum":
-        return sanctum_ignore
-    if active_raid == "sepulcher":
-        return sepulcher_ignore    
-
 # cloudflare cache handling
 from auth import cloudflare_api_key, cloudflare_zone
 
@@ -112,12 +65,171 @@ from config import WCL_SEASON, WCL_PARTITION
 from config import MIN_KEY_LEVEL
 from config import MAX_RAID_DIFFICULTY
 
+last_updated = None
+
+## raid rotation
+
+known_raids = ["nathria", "sanctum", "sepulcher"]
+
+from wcl_shadowlands import nathria_encounters 
+from nathria import nathria_canonical_order
+from nathria import nathria_short_names 
+from nathria import nathria_ignore
+
+from wcl_shadowlands import sanctum_encounters
+from sanctum import sanctum_canonical_order
+from sanctum import sanctum_short_names
+from sanctum import sanctum_ignore
+
+from wcl_shadowlands import sepulcher_encounters
+from sepulcher import sepulcher_canonical_order
+from sepulcher import sepulcher_short_names
+from sepulcher import sepulcher_ignore
+
+# raid rotation helper functions
+
+def get_raid_encounters(active_raid):
+    if active_raid == "nathria":
+        return nathria_encounters
+    if active_raid == "sanctum":
+        return sanctum_encounters
+    if active_raid == "sepulcher":
+        return sepulcher_encounters
+    logging.info(active_raid)
+
+def get_raid_canonical_order(active_raid):
+    if active_raid == "nathria":
+        return nathria_canonical_order
+    if active_raid == "sanctum":
+        return sanctum_canonical_order
+    if active_raid == "sepulcher":
+        return sepulcher_canonical_order
+    logging.info(active_raid)    
+
+def get_raid_short_names(active_raid):
+    if active_raid == "nathria":
+        return nathria_short_names
+    if active_raid == "sanctum":
+        return sanctum_short_names
+    if active_raid == "sepulcher":
+        return sepulcher_short_names
+    logging.info(active_raid)    
+
+def get_raid_ignore(active_raid):
+    if active_raid == "nathria":
+        return nathria_ignore
+    if active_raid == "sanctum":
+        return sanctum_ignore
+    if active_raid == "sepulcher":
+        return sepulcher_ignore
+    logging.info(active_raid)
+
+
 # nathria, sanctum, or sepulcher
 # eventually make this automatically determine the rotation
 
 # refresh only fated on thu, fri, sat, sun, mon, tues
 # on wed refresh fated and previously fated (to update navigation)
-fated_raid = "nathria"
+# this will not work in 2023, but we will probably all raids fated by then
+def determine_fated_raid(current_time=None):
+    if current_time == None:
+        current_time = pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
+    # Monday 0, Tuesday 1, Wednesday 2, Thursday 3, Friday 4, Saturday 5, Sunday 6
+    current_day_of_week = current_time.weekday()
+    # week of Aug 9 2022 = 32, weeks start on Monday
+    current_week_of_year = current_time.isocalendar()[1]
+
+    # if it's wednesday through sunday
+    if current_day_of_week >= 2:
+        week_offset = current_week_of_year % 3
+    else: # monday and tuesday belong to the previous week for our calculations
+        week_offset = current_week_of_year % 3 - 1 
+
+    # offsets
+    # 1 - nathria (sepulcher)
+    # 2 - sanctum (nathria)
+    # 0 - sepulcher (sanctum)
+    current_fated_raid = ""
+    if week_offset == 1:
+        current_fated_raid = "nathria"
+    elif week_offset == 2:
+        current_fated_raid = "sanctum"
+    elif week_offset == 0:
+        current_fated_raid = "sepulcher"
+
+    return current_fated_raid
+
+def determine_raids_to_update(current_time=None):
+    if current_time == None:
+        current_time = pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
+    # Monday 0, Tuesday 1, Wednesday 2, Thursday 3, Friday 4, Saturday 5, Sunday 6
+    current_day_of_week = current_time.weekday()
+    # week of Aug 9 2022 = 32, weeks start on Monday
+    current_week_of_year = current_time.isocalendar()[1]
+
+    # if it's wednesday through sunday
+    if current_day_of_week >= 2:
+        week_offset = current_week_of_year % 3
+    else: # monday and tuesday belong to the previous week for our calculations
+        week_offset = current_week_of_year % 3 - 1 
+
+    # offsets
+    # 1 - nathria (sepulcher)
+    # 2 - sanctum (nathria)
+    # 0 - sepulcher (sanctum)
+    raids_to_update = []
+    raids_to_update += [determine_fated_raid(current_time)]
+
+    # on wednesday, also recrawl / update the previous raid in rotation
+    if current_day_of_week == 2:
+        if week_offset == 2:
+            raids_to_update += ["nathria"]
+        elif week_offset == 0:
+            raids_to_update += ["sanctum"]
+        elif week_offset == 1:
+            raids_to_update += ["sepulcher"]
+    
+
+    logging.info(current_time)
+    logging.info(current_day_of_week)
+    logging.info(week_offset)
+    logging.info(raids_to_update)
+    return raids_to_update
+
+
+def determine_raids_to_generate(current_time=None):
+    if current_time == None:
+        current_time = pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
+    # Monday 0, Tuesday 1, Wednesday 2, Thursday 3, Friday 4, Saturday 5, Sunday 6
+    current_day_of_week = current_time.weekday()
+    # week of Aug 9 2022 = 32, weeks start on Monday
+    current_week_of_year = current_time.isocalendar()[1]
+
+    # if it's wednesday through sunday
+    if current_day_of_week >= 2:
+        week_offset = current_week_of_year % 3
+    else: # monday and tuesday belong to the previous week for our calculations
+        week_offset = current_week_of_year % 3 - 1 
+
+    # offsets
+    # 1 - nathria (sepulcher)
+    # 2 - sanctum (nathria)
+    # 0 - sepulcher (sanctum)
+    raids_to_update = []
+    raids_to_update += [determine_fated_raid(current_time)]
+
+    # regenerate all raid pages on wednesday
+    if current_day_of_week == 2:
+        raids_to_update = known_raids
+
+    logging.info(current_time)
+    logging.info(current_day_of_week)
+    logging.info(week_offset)
+    logging.info(raids_to_update)
+    return raids_to_update
+
+
+
 
 ## raider.io handling
 def update_known_affixes(affixes, affixes_slug):
@@ -288,11 +400,13 @@ def std(data, ddof=0):
 from math import sqrt
 from ckmeans import ckmeans
 
-def look_up_covenants(spec, mode):
+def look_up_covenants(spec, mode, active_raid=""):
     spec_slug = slugify.slugify(unicode(spec))
     mode_slug = slugify.slugify(unicode(mode))
     
     key_slug = "%s-%s" % (spec_slug, mode_slug)
+    if mode == "raid":
+        key_slug = "%s-%s-%s" % (spec_slug, mode_slug, active_raid)    
     key = ndb.Key('CovenantStats', key_slug)
 
     cs = key.get()
@@ -307,9 +421,9 @@ def look_up_covenants(spec, mode):
 
     return n_parses, n_uniques, covenants
 
-def gen_top_covenant_report_for(spec, mode):
+def gen_top_covenant_report_for(spec, mode, active_raid=""):
 
-    n_parses, n_uniques, covenants = look_up_covenants(spec, mode)
+    n_parses, n_uniques, covenants = look_up_covenants(spec, mode, active_raid=active_raid)
     
     slug = slugify.slugify(unicode(spec))
 
@@ -399,7 +513,7 @@ def gen_covenants_report():
             n, mplus, m_data = gen_top_covenant_report_for(spec, "mplus")
             n_parses["mplus"] += n
             mm_data[spec] = m_data
-            
+
             n, raid, r_data = gen_top_covenant_report_for(spec, "raid")
             n_parses["raid"] += n
             rr_data[spec] = r_data
@@ -1065,7 +1179,7 @@ def gen_raid_specs_role_package(encounter, difficulty=MAX_RAID_DIFFICULTY, activ
 
 # generate a specs tier list
 # placeholder code for now
-def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid="nathria"):
+def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     global role_titles
 
     # for raid, we compare tanks to tanks
@@ -1368,13 +1482,14 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
 # we'll have 3 -- all dps against each other (melee and ranged)
 # all tanks against each other (since we only have dps for tanks and tank dps is so much lower)
 # all healers against each other, based on hps
-def process_raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_RAID_DIFFICULTY):
+def process_raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     counts = []
     
     # only consider the difficulty (we'll need to call this twice, once each for Heroic and Mythic)
     wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
                                        SpecRankingsRaid.difficulty==difficulty,
-                                       SpecRankingsRaid.encounter==encounter)
+                                       SpecRankingsRaid.encounter==encounter,
+                                       SpecRankingsRaid.raid==active_raid)
     results = wcl_query.fetch()
 
     rankings = []
@@ -1412,19 +1527,26 @@ def process_raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_
     encounter_slug = slugify.slugify(unicode(encounter))
     difficulty_slug = slugify.slugify(unicode(difficulty))
 
-    key_slug = "%s-%s-%s" % (spec_slug, encounter_slug, difficulty_slug)
+    key_slug = "%s-%s-%s-%s" % (spec_slug, encounter_slug, difficulty_slug, active_raid)
     key = ndb.Key('RaidCounts', key_slug)
     
     raid_counts = RaidCounts(id = key_slug,
                              difficulty = difficulty,
                              spec = spec,
                              encounter = encounter,
+                             raid = active_raid,
                              data = json.dumps(data),
                              last_updated = last_updated)
 
     raid_counts.put()
 
 
+def process_generate_raid_counts_for_raids(raids):
+    for r in raids:
+        options = TaskRetryOptions(task_retry_limit = 1)        
+        deferred.defer(process_generate_raid_counts, active_raid=r,
+                       _retry_options=options)
+        
 def process_generate_raid_counts(active_raid=""):
     difficulties = ["Heroic"]
     if MAX_RAID_DIFFICULTY == "Mythic":
@@ -1434,7 +1556,7 @@ def process_generate_raid_counts(active_raid=""):
             raid_encounters = get_raid_encounters(active_raid)
             for k, v in raid_encounters.iteritems():
                 options = TaskRetryOptions(task_retry_limit = 1)        
-                deferred.defer(process_raid_generate_counts_spec_encounter, s, k, d,
+                deferred.defer(process_raid_generate_counts_spec_encounter, s, k, d, active_raid=active_raid,
                                _retry_options=options)
 
 def raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
@@ -2683,8 +2805,10 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
         # log cov stats if it's all encounters
         spec_slug = slugify.slugify(unicode(spec))
         mode_slug = slugify.slugify(unicode(mode))
-        
+
         key_slug = "%s-%s" % (spec_slug, mode_slug)
+        if mode == "raid":
+            key_slug = "%s-%s-%s" % (spec_slug, mode_slug, active_raid)
 
         data = {}
         data["n_parses"] = len(rankings)
@@ -2708,6 +2832,7 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
             cov_stats = CovenantStats(id = key_slug,
                                       spec = spec,
                                       mode = mode,
+                                      raid = active_raid,
                                       data = json.dumps(data))
             cov_stats.put()
     
@@ -3007,8 +3132,8 @@ def render_stats(affixes, prefix=""):
     return rendered
 
 # render raid stats separately
-def render_raid_stats(encounter, prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid="nathria"):
-    specs_report, spec_stats = gen_raid_specs_role_package(encounter, difficulty=difficulty)
+def render_raid_stats(encounter, prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
+    specs_report, spec_stats = gen_raid_specs_role_package(encounter, difficulty=difficulty, active_raid=active_raid)
 
     encounter_slugs = {}
     raid_canonical_order = get_raid_canonical_order(active_raid)
@@ -3111,7 +3236,7 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
 
     return rendered
 
-def render_raid_index(encounter="all", difficulty=MAX_RAID_DIFFICULTY, prefix="", active_raid="nathria"):
+def render_raid_index(encounter="all", difficulty=MAX_RAID_DIFFICULTY, prefix="", active_raid=""):
     template = env.get_template("raid-index.html")
     
     specs_report, spec_stats = gen_raid_specs_role_package(encounter, difficulty=difficulty, active_raid=active_raid)
@@ -3162,7 +3287,7 @@ def render_raid_index(encounter="all", difficulty=MAX_RAID_DIFFICULTY, prefix=""
                                role_package=specs_report,
                                spec_stats = spec_stats,
                                encounter=encounter,
-                               fated_raid=fated_raid,
+                               fated_raid=determine_fated_raid(),
                                active_raid=active_raid,
                                raid_ignore = raid_ignore,
                                encounter_slugs = encounter_slugs,
@@ -3326,7 +3451,7 @@ def render_faq(prefix=""):
 
     return rendered
 
-def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid="nathria"):
+def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     logging.info("%s %s %s" % (spec, encounter, difficulty))
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
@@ -3389,7 +3514,7 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
                                encounter = encounter,
                                encounter_slug = encounter_slug,
                                encounter_pretty = encounter_pretty,
-                               fated_raid=fated_raid,
+                               fated_raid=determine_fated_raid(),
                                active_raid=active_raid,
                                difficulty = difficulty,
                                available_difficulty = available_difficulty,
@@ -3515,14 +3640,15 @@ def render_and_write_stats(af):
     deferred.defer(write_to_storage, "stats-" + filename_slug + ".html", rendered,
                    _retry_options=options)
 
-def render_and_write_raid_stats(encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid="nathria"):
-    rendered = render_raid_stats(encounter, difficulty)
-    
-    filename_slug = slugify.slugify(unicode(encounter))
+def render_and_write_raid_stats(encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
+    rendered = render_raid_stats(encounter, difficulty, active_raid=active_raid)
 
+    filename_slug = ""
     if active_raid != "nathria":
-        filename_slug += "-" + active_raid
+        filename_slug += active_raid + "-"
     
+    filename_slug += slugify.slugify(unicode(encounter))
+
     if difficulty == "Heroic":
         filename_slug += "-heroic"
             
@@ -3552,15 +3678,6 @@ def write_overviews():
 
     options = TaskRetryOptions(task_retry_limit = 1)
     deferred.defer(write_apis, _retry_options=options)    
-
-def write_all_affixes():
-    affixes_to_write = []
-    affixes_to_write += ["All Affixes"]
-
-    for af in affixes_to_write:
-        options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(render_and_write, af,
-                       _retry_options=options)   
 
 
 def create_spec_overview(s, d="all"):
@@ -3650,15 +3767,25 @@ def create_static_pages():
                        _retry_options=options) 
     
 def create_raid_index(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
-    rendered = render_raid_index(difficulty=difficulty)
-    filename = "index.html"
+    rendered = render_raid_index(difficulty=difficulty, active_raid=active_raid)
+    filename = active_raid + ".html"
     if difficulty == "Heroic":
-        filename = "index-heroic.html"
+        filename = active_raid + "-heroic.html"
+
     options = TaskRetryOptions(task_retry_limit = 1)        
     deferred.defer(raid_write_to_storage, filename, rendered,
                        _retry_options=options)
 
+    # also write as index if this is the fated raid so it's the home page
+    if active_raid in determine_fated_raid():
+        if difficulty == MAX_RAID_DIFFICULTY:
+            filename = "index.html"
+            options = TaskRetryOptions(task_retry_limit = 1)        
+            deferred.defer(raid_write_to_storage, filename, rendered,
+                           _retry_options=options)
+
     # if it's heroic week then heroic is also the index
+    # not adding fated raid handling here since we never have a heroic only fated week
     if MAX_RAID_DIFFICULTY == "Heroic":
         options = TaskRetryOptions(task_retry_limit = 1)        
         deferred.defer(raid_write_to_storage, "index.html", rendered,
@@ -3669,8 +3796,11 @@ def create_raid_index(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     encounters_to_write += raid_canonical_order
 
     for encounter in encounters_to_write:
-        rendered = render_raid_index(encounter, difficulty)
-        filename = slugify.slugify(unicode(encounter))
+        rendered = render_raid_index(encounter, difficulty, active_raid=active_raid)
+        filename = ""
+        if active_raid != "nathria": # nathria doesn't prefix, other raids do
+            filename = active_raid + "-"
+        filename += slugify.slugify(unicode(encounter))
         if difficulty == "Heroic":
             filename += "-heroic"
         filename += ".html"
@@ -3682,12 +3812,12 @@ def create_raid_index(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     encounters_to_write += ["all"]
     for encounter in encounters_to_write:
         options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(render_and_write_raid_stats, encounter, difficulty,
+        deferred.defer(render_and_write_raid_stats, encounter, difficulty, active_raid=active_raid,
                        _retry_options=options)        
     
-def create_raid_spec_overview(s, e="all", difficulty=MAX_RAID_DIFFICULTY):
+def create_raid_spec_overview(s, e="all", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     spec_slug = slugify.slugify(unicode(s))
-    rendered = render_wcl_raid_spec(s, encounter=e, difficulty=difficulty)
+    rendered = render_wcl_raid_spec(s, encounter=e, difficulty=difficulty, active_raid=active_raid)
     filename_slug = ""
     if e == "all":
         filename_slug = "%s" % (spec_slug)
@@ -3756,25 +3886,10 @@ def write_apis():
 
     deferred.defer(write_api_dungeon_ease_overall, _retry_options=options)
 
-def write_raid_indices():
-    # update the counts
-    process_generate_raid_counts()    
-    
-    # write the index page
-    difficulties = ["Heroic"]
-    if MAX_RAID_DIFFICULTY == "Mythic":
-        difficulties = ["Mythic", "Heroic"]
-    
-    options = TaskRetryOptions(task_retry_limit = 1)
-    for d in difficulties:
-        deferred.defer(create_raid_index, d,
-                       _retry_options=options)   
 
-    
 def write_raid_spec_overviews(active_raid=""):
-
     # update the counts
-    process_generate_raid_counts()    
+    process_generate_raid_counts(active_raid=active_raid)    
     
     # write the index page
     difficulties = ["Heroic"]
@@ -3783,19 +3898,19 @@ def write_raid_spec_overviews(active_raid=""):
     
     options = TaskRetryOptions(task_retry_limit = 1)
     for d in difficulties:
-        deferred.defer(create_raid_index, d,
+        deferred.defer(create_raid_index, d, active_raid=active_raid,
                        _retry_options=options)   
 
     for s in specs:
         for d in difficulties:
             options = TaskRetryOptions(task_retry_limit = 1)        
-            deferred.defer(create_raid_spec_overview, s, "all", d,
+            deferred.defer(create_raid_spec_overview, s, "all", d, active_raid=active_raid,
                            _retry_options=options)
 
             raid_encounters = get_raid_encounters(active_raid)
             for k, v in raid_encounters.iteritems():
                 options = TaskRetryOptions(task_retry_limit = 1)        
-                deferred.defer(create_raid_spec_overview, s, k, d,
+                deferred.defer(create_raid_spec_overview, s, k, d, active_raid=active_raid,
                            _retry_options=options)
 
 
@@ -3825,6 +3940,14 @@ def cloudflare_purge_cache(bucket, filename):
 
 def reset_db():
     kind_list = [DungeonAffixRegion, KnownAffixes, SpecRankings, SpecRankingsRaid, CovenantStats, DungeonEaseTierList, PvPCounts, PvPLadderStats, RaidCounts ]
+    for a_kind in kind_list:
+        kind_keys = a_kind.gql("").fetch(keys_only=True)
+        ndb.delete_multi(kind_keys)
+    return "resetDB for " + str(kind_list)
+
+# just elements for fated raids
+def reset_fated_db():
+    kind_list = [ SpecRankingsRaid, CovenantStats, RaidCounts ]
     for a_kind in kind_list:
         kind_keys = a_kind.gql("").fetch(keys_only=True)
         ndb.delete_multi(kind_keys)
@@ -3906,7 +4029,7 @@ def test_raid_view(destination):
         active_raid = "sepulcher"
 
     if active_raid == "":
-        active_raid = fated_raid
+        active_raid = determine_fated_raid()
 
     raid_canonical_order = nathria_canonical_order
     if active_raid == "sanctum":
@@ -4030,6 +4153,7 @@ def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=WCL
 
 
 def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
+    
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
     spec_key = slugify.slugify(unicode(spec))
@@ -4039,7 +4163,7 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
     encounter_id = raid_encounters[encounter]
     encounter_slug = slugify.slugify(unicode(encounter))
 
-    logging.info("%s %s %s %s" % (spec, encounter, difficulty, page))
+    logging.info("%s %s %s %s [%s]" % (spec, encounter, difficulty, page, active_raid))
     
     aggregate = []
     
@@ -4073,7 +4197,7 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
             i = 1
             while (i <= 5):
                 options = TaskRetryOptions(task_retry_limit = 1)
-                deferred.defer(update_wcl_raid_rankings, spec, encounter, page=i, difficulty="Normal",
+                deferred.defer(update_wcl_raid_rankings, spec, encounter, page=i, difficulty="Normal", active_raid=active_raid,
                                _retry_options=options)
                 i += 1
             return True
@@ -4129,7 +4253,7 @@ def update_wcl_update_subset(subset):
         
 
 def update_wcl_raid_spec(spec, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
-    logging.info("%s %s" % (spec, difficulty))
+    logging.info("%s %s [%s]" % (spec, difficulty, active_raid))
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
     spec_key = slugify.slugify(unicode(spec))
@@ -4167,11 +4291,6 @@ def update_wcl_raid_update_subset(subset, active_raid=""):
         for d in difficulties:
             options = TaskRetryOptions(task_retry_limit = 1)    
             deferred.defer(update_wcl_raid_spec, s, d, active_raid, _retry_options=options)
-        
-def update_wcl_raid_all():
-    update_wcl_raid_update()
-    options = TaskRetryOptions(task_retry_limit = 1)
-    deferred.defer(write_raid_spec_overviews, _retry_options=options)
     
 # update all the wcl for dungeons
 def update_wcl_all():
@@ -4179,7 +4298,7 @@ def update_wcl_all():
     options = TaskRetryOptions(task_retry_limit = 1)
     deferred.defer(write_spec_overviews, _retry_options=options)
 
-# update pvp ladder stas
+# update pvp ladder stats
 
 # region = us or eu
 # mode = 2v2 or 3v3 or rbg
@@ -4210,34 +4329,12 @@ def update_all_pvp_rankings():
 
 ## handlers
 
-# look at what the raw wcl rankings string looks like
-def test_inspect(rh, mode):
-    if mode == "mplus":
-        spec = "Havoc Demon Hunter"
-        wcl_query = SpecRankings.query(SpecRankings.spec==spec)
-    elif mode=="raid":
-        spec = "Havoc Demon Hunter"
-        wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec)
-        
-    results = wcl_query.fetch()
-    
-    for x in results:
-        for k, v in json.loads(x.rankings)[0].iteritems():
-            rh.response.write("%s\n" % k)
-            rh.response.write("%s\n\n" % v)
-        return
-
 class UpdateCurrentDungeons(webapp2.RequestHandler):
     def get(self):
         global dungeons, regions
         self.response.headers['Content-Type'] = 'text/plain'
         update_current()
         self.response.write("Updates queued.")
-
-import datetime
-import pytz
-last_updated = None
-
 
 class OnlyGenerateHTML(webapp2.RequestHandler):
     def get(self):
@@ -4246,12 +4343,6 @@ class OnlyGenerateHTML(webapp2.RequestHandler):
         options = TaskRetryOptions(task_retry_limit = 1)
         deferred.defer(write_overviews, _retry_options=options)
 
-class OnlyGenerateAllAffixesHTML(webapp2.RequestHandler):
-    def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write("Writing templates to cloud storage...")
-        options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(write_all_affixes, _retry_options=options)          
 
 class TestView(webapp2.RequestHandler):
     def get(self):
@@ -4303,29 +4394,21 @@ class TestWCLGetRankings(webapp2.RequestHandler):
 #        update_wcl_update_subset(["Havoc Demon Hunter", "Fury Warrior"])
         update_wcl_update_subset(["Survival Hunter"])
 
-class WCLGetRankingsRaid(webapp2.RequestHandler):
-    def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write("Queueing updates...\n")
-        update_wcl_raid_all()
-
 class WCLGetRankingsRaidOnly(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
-        update_wcl_raid_update()
+        raids_to_update = determine_raids_to_update()
+        for r in raids_to_update:
+            update_wcl_raid_update(active_raid = r)
 
-class TestWCLInspectMPlus(webapp2.RequestHandler):
+class WCLGetRankingsRaidOnlyAll(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write("Inspecting M+:\n")
-        test_inspect(self, "mplus")
-
-class TestWCLInspectRaid(webapp2.RequestHandler):
-    def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write("Inspecting Raid:\n")
-        test_inspect(self, "raid")
+        self.response.write("Queueing updates for all known raids...\n")
+        raids_to_update = known_raids
+        for r in raids_to_update:
+            update_wcl_raid_update(active_raid = r)            
 
 class TestWCLGetRankingsRaid(webapp2.RequestHandler):
     def get(self):
@@ -4333,6 +4416,8 @@ class TestWCLGetRankingsRaid(webapp2.RequestHandler):
         self.response.write("Queueing updates...\n")
 #        update_wcl_raid_update_subset(["Havoc Demon Hunter", "Fury Warrior"])
         update_wcl_raid_update_subset(["Survival Hunter"], active_raid="nathria")
+        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sanctum")
+#        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sepulcher")                
 
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):
@@ -4345,15 +4430,21 @@ class WCLRaidGenHTML(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Writing WCL Raid HTML...\n")
-        options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(write_raid_spec_overviews, _retry_options=options)
+        raids_to_generate = determine_raids_to_generate()
+        for r in raids_to_generate:
+            options = TaskRetryOptions(task_retry_limit = 1)
+            deferred.defer(write_raid_spec_overviews, active_raid = r,
+                           _retry_options=options)
 
-class WCLRaidIndicesGenHTML(webapp2.RequestHandler):
+class WCLRaidGenHTMLAll(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
-        self.response.write("Writing WCL Raid HTML (Indices Only)...\n")
-        options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(write_raid_indices, _retry_options=options)        
+        self.response.write("Writing WCL Raid HTML for all known raids...\n")
+        raids_to_generate = known_raids
+        for r in raids_to_generate:
+            options = TaskRetryOptions(task_retry_limit = 1)
+            deferred.defer(write_raid_spec_overviews, active_raid = r,
+                           _retry_options=options)            
 
 class GenStaticHTML(webapp2.RequestHandler):
     def get(self):
@@ -4398,6 +4489,13 @@ class TestResetDB(webapp2.RequestHandler):
         options = TaskRetryOptions(task_retry_limit = 1)
         self.response.write(reset_db())
 
+class TestResetFatedDB(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Clearing db for fated\n")
+        options = TaskRetryOptions(task_retry_limit = 1)
+        self.response.write(reset_fated_db())        
+
 class TestResetSpecRankingsRaid(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
@@ -4434,7 +4532,7 @@ class ProcessDungeonEaseTierLists(webapp2.RequestHandler):
 class ProcessRaidCounts(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/html'
-        process_generate_raid_counts()
+        process_generate_raid_counts_for_raids(known_raids) # crunch numbers for all
         self.response.write("Queueing processing raid counts...")
 
 class ProcessPvPCounts(webapp2.RequestHandler):
@@ -4473,28 +4571,45 @@ class APIPvPRBG(webapp2.RequestHandler):
         self.response.write(api_pvp_specs("rbg"))     
 
 app = webapp2.WSGIApplication([
-        ('/update_wcl', WCLGetRankings),
-        ('/update_wcl_raid', WCLGetRankingsRaid),
-    
-        ('/refresh/affixes', UpdateCurrentDungeons),
-        ('/refresh/dungeons', WCLGetRankingsOnly),
-        ('/refresh/raids', WCLGetRankingsRaidOnly),
-        ('/refresh/pvp', TestLudusPvP),    
 
+    # called in cron jobs
+    ## mplus
+        ('/refresh/affixes', UpdateCurrentDungeons),
+        ('/generate/affixes', OnlyGenerateHTML),
+    
+    ## dungeon top builds
+        ('/refresh/dungeons', WCLGetRankingsOnly),
+        ('/generate/dungeons', WCLGenHTML),         
+
+    ## raid top builds
+        ('/refresh/raids', WCLGetRankingsRaidOnly),
+        ('/generate/raids', WCLRaidGenHTML),
+    
+    ## pvp
+        ('/refresh/pvp', TestLudusPvP),
+        ('/process/pvp', ProcessPvPCounts),
+        ('/generate/pvp', GenPVP),        
+
+    ## main page (incl top covenants)
+        ('/generate/main', GenMainHTML),
+
+    # manually called if needed
+        ('/generate/static', GenStaticHTML), # make sure to call on migration
+
+        # don't need to explicitly call, built into other functions
+        # only here if needed for one off fixes to regen just part
         ('/process/dungeon_ease_tier_lists', ProcessDungeonEaseTierLists),
         ('/process/raid_counts', ProcessRaidCounts),
-        ('/process/pvp', ProcessPvPCounts),
-    
-        ('/generate/affixes', OnlyGenerateHTML),
-        ('/generate/all_affixes', OnlyGenerateAllAffixesHTML),
-        ('/generate/dungeons', WCLGenHTML),
-        ('/generate/raids', WCLRaidGenHTML),
-        ('/generate/raid_indices', WCLRaidIndicesGenHTML),    
-        ('/generate/main', GenMainHTML),    
-        ('/generate/static', GenStaticHTML),
-        ('/generate/apis', GenAPIs), # does not include pvp apis
-        ('/generate/pvp', GenPVP),    
 
+        # don't need to explicitly call, built into other functions
+        # only here if needed for one off fixes to regen just part    
+        ('/generate/apis', GenAPIs), # just mplus api, pvp api are incl generate/pvp
+
+        # do this for all known_raids
+        ('/refresh/raids_all', WCLGetRankingsRaidOnlyAll),
+        ('/generate/raids_all', WCLRaidGenHTMLAll),
+        
+    # api functionality
         ('/api/dungeon_ease', APIDungeonEase),
         ('/api/mplus_specs', APIDungeonSpecs),
         ('/api/mplus_affixes', APIAffixEase),
@@ -4503,7 +4618,8 @@ app = webapp2.WSGIApplication([
         ('/api/pvp/2v2', APIPvP2v2),
         ('/api/pvp/3v3', APIPvP3v3),
         ('/api/pvp/rbg', APIPvPRBG),
-    
+
+    # testing
         ('/view', TestView),
         ('/raid', TestRaidView),
         ('/pvp', TestPvPView),    
@@ -4514,10 +4630,9 @@ app = webapp2.WSGIApplication([
         ('/test/dungeons', TestWCLGetRankings),
         ('/test/raids', TestWCLGetRankingsRaid),
         ('/test/pvp', TestLudusPvP),
-        ('/test/inspect_mplus', TestWCLInspectMPlus),
-        ('/test/inspect_raid', TestWCLInspectRaid),    
         ('/test/cloudflare_purge', TestCloudflarePurgeCache),
         ('/test/reset_db', TestResetDB),
+        ('/test/reset_fated_db', TestResetFatedDB),    
         ('/test/reset_spec_rankings_raid', TestResetSpecRankingsRaid),
     
         ], debug=True)
