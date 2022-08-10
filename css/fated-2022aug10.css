@@ -4,6 +4,10 @@
     padding: 0.5em;
 }
 
+a[class^="raid-link"] {
+    margin: 0 0.5em;
+}
+
 .raid-link-active {
     font-weight: bold;
 }
