@@ -3848,12 +3848,13 @@ def create_raid_index(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
 def create_raid_spec_overview(s, e="all", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     spec_slug = slugify.slugify(unicode(s))
     rendered = render_wcl_raid_spec(s, encounter=e, difficulty=difficulty, active_raid=active_raid)
-    filename_slug = ""
+    if active_raid != "nathria":
+        filename_slug += active_raid + "-"
     if e == "all":
-        filename_slug = "%s" % (spec_slug)
+        filename_slug += "%s" % (spec_slug)
     else:
         encounter_slug = slugify.slugify(unicode(e))
-        filename_slug = "%s-%s" % (spec_slug, encounter_slug)
+        filename_slug += "%s-%s" % (spec_slug, encounter_slug)
 
     # special handling for heroic week -- write both files
     if MAX_RAID_DIFFICULTY == "Heroic":
@@ -4049,6 +4050,9 @@ def test_raid_view(destination):
             spec = s
 
     active_raid = ""
+    if "index" in destination:
+        active_raid = determine_fated_raid()
+    
     if "nathria" in destination:
         active_raid = "nathria"
         
@@ -4059,7 +4063,8 @@ def test_raid_view(destination):
         active_raid = "sepulcher"
 
     if active_raid == "":
-        active_raid = determine_fated_raid()
+        active_raid = "nathria"
+
 
     raid_canonical_order = nathria_canonical_order
     if active_raid == "sanctum":
