@@ -181,8 +181,13 @@
      </span>
     <ul class="navbar-nav mr-auto">     
       <li class="nav-item">
-        <a class="nav-link{{ ' active' if active_page == 'raid-index' else '' }}" href="{{prefix}}index.html">All Bosses</a>
+        <a class="nav-link{{ ' active' if active_raid == 'nathria' else '' }}" href="{{prefix}}nathria.html">Castle Nathria</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link{{ ' active' if active_raid == 'sanctum' else '' }}" href="{{prefix}}sanctum.html">Sanctum</a>
+      </li>
+      <li class="nav-item">        
+        <a class="nav-link{{ ' active' if active_raid == 'sepulcher' else '' }}" href="{{prefix}}sepulcher.html">Sepulcher</a>           </li>
       <span class="navbar-text" style="width: 2em; text-align: center;">
       </span>      
       {{navbar_top_builds(prefix, "", archetype, active_page, known_tanks, known_healers, known_melee, known_ranged, active_raid)}}
