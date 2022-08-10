@@ -130,7 +130,7 @@ def get_raid_ignore(active_raid):
 
 # refresh only fated on thu, fri, sat, sun, mon, tues
 # on wed refresh fated and previously fated (to update navigation)
-# this will not work in 2023, but we will probably all raids fated by then
+# this will not work in 2023, but fated should be on all raids by then which will need another update anyway
 def determine_fated_raid(current_time=None):
     if current_time == None:
         current_time = pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
@@ -421,10 +421,40 @@ def look_up_covenants(spec, mode, active_raid=""):
 
     return n_parses, n_uniques, covenants
 
-def gen_top_covenant_report_for(spec, mode, active_raid=""):
+def gen_top_covenant_report_for(spec, mode):
+    n_parses = 0
+    n_uniques = 0
+    covenants = []
 
-    n_parses, n_uniques, covenants = look_up_covenants(spec, mode, active_raid=active_raid)
-    
+    if mode == "mplus":
+        n_parses, n_uniques, covenants = look_up_covenants(spec, mode)
+
+    if mode == "raid":
+        covenants_to_aggregate = []
+        # for the cov stats, we aggregate across all fated raids
+        for r in known_raids:
+            np, nu, covs = look_up_covenants(spec, mode, active_raid=r)
+            n_parses += np
+            n_uniques += nu
+            covenants_to_aggregate += [covs]
+
+        counts = {}
+        counts["Night Fae"] = 0
+        counts["Kyrian"] = 0
+        counts["Venthyr"] = 0
+        counts["Necrolord"] = 0
+        
+        for data in covenants_to_aggregate:
+            for cov in data:
+                counts[cov[1][0]] += cov[0]
+        
+        sorted_counts = sorted(counts.items(), key = operator.itemgetter(1), reverse=True)
+        covenants = [] 
+        for k, v in sorted_counts:
+            if v > 0:
+                covenants += [[v, [k]]]
+
+        
     slug = slugify.slugify(unicode(spec))
 
     # no data
