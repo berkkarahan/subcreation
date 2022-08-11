@@ -6,13 +6,13 @@
           Castle Nathria
         </div>
       </a>
-    <a class="raid-link-{%if active_raid!="sanctum"%}in{%endif%}active" href="{{prefix}}{% if spec_slug=="" %}sanctum{% else %}{{spec_slug}}-sanctum{%endif%}{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
+    <a class="raid-link-{%if active_raid!="sanctum"%}in{%endif%}active" href="{{prefix}}{% if spec_slug=="" %}sanctum{% else %}sanctum-{{spec_slug}}{%endif%}{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
       <div class="px-3 fated sanctum {%if active_raid!="sanctum"%}in{%endif%}active">
        {% if fated_raid == "sanctum" %}<img class="fated-icon" src="images/modes/fated.png" width="20" height="20" />{% endif %}
         Sanctum
       </div>
     </a>
-    <a class="raid-link-{%if active_raid!="sepulcher"%}in{%endif%}active" href="{{prefix}}{% if spec_slug=="" %}sepulcher{% else %}{{spec_slug}}-sepulcher{%endif%}{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
+    <a class="raid-link-{%if active_raid!="sepulcher"%}in{%endif%}active" href="{{prefix}}{% if spec_slug=="" %}sepulcher{% else %}sepulcher-{{spec_slug}}{%endif%}{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
       <div class="px-3 fated sepulcher {%if active_raid!="sepulcher"%}in{%endif%}active">
        {% if fated_raid == "sepulcher" %}<img class="fated-icon" src="images/modes/fated.png" width="20" height="20" />{% endif %}
           Sepulcher
