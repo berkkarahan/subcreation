@@ -1,5 +1,5 @@
 {% macro raid_boss_bar(prefix, raid_canonical_order, raid_short_names, spec_slug, encounter, encounter_slug, encounter_slugs, difficulty, max_raid_difficulty, fated_raid, active_raid) -%}
-  <div class="d-flex justify-content-center">
+  <div class="d-flex justify-content-center flex-wrap">
     <a class="raid-link-{%if active_raid!=""%}in{%endif%}active" href="{{prefix}}{% if spec_slug=="" %}nathria{% else %}{{spec_slug}}{%endif%}{% if difficulty == "Heroic" %}-heroic{%endif%}.html">
       <div class="px-3 fated nathria {%if active_raid!="nathria"%}in{%endif%}active">
         {% if fated_raid == "nathria" %}<img class="fated-icon" src="images/modes/fated.png" width="20" height="20" />{% endif %}

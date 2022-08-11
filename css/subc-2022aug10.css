@@ -458,7 +458,7 @@ a.class-color:hover {
 }
 
 a[class^="raid-link"] {
-    margin: 0 0.5em;
+    margin: 0.5em 0.5em;
 }
 
 .raid-link-active {
