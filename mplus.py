@@ -171,7 +171,10 @@ def determine_raids_to_update(current_time=None):
     if current_day_of_week >= 2:
         week_offset = current_week_of_year % 3
     else: # monday and tuesday belong to the previous week for our calculations
-        week_offset = current_week_of_year % 3 - 1 
+        week_offset = current_week_of_year % 3 - 1
+
+    if week_offset == -1:
+        week_offset = 2 # wrap around
 
     # offsets
     # 1 - nathria (sepulcher)
@@ -214,7 +217,10 @@ def determine_raids_to_generate(current_time=None):
     if current_day_of_week >= 2:
         week_offset = current_week_of_year % 3
     else: # monday and tuesday belong to the previous week for our calculations
-        week_offset = current_week_of_year % 3 - 1 
+        week_offset = current_week_of_year % 3 - 1
+
+    if week_offset == -1:
+        week_offset = 2 # wraparound        
 
     # offsets
     # 1 - nathria (sepulcher)
