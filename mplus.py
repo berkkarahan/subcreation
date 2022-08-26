@@ -205,7 +205,7 @@ def determine_raids_to_generate(current_time=None):
         current_time = pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
 
     # special handling
-    if current_time.month == 8 and current_time.day == 12 and current_time.year == 2022:
+    if current_time.month == 8 and current_time.day == 26 and current_time.year == 2022:
         return known_raids
         
     # Monday 0, Tuesday 1, Wednesday 2, Thursday 3, Friday 4, Saturday 5, Sunday 6
