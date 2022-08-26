@@ -27,7 +27,7 @@
       {% if difficulty == "Mythic" %}
       <b>Mythic</b>
       {% else %}
-      <a href="{{prefix}}{%if spec_slug == "" and active_raid =="nathria" and encounter=="all"%}nathria{%endif%}{%if active_raid!="nathria" %}{{active_raid}}{%if spec_slug!=""%}-{%endif%}{%endif%}{{spec_slug}}{% if encounter!="all" %}{%if spec_slug != ""%}-{%endif%}{{encounter_slug}}{% endif %}.html">
+      <a href="{{prefix}}{%if spec_slug == "" and active_raid =="nathria" and encounter=="all"%}nathria{%endif%}{%if active_raid!="nathria" %}{{active_raid}}{%if spec_slug!=""%}-{%endif%}{%endif%}{{spec_slug}}{% if encounter!="all" %}{%if active_raid != "nathria"%}-{%endif%}{{encounter_slug}}{% endif %}.html">
         Mythic
       </a>
       {% endif %}
@@ -37,7 +37,7 @@
       {% if difficulty == "Heroic" %}
       <b>Heroic</b>
       {% else %}
-      <a href="{{prefix}}{%if spec_slug == "" and active_raid =="nathria" and encounter=="all"%}nathria{%endif%}{%if active_raid!="nathria"%}{{active_raid}}{%if spec_slug!=""%}-{%endif%}{%endif%}{{spec_slug}}{% if encounter!="all" %}{%if spec_slug != ""%}-{%endif%}{{encounter_slug}}{% endif %}-heroic.html">
+      <a href="{{prefix}}{%if spec_slug == "" and active_raid =="nathria" and encounter=="all"%}nathria{%endif%}{%if active_raid!="nathria"%}{{active_raid}}{%if spec_slug!=""%}-{%endif%}{%endif%}{{spec_slug}}{% if encounter!="all" %}{%if active_raid != "nathria"%}-{%endif%}{{encounter_slug}}{% endif %}-heroic.html">
         Heroic
       </a>
       {% endif %}
