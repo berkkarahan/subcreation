@@ -42,6 +42,10 @@ from auth import api_key
 from wcl import wcl_specs
 from wcl_shadowlands import dungeon_encounters
 
+# information about dragonflight talent trees
+from tree import class_zero, class_eight, class_twenty
+from tree import spec_zero, spec_eight, spec_twenty
+from tree import talent_order
 
 from shadowlands import shards_of_domination, t29_items
 
@@ -2270,7 +2274,35 @@ def wcl_extract_essences(ranking):
 def wcl_essences(rankings):
     return wcl_parse(rankings, wcl_extract_essences, is_sorted=False)
 
-def wcl_extract_talents(ranking):
+# given a list of talent ids
+# return them in canonical talent order
+# talent_ids is going to be a list of strs
+def canonical_talent_order(talent_ids, require_in=None):
+    # talent_order has the talent order
+
+    talent_ints = []
+    for k in talent_ids:
+        if k == "":
+            continue
+        talent_ints += [int(k)]
+
+    # get the index for each talent id
+    d = {k:v for v,k in enumerate(talent_order)}
+
+    # sort based on that index
+    talent_ints.sort(key=d.get)
+   
+    # convert back to string
+    talent_str = []
+    for k in talent_ints:
+        if require_in is not None:
+            if k not in require_in:
+                continue
+        talent_str += [str(k)]
+        
+    return talent_str
+  
+def wcl_extract_talents(ranking, require_in=None):
     names_in_set = []
     name_id_icons = []
 
@@ -2278,10 +2310,13 @@ def wcl_extract_talents(ranking):
         names_in_set += [j["id"]]
         name_id_icons += [j]
     
-    return names_in_set, name_id_icons    
+    return canonical_talent_order(names_in_set, require_in), name_id_icons
 
-def wcl_talents(rankings):
-    return wcl_parse(rankings, wcl_extract_talents, is_sorted=False)
+def wcl_talents(rankings, require_in=None):
+    return wcl_parse(rankings, lambda e: wcl_extract_talents(e, require_in), is_sorted=False)
+
+def wcl_talents_top(rankings, require_in=None):
+    return wcl_parse(rankings, lambda e: wcl_extract_talents(e, require_in), is_sorted=False, flatten=True)
 
 def wcl_extract_soulbinds(ranking):
     names_in_set = []
@@ -2639,10 +2674,7 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     tea = []
     tea, update_spells = wcl_tea(rankings)
     spells.update(update_spells)
-        
-    talents, update_spells = wcl_talents(rankings)
-    spells.update(update_spells)
-
+           
     gear = {}    
 
     gear_slots = []
@@ -2784,10 +2816,62 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
                                       data = json.dumps(data))
             cov_stats.put()
     
-        
+
+    talents_container = {}
+            
+    talents, update_spells = wcl_talents(rankings)
+    talents_container["talents"] = talents
+    spells.update(update_spells)
+
+    talents_top, _ = wcl_talents_top(rankings)
+    talents_container["top"] = talents_top
+
+    talents_class, _ = wcl_talents(rankings, require_in=(class_zero+class_eight+class_twenty))
+    talents_container["class"] = talents_class
+
+    talents_class_zero, _ = wcl_talents(rankings, require_in=(class_zero))
+    talents_container["class_zero"] = talents_class_zero
+
+    talents_class_zero_top, _ = wcl_talents_top(rankings, require_in=(class_zero))
+    talents_container["class_zero_top"] = talents_class_zero_top
+
+    talents_class_eight, _ = wcl_talents(rankings, require_in=(class_eight))
+    talents_container["class_eight"] = talents_class_eight
+
+    talents_class_eight_top, _ = wcl_talents_top(rankings, require_in=(class_eight))
+    talents_container["class_eight_top"] = talents_class_eight_top
+
+    talents_class_twenty, _ = wcl_talents(rankings, require_in=(class_twenty))
+    talents_container["class_twenty"] = talents_class_twenty
+
+    talents_class_twenty_top, _ = wcl_talents_top(rankings, require_in=(class_twenty))
+    talents_container["class_twenty_top"] = talents_class_twenty_top
+
+    talents_spec, _ = wcl_talents(rankings, require_in=(spec_zero+spec_eight+spec_twenty))
+    talents_container["spec"] = talents_spec
+    
+    talents_spec_zero, _ = wcl_talents(rankings, require_in=(spec_zero))
+    talents_container["spec_zero"] = talents_spec_zero
+
+    talents_spec_zero_top, _ = wcl_talents_top(rankings, require_in=(spec_zero))
+    talents_container["spec_zero_top"] = talents_spec_zero_top
+
+    talents_spec_eight, _ = wcl_talents(rankings, require_in=(spec_eight))
+    talents_container["spec_eight"] = talents_spec_eight
+
+    talents_spec_eight_top, _ = wcl_talents_top(rankings, require_in=(spec_eight))
+    talents_container["spec_eight_top"] = talents_spec_eight_top
+
+    talents_spec_twenty, _ = wcl_talents(rankings, require_in=(spec_twenty))
+    talents_container["spec_twenty"] = talents_spec_twenty
+
+    talents_spec_twenty_top, _ = wcl_talents_top(rankings, require_in=(spec_twenty))
+    talents_container["spec_twenty_top"] = talents_spec_twenty_top    
+
+               
     # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
     # raid will return available_difficulty in max_maxima
-    return len(rankings), n_uniques, max_maxima, min_maxima, tea, talents, legendaries, \
+    return len(rankings), n_uniques, max_maxima, min_maxima, tea, talents_container, legendaries, \
         legendary_builds, \
         gear, enchants, gems, gem_builds, shards, shard_builds, \
         covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, \
