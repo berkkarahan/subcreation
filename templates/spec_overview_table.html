@@ -37,7 +37,9 @@
         {% elif lookup_type == "covenant" %}
         <a href="https://www.wowhead.com/spell={{lookup[k]}}" title="{{lookup[k]}}"></a>
         {% else %}
+        {% if k in lookup %}
         <a href="https://www.wowhead.com/{{lookup_type}}={{lookup[k][0]}}"></a>
+        {% endif %}
         {% endif %}
         {% if loop.index0 in offset_at %}
         {{offset_first}}
