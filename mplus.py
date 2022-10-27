@@ -2029,6 +2029,12 @@ def wcl_parse(rankings, extractor, is_sorted=True, is_aggregated=True, only_use_
         names_in_set, name_id_icons = extractor(k)
         map_name_id_icon += name_id_icons
 
+        # df prepatch: skip logs with broken talents
+        if "talents" in k:
+            logging.info(k["talents"])
+            if k["talents"] == [{u'id': u'', u'icon': u'inv_axe_02.jpg', u'name': u'Unknown Ability'}]:
+                continue
+
         add_this = None
         if flatten: # use each element of names_in_set separately
             added_this_round = []                    
@@ -2306,7 +2312,11 @@ def wcl_extract_talents(ranking, require_in=None):
     names_in_set = []
     name_id_icons = []
 
+    logging.info(ranking["talents"])
+    
     for i, j in enumerate(ranking["talents"]):
+        if j["id"] == "": # skip empty talents
+            continue
         names_in_set += [j["id"]]
         name_id_icons += [j]
     
@@ -2820,6 +2830,7 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     talents_container = {}
             
     talents, update_spells = wcl_talents(rankings)
+    
     talents_container["talents"] = talents
     spells.update(update_spells)
 
@@ -4136,7 +4147,7 @@ def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
     # filter to the last 4 weeks, or latest patch, whichever is sooner
 
     # prepatch
-    latest_patch = datetime.datetime(2022, 10, 25, 0, 0)
+    latest_patch = datetime.datetime(2022, 10, 27, 0, 0)
     
     now = datetime.datetime.now()
 
@@ -4149,7 +4160,7 @@ def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
     
     wcl_date = "date."
     wcl_date += "%d000" % (filter_back_to)
-    wcl_date += "." + "%d000" % (time.mktime(now.timetuple()))
+    wcl_date += "." + "%d000" % (time.mktime(now.timetuple())+60*24)    
     
     url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&class=%d&spec=%d&page=%d&filter=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, season, class_id, spec, page, wcl_date, api_key)
     logging.info(url)
@@ -4187,10 +4198,25 @@ def update_wcl_rankings(spec, dungeon, page):
 # 5 - mythic
 def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=WCL_PARTITION, metric="dps"):
     # filter to the last 4 weeks
+    # prepatch
+    latest_patch = datetime.datetime(2022, 10, 27, 0, 0)
+    
     now = datetime.datetime.now()
+
+        
+    
+    now = datetime.datetime.now()
+
+    latest_patch_mkt = time.mktime(latest_patch.timetuple())
+    four_weeks_ago = time.mktime(now.timetuple())-4*7*60*60*24
+
+    filter_back_to = four_weeks_ago
+    if latest_patch_mkt > four_weeks_ago:
+        filter_back_to = latest_patch_mkt
+    
     wcl_date = "date."
-    wcl_date += "%d000" % (time.mktime(now.timetuple())-4*7*60*60*24 )
-    wcl_date += "." + "%d000" % (time.mktime(now.timetuple()))
+    wcl_date += "%d000" % (filter_back_to)
+    wcl_date += "." + "%d000" % (time.mktime(now.timetuple())+60*24)
 
     url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?difficulty=%d&partition=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&includeCombatantInfo=true&api_key=%s&partition=%s" % (encounterId, difficulty, season, class_id, spec, page, wcl_date, metric, api_key, season)
 
