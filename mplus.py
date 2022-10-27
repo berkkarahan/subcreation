@@ -3987,6 +3987,14 @@ def reset_fated_db():
         ndb.delete_multi(kind_keys)
     return "resetDB for " + str(kind_list)
 
+# just elements for prepatch
+def reset_prepatch_db():
+    kind_list = [ SpecRankings, SpecRankingsRaid, CovenantStats, RaidCounts ]
+    for a_kind in kind_list:
+        kind_keys = a_kind.gql("").fetch(keys_only=True)
+        ndb.delete_multi(kind_keys)
+    return "resetDB for " + str(kind_list)
+
 # just spec rankings raid
 def reset_spec_rankings_raid():
     kind_list = [SpecRankingsRaid]
@@ -4535,7 +4543,14 @@ class TestResetFatedDB(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Clearing db for fated\n")
         options = TaskRetryOptions(task_retry_limit = 1)
-        self.response.write(reset_fated_db())        
+        self.response.write(reset_fated_db())
+
+class TestResetPrepatchDB(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.write("Clearing db for prepatch\n")
+        options = TaskRetryOptions(task_retry_limit = 1)
+        self.response.write(reset_prepatch_db())           
 
 class TestResetSpecRankingsRaid(webapp2.RequestHandler):
     def get(self):
@@ -4673,7 +4688,8 @@ app = webapp2.WSGIApplication([
         ('/test/pvp', TestLudusPvP),
         ('/test/cloudflare_purge', TestCloudflarePurgeCache),
         ('/test/reset_db', TestResetDB),
-        ('/test/reset_fated_db', TestResetFatedDB),    
+        ('/test/reset_fated_db', TestResetFatedDB),
+        ('/test/reset_prepatch_db', TestResetPrepatchDB),        
         ('/test/reset_spec_rankings_raid', TestResetSpecRankingsRaid),
     
         ], debug=True)
