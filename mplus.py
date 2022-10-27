@@ -2031,7 +2031,6 @@ def wcl_parse(rankings, extractor, is_sorted=True, is_aggregated=True, only_use_
 
         # df prepatch: skip logs with broken talents
         if "talents" in k:
-            logging.info(k["talents"])
             if k["talents"] == [{u'id': u'', u'icon': u'inv_axe_02.jpg', u'name': u'Unknown Ability'}]:
                 continue
 
@@ -2312,8 +2311,6 @@ def wcl_extract_talents(ranking, require_in=None):
     names_in_set = []
     name_id_icons = []
 
-    logging.info(ranking["talents"])
-    
     for i, j in enumerate(ranking["talents"]):
         if j["id"] == "": # skip empty talents
             continue
