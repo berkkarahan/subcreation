@@ -125,122 +125,29 @@ def get_raid_ignore(active_raid):
     logging.info(active_raid)
 
 
-# nathria, sanctum, or sepulcher
-# eventually make this automatically determine the rotation
-
-# refresh only fated on thu, fri, sat, sun, mon, tues
-# on wed refresh fated and previously fated (to update navigation)
-# this will not work in 2023, but fated should be on all raids by then which will need another update anyway
+# all raids are fated
+# but we just return nathria as the default raid
+# and handle the fated icon in templatex
 def determine_fated_raid(current_time=None):
-    if current_time == None:
-        current_time = pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
-    # Monday 0, Tuesday 1, Wednesday 2, Thursday 3, Friday 4, Saturday 5, Sunday 6
-    current_day_of_week = current_time.weekday()
-    # week of Aug 9 2022 = 32, weeks start on Monday
-    current_week_of_year = current_time.isocalendar()[1]
+    return "nathria"
 
-    # if it's wednesday through sunday
-    if current_day_of_week >= 2:
-        week_offset = current_week_of_year % 3
-    else: # monday and tuesday belong to the previous week for our calculations
-        week_offset = current_week_of_year % 3 - 1 
-
-    # offsets
-    # 1 - nathria (sepulcher)
-    # 2 - sanctum (nathria)
-    # 0 - sepulcher (sanctum)
-    current_fated_raid = ""
-    if week_offset == 1:
-        current_fated_raid = "nathria"
-    elif week_offset == 2:
-        current_fated_raid = "sanctum"
-    elif week_offset == 0:
-        current_fated_raid = "sepulcher"
-
-    return current_fated_raid
-
+# always update all raids
 def determine_raids_to_update(current_time=None):
-    if current_time == None:
-        current_time = pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
-    # Monday 0, Tuesday 1, Wednesday 2, Thursday 3, Friday 4, Saturday 5, Sunday 6
-    current_day_of_week = current_time.weekday()
-    # week of Aug 9 2022 = 32, weeks start on Monday
-    current_week_of_year = current_time.isocalendar()[1]
-
-    # if it's wednesday through sunday
-    if current_day_of_week >= 2:
-        week_offset = current_week_of_year % 3
-    else: # monday and tuesday belong to the previous week for our calculations
-        week_offset = current_week_of_year % 3 - 1
-
-    if week_offset == -1:
-        week_offset = 2 # wrap around
-
-    # offsets
-    # 1 - nathria (sepulcher)
-    # 2 - sanctum (nathria)
-    # 0 - sepulcher (sanctum)
     raids_to_update = []
-    raids_to_update += [determine_fated_raid(current_time)]
+    raids_to_update += ["nathria"]
+    raids_to_update += ["sanctum"]
+    raids_to_update += ["sepulcher"]
 
-    # on wednesday, also recrawl / update the previous raid in rotation
-    if current_day_of_week == 2:
-        if week_offset == 2:
-            raids_to_update += ["nathria"]
-        elif week_offset == 0:
-            raids_to_update += ["sanctum"]
-        elif week_offset == 1:
-            raids_to_update += ["sepulcher"]
-    
-
-    logging.info(current_time)
-    logging.info(current_day_of_week)
-    logging.info(week_offset)
-    logging.info(raids_to_update)
     return raids_to_update
 
-
+# always generate all raids
 def determine_raids_to_generate(current_time=None):
-    if current_time == None:
-        current_time = pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
-
-    # special handling
-    if current_time.month == 8 and current_time.day == 26 and current_time.year == 2022:
-        return known_raids
-        
-    # Monday 0, Tuesday 1, Wednesday 2, Thursday 3, Friday 4, Saturday 5, Sunday 6
-    current_day_of_week = current_time.weekday()
-    # week of Aug 9 2022 = 32, weeks start on Monday
-    current_week_of_year = current_time.isocalendar()[1]
-
-    # if it's wednesday through sunday
-    if current_day_of_week >= 2:
-        week_offset = current_week_of_year % 3
-    else: # monday and tuesday belong to the previous week for our calculations
-        week_offset = current_week_of_year % 3 - 1
-
-    if week_offset == -1:
-        week_offset = 2 # wraparound        
-
-    # offsets
-    # 1 - nathria (sepulcher)
-    # 2 - sanctum (nathria)
-    # 0 - sepulcher (sanctum)
     raids_to_update = []
-    raids_to_update += [determine_fated_raid(current_time)]
+    raids_to_update += ["nathria"]
+    raids_to_update += ["sanctum"]
+    raids_to_update += ["sepulcher"]
 
-    # regenerate all raid pages on wednesday
-    if current_day_of_week == 2:
-        raids_to_update = known_raids
-
-    logging.info(current_time)
-    logging.info(current_day_of_week)
-    logging.info(week_offset)
-    logging.info(raids_to_update)
     return raids_to_update
-
-
-
 
 ## raider.io handling
 def update_known_affixes(affixes, affixes_slug):
@@ -4134,10 +4041,10 @@ def test_pvp_view(destination):
 ## wcl querying
 # @@season update
 def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
-    # filter to the last 4 weeks, or 9.0.5 date, whichever is sooner
+    # filter to the last 4 weeks, or latest patch, whichever is sooner
 
-    # 9.0.5 date
-    latest_patch = datetime.datetime(2021, 3, 11, 0, 0)
+    # prepatch
+    latest_patch = datetime.datetime(2022, 10, 25, 0, 0)
     
     now = datetime.datetime.now()
 
@@ -4153,6 +4060,7 @@ def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
     wcl_date += "." + "%d000" % (time.mktime(now.timetuple()))
     
     url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&class=%d&spec=%d&page=%d&filter=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, season, class_id, spec, page, wcl_date, api_key)
+    logging.info(url)
 
     result = urlfetch.fetch(url, deadline=60)
     data = json.loads(result.content)
@@ -4194,6 +4102,8 @@ def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=WCL
 
     url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?difficulty=%d&partition=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&includeCombatantInfo=true&api_key=%s&partition=%s" % (encounterId, difficulty, season, class_id, spec, page, wcl_date, metric, api_key, season)
 
+    logging.info(url)
+    
     result = urlfetch.fetch(url, deadline=60)
     data = json.loads(result.content)
     return data

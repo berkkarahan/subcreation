@@ -6,10 +6,13 @@ RIO_MAX_PAGE = 5
 # need to update in templates/stats_table.html
 # need to update in templates/compositions.html
 # need to update in templates/navbar.html
-RIO_SEASON = "season-sl-4" 
+RIO_SEASON = "season-sl-4-post" 
 
-WCL_SEASON = 1 # just one partition since it's a different set of dungeons
-WCL_PARTITION = 4
+# used for m+
+WCL_SEASON = 2
+
+# used for raid
+WCL_PARTITION = 5
 
 # config
 RAID_NAME = "Fated Raids"

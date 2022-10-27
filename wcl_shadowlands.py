@@ -1,14 +1,4 @@
 dungeon_encounters = {}
-dungeon_encounters["De Other Side"] = 12291
-dungeon_encounters["Halls of Atonement"] = 12287
-dungeon_encounters["Mists of Tirna Scithe"] = 12290
-dungeon_encounters["Plaguefall"] = 12289
-dungeon_encounters["Sanguine Depths"] = 12284
-dungeon_encounters["Spires of Ascension"] = 12285
-dungeon_encounters["The Necrotic Wake"] = 12286
-dungeon_encounters["Theater of Pain"] = 12293
-
-
 dungeon_encounters["Tazavesh: Streets of Wonder"] = 62441
 dungeon_encounters["Tazavesh: So'leah's Gambit"] = 62442
 dungeon_encounters["Operation Mechagon: Junkyard"] = 62097
