@@ -2031,7 +2031,7 @@ def wcl_parse(rankings, extractor, is_sorted=True, is_aggregated=True, only_use_
 
         # df prepatch: skip logs with broken talents
         if "talents" in k:
-            if k["talents"] == [{u'id': u'', u'icon': u'inv_axe_02.jpg', u'name': u'Unknown Ability'}]:
+            if len(k["talents"]) < 10:
                 continue
 
         add_this = None
@@ -2280,43 +2280,29 @@ def wcl_essences(rankings):
     return wcl_parse(rankings, wcl_extract_essences, is_sorted=False)
 
 # given a list of talent ids
-# return them in canonical talent order
-# talent_ids is going to be a list of strs
+# talent ids are now numbers, not strings in wcl
 def canonical_talent_order(talent_ids, require_in=None):
     # talent_order has the talent order
 
-    talent_ints = []
-    for k in talent_ids:
-        if k == "":
-            continue
-        talent_ints += [int(k)]
-
-    # get the index for each talent id
     d = {k:v for v,k in enumerate(talent_order)}
 
-    # sort based on that index
-    talent_ints.sort(key=d.get)
+    talent_ids.sort(key=d.get)
    
-    # convert back to string
-    talent_str = []
-    for k in talent_ints:
-        if require_in is not None:
-            if k not in require_in:
-                continue
-        talent_str += [str(k)]
-        
-    return talent_str
-  
+    return talent_ids
+
+# todo: probably will want to rewrite this to handle
+# whereever talents end up, wcl is iterating a lot atm tho
+# so just running with this for now
 def wcl_extract_talents(ranking, require_in=None):
     names_in_set = []
     name_id_icons = []
 
     for i, j in enumerate(ranking["talents"]):
-        if j["id"] == "": # skip empty talents
+        if j["id"] == 0: # talents are now numbers, not strings
             continue
-        names_in_set += [j["id"]]
+        names_in_set += [j["id"]] # need to make it a string since every other id is a string
         name_id_icons += [j]
-    
+
     return canonical_talent_order(names_in_set, require_in), name_id_icons
 
 def wcl_talents(rankings, require_in=None):
@@ -4143,7 +4129,7 @@ def test_pvp_view(destination):
 def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
     # filter to the last 4 weeks, or latest patch, whichever is sooner
 
-    # prepatch
+    # prepatch - a few days after since initial logs were messed up with talents
     latest_patch = datetime.datetime(2022, 10, 27, 0, 0)
     
     now = datetime.datetime.now()
@@ -4195,7 +4181,7 @@ def update_wcl_rankings(spec, dungeon, page):
 # 5 - mythic
 def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=WCL_PARTITION, metric="dps"):
     # filter to the last 4 weeks
-    # prepatch
+    # prepatch - a few days after since initial logs were mesesed up with talents
     latest_patch = datetime.datetime(2022, 10, 27, 0, 0)
     
     now = datetime.datetime.now()
