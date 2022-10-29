@@ -2287,8 +2287,15 @@ def canonical_talent_order(talent_ids, require_in=None):
     d = {k:v for v,k in enumerate(talent_order)}
 
     talent_ids.sort(key=d.get)
+
+    filtered_talent_ids = []
+    for tid in talent_ids:
+        if require_in is not None:
+            if tid not in require_in:
+                continue
+        filtered_talent_ids += [tid]
    
-    return talent_ids
+    return filtered_talent_ids
 
 # todo: probably will want to rewrite this to handle
 # whereever talents end up, wcl is iterating a lot atm tho
