@@ -43,12 +43,10 @@ class SpecRankings(ndb.Model):
     spec = ndb.StringProperty()
     dungeon = ndb.StringProperty()
     page = ndb.IntegerProperty()
-    rankings = ndb.JsonProperty()
+    rankings = ndb.JsonProperty(compressed=True)
 
     # when were these data last updated
     last_updated = ndb.DateTimeProperty(auto_now_add=True)
-
-
     
 # new: for storing rankings from wcl's api for raids
 class SpecRankingsRaid(ndb.Model):
@@ -58,7 +56,7 @@ class SpecRankingsRaid(ndb.Model):
     difficulty = ndb.StringProperty()
     raid = ndb.StringProperty() # which raid
     page = ndb.IntegerProperty()
-    rankings = ndb.JsonProperty()
+    rankings = ndb.JsonProperty(compressed=True)
 
     # when were these data last updated
     last_updated = ndb.DateTimeProperty(auto_now_add=True)

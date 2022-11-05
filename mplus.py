@@ -4130,7 +4130,8 @@ def test_pvp_view(destination):
         return render_pvp_stats(mode, prefix=prefix)
     
     return render_pvp_index(mode, prefix=prefix)            
-    
+
+
 ## wcl querying
 # @@season update
 def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
@@ -4157,6 +4158,7 @@ def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
 
     result = urlfetch.fetch(url, deadline=60)
     data = json.loads(result.content)
+ 
     return data
 
 
@@ -4182,6 +4184,7 @@ def update_wcl_rankings(spec, dungeon, page):
     sr.dungeon = dungeon
     sr.page = page
     sr.rankings = json.dumps(aggregate)
+   
     sr.put()
 
 # 4 - heroic
