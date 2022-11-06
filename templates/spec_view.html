@@ -4,6 +4,9 @@
 <div class="quicknav">
   <a href="#top"><button type="button" class="btn btn-light">&uarr; Top</button></a>
   <a href="#talents"><button type="button" class="btn btn-primary">Talents</button></a>
+    <a href="#class_tree"><button type="button" class="btn btn-primary">Class Tree</button></a>
+    <a href="#spec_tree"><button type="button" class="btn btn-primary">Spec Tree</button></a>
+    <a href="#covenants"><button type="button" class="btn btn-primary">Covenants</button></a>  
     <a href="#legendaries"><button type="button" class="btn btn-primary">Legendaries</button></a>
   <a href="#soulbinds"><button type="button" class="btn btn-primary">Soulbinds</button></a>
   <a href="#conduits"><button type="button" class="btn btn-primary">Conduits</button></a>
@@ -29,6 +32,11 @@
 {{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-7", "Priority Talents (Capstone + Choice Nodes only)", "Talents", talents["priority"], spells, "spell", n_parses, anchor_id="talents", expanded="true", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Top Priority Talents", "Talents", talents["top"], spells, "spell", n_parses, anchor_id="talents", metric=metric) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Class Tree Talent Builds", "Talents", talents["class"], spells, "spell", n_parses, anchor_id="class_tree", expanded="true", metric=metric) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Spec Tree Talent Builds", "Talents", talents["spec"], spells, "spell", n_parses, anchor_id="spec_tree", expanded="true", metric=metric) }}
+
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-4", "Covenants", "Covenant", covenants, covenantNameToID, "covenant", n_parses, anchor_id="covenants", metric=metric) }}
 

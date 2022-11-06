@@ -2830,6 +2830,14 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
 
     talents_priority, _ = wcl_talents(rankings, require_in=priority_talents)
     talents_container["priority"] = talents_priority
+
+
+    talents_class, _ = wcl_talents(rankings, require_in=(class_zero+class_eight+class_twenty))
+    talents_container["class"] = talents_class
+
+    talents_spec, _ = wcl_talents(rankings, require_in=(spec_zero+spec_eight+spec_twenty))
+    talents_container["spec"] = talents_spec
+    
                
     # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
     # raid will return available_difficulty in max_maxima
