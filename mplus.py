@@ -46,6 +46,7 @@ from wcl_shadowlands import dungeon_encounters
 from tree import class_zero, class_eight, class_twenty
 from tree import spec_zero, spec_eight, spec_twenty
 from tree import talent_order
+from priority_talents import priority_talents
 
 from shadowlands import shards_of_domination, t29_items
 
@@ -2824,51 +2825,11 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     talents_container["talents"] = talents
     spells.update(update_spells)
 
-    talents_top, _ = wcl_talents_top(rankings)
+    talents_top, _ = wcl_talents_top(rankings, require_in=priority_talents)
     talents_container["top"] = talents_top
 
-    talents_class, _ = wcl_talents(rankings, require_in=(class_zero+class_eight+class_twenty))
-    talents_container["class"] = talents_class
-
-    talents_class_zero, _ = wcl_talents(rankings, require_in=(class_zero))
-    talents_container["class_zero"] = talents_class_zero
-
-    talents_class_zero_top, _ = wcl_talents_top(rankings, require_in=(class_zero))
-    talents_container["class_zero_top"] = talents_class_zero_top
-
-    talents_class_eight, _ = wcl_talents(rankings, require_in=(class_eight))
-    talents_container["class_eight"] = talents_class_eight
-
-    talents_class_eight_top, _ = wcl_talents_top(rankings, require_in=(class_eight))
-    talents_container["class_eight_top"] = talents_class_eight_top
-
-    talents_class_twenty, _ = wcl_talents(rankings, require_in=(class_twenty))
-    talents_container["class_twenty"] = talents_class_twenty
-
-    talents_class_twenty_top, _ = wcl_talents_top(rankings, require_in=(class_twenty))
-    talents_container["class_twenty_top"] = talents_class_twenty_top
-
-    talents_spec, _ = wcl_talents(rankings, require_in=(spec_zero+spec_eight+spec_twenty))
-    talents_container["spec"] = talents_spec
-    
-    talents_spec_zero, _ = wcl_talents(rankings, require_in=(spec_zero))
-    talents_container["spec_zero"] = talents_spec_zero
-
-    talents_spec_zero_top, _ = wcl_talents_top(rankings, require_in=(spec_zero))
-    talents_container["spec_zero_top"] = talents_spec_zero_top
-
-    talents_spec_eight, _ = wcl_talents(rankings, require_in=(spec_eight))
-    talents_container["spec_eight"] = talents_spec_eight
-
-    talents_spec_eight_top, _ = wcl_talents_top(rankings, require_in=(spec_eight))
-    talents_container["spec_eight_top"] = talents_spec_eight_top
-
-    talents_spec_twenty, _ = wcl_talents(rankings, require_in=(spec_twenty))
-    talents_container["spec_twenty"] = talents_spec_twenty
-
-    talents_spec_twenty_top, _ = wcl_talents_top(rankings, require_in=(spec_twenty))
-    talents_container["spec_twenty_top"] = talents_spec_twenty_top    
-
+    talents_priority, _ = wcl_talents(rankings, require_in=priority_talents)
+    talents_container["priority"] = talents_priority
                
     # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
     # raid will return available_difficulty in max_maxima

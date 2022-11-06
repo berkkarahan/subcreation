@@ -4,15 +4,6 @@
 <div class="quicknav">
   <a href="#top"><button type="button" class="btn btn-light">&uarr; Top</button></a>
   <a href="#talents"><button type="button" class="btn btn-primary">Talents</button></a>
-  <a href="#covenants"><button type="button" class="btn btn-primary">Covenants</button></a>  
-  <a href="#class_tree"><button type="button" class="btn btn-primary">Class Tree</button></a>
-  <a href="#spec_tree"><button type="button" class="btn btn-primary">Spec Tree</button></a>
-  <a href="#class_zero"><button type="button" class="btn btn-primary">Class 0</button></a>
-  <a href="#class_eight"><button type="button" class="btn btn-primary">Class 8</button></a>
-  <a href="#class_twenty"><button type="button" class="btn btn-primary">Class 20</button></a>
-  <a href="#spec_zero"><button type="button" class="btn btn-primary">Spec 0</button></a>
-  <a href="#spec_eight"><button type="button" class="btn btn-primary">Spec 8</button></a>
-  <a href="#spec_twenty"><button type="button" class="btn btn-primary">Spec 20</button></a>  
     <a href="#legendaries"><button type="button" class="btn btn-primary">Legendaries</button></a>
   <a href="#soulbinds"><button type="button" class="btn btn-primary">Soulbinds</button></a>
   <a href="#conduits"><button type="button" class="btn btn-primary">Conduits</button></a>
@@ -32,43 +23,17 @@
   <a href="#legs"><button type="button" class="btn btn-primary">Leg</button></a>
   <a href="#feet"><button type="button" class="btn btn-primary">Feet</button></a>
   <a href="#rings"><button type="button" class="btn btn-primary">Rings</button></a>
-  <a href="#combos"><button type="button" class="btn btn-primary">Combos</button></a>
+<!--  <a href="#combos"><button type="button" class="btn btn-primary">Combos</button></a> -->
 </div>
 
-{{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-7", "Complete Talent Builds", "Talents", talents["talents"], spells, "spell", n_parses, anchor_id="talents", expanded="true", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-7", "Priority Talents", "Talents", talents["priority"], spells, "spell", n_parses, anchor_id="talents", expanded="true", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Covenants", "Covenant", covenants, covenantNameToID, "covenant", n_parses, anchor_id="covenants", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Top Priority Talents", "Talents", talents["top"], spells, "spell", n_parses, anchor_id="talents", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Class Tree Talent Builds", "Talents", talents["class"], spells, "spell", n_parses, anchor_id="class_tree", expanded="true", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-4", "Covenants", "Covenant", covenants, covenantNameToID, "covenant", n_parses, anchor_id="covenants", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Spec Tree Talent Builds", "Talents", talents["spec"], spells, "spell", n_parses, anchor_id="spec_tree", expanded="true", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-8", "Class Tree 0 Points Required Talent Builds", "Talents", talents["class_zero"], spells, "spell", n_parses, anchor_id="class_zero", expanded="true", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-4", "Class Tree 0 Points Required Talents", "Talents", talents["class_zero_top"], spells, "spell", n_parses, anchor_id="class_zero", expanded="true", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-8", "Class Tree 8 Points Required Talent Builds", "Talents", talents["class_eight"], spells, "spell", n_parses, anchor_id="class_eight", expanded="true", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-4", "Class Tree 8 Points Required Talents", "Talents", talents["class_eight_top"], spells, "spell", n_parses, anchor_id="class_eight", expanded="true", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-8", "Class Tree 20 Points Required Talent Builds", "Talents", talents["class_twenty"], spells, "spell", n_parses, anchor_id="class_twenty", expanded="true", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-4", "Class Tree 20 Points Required Talents", "Talents", talents["class_twenty_top"], spells, "spell", n_parses, anchor_id="class_twenty", expanded="true", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-8", "Spec Tree 0 Points Required Talent Builds", "Talents", talents["spec_zero"], spells, "spell", n_parses, anchor_id="spec_zero", expanded="true", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-4", "Spec Tree 0 Points Required Talents", "Talents", talents["spec_zero_top"], spells, "spell", n_parses, anchor_id="spec_zero", expanded="true", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-8", "Spec Tree 8 Points Required Talent Builds", "Talents", talents["spec_eight"], spells, "spell", n_parses, anchor_id="spec_eight", expanded="true", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-4", "Spec Tree 8 Points Required Talents", "Talents", talents["spec_eight_top"], spells, "spell", n_parses, anchor_id="spec_eight", expanded="true", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-8", "Spec Tree 20 Points Required Talent Builds", "Talents", talents["spec_twenty"], spells, "spell", n_parses, anchor_id="spec_twenty", expanded="true", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-4", "Spec Tree 20 Points Required Talents", "Talents", talents["spec_twenty_top"], spells, "spell", n_parses, anchor_id="spec_twenty", expanded="true", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Legendaries", "Legendary Power", legendaries, spells, "spell", n_parses, anchor_id="legendaries", metric=metric) }}
-{{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-7", "Legendary Builds", "Legendary Builds", legendary_builds, spells, "spell", n_parses, anchor_id="legendary_builds", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-4", "Legendaries", "Legendary Power", legendaries, spells, "spell", n_parses, anchor_id="legendaries", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-4", "Legendary Builds", "Legendary Builds", legendary_builds, spells, "spell", n_parses, anchor_id="legendary_builds", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Soulbinds", "Soulbind", soulbinds, spells, "soulbind", n_parses, anchor_id="soulbinds", metric=metric) }}
 
@@ -127,5 +92,4 @@
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Rings", "Items", gear["rings"], items, "item", n_parses, anchor_id="rings", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-12 col-lg-12", "Talent / Legendary / Soulbind / Conduit Combinations", "Combination", tea, spells, "spell", n_parses, offset_first="&nbsp;", offset_at = [6], anchor_id="combos", metric=metric) }}
 {%- endmacro %}
