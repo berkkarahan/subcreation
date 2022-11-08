@@ -136,21 +136,40 @@ def get_raid_ignore(active_raid):
 def determine_fated_raid(current_time=None):
     return "nathria"
 
-# always update all raids
+# rotate updating raids every day
 def determine_raids_to_update(current_time=None):
+    if current_time == None:
+        current_time = pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
+
+    remainder = current_time.day % 3
+        
     raids_to_update = []
-    raids_to_update += ["nathria"]
-    raids_to_update += ["sanctum"]
-    raids_to_update += ["sepulcher"]
+
+    if remainder == 0:
+        raids_to_update += ["nathria"]
+    if remainder == 1:
+        raids_to_update += ["sanctum"]
+    if remainder == 2:
+        raids_to_update += ["sepulcher"]
 
     return raids_to_update
 
-# always generate all raids
+# rotate updating raids every day
 def determine_raids_to_generate(current_time=None):
+
+    if current_time == None:
+        current_time = pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
+
+    remainder = current_time.day % 3
+
     raids_to_update = []
-    raids_to_update += ["nathria"]
-    raids_to_update += ["sanctum"]
-    raids_to_update += ["sepulcher"]
+    
+    if remainder == 0:
+        raids_to_update += ["nathria"]
+    if remainder == 1:
+        raids_to_update += ["sanctum"]
+    if remainder == 2:
+        raids_to_update += ["sepulcher"]
 
     return raids_to_update
 
