@@ -539,3 +539,7 @@ div.fated.active {
 div.fated:hover {
     box-shadow: 0px 0px 5px 4px rgba(255,255,255,0.4);
 }
+
+.table-hover tbody tr:hover td, .table-hover tbody tr:hover th {
+    background-color: #162433;
+}
