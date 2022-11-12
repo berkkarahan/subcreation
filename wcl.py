@@ -35,6 +35,8 @@ wcl_specs['Fury Warrior'] = [11, 2]
 wcl_specs['Protection Warrior'] = [11, 3]
 wcl_specs['Havoc Demon Hunter'] = [12, 1]
 wcl_specs['Vengeance Demon Hunter'] = [12, 2]
+wcl_specs['Devastation Evoker'] = [13, 1]
+wcl_specs['Preservation Evoker'] = [13, 2]
 
 
 
