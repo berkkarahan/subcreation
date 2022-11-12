@@ -59,7 +59,7 @@
   </a>
   <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
     {% for (name, slug, icon) in known_tanks %}
-    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{%if active_raid!="nathria"%}{{active_raid}}-{%endif%}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{%if active_raid!="nathria"%}{{active_raid}}-{%endif%}{{slug}}{{suffix}}.html"><img src="images/spec-icons/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
           {% endfor %}
   </div>
 </li>
@@ -70,7 +70,7 @@
   </a>
   <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
     {% for (name, slug, icon) in known_healers %}
-    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{%if active_raid!="nathria"%}{{active_raid}}-{%endif%}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{%if active_raid!="nathria"%}{{active_raid}}-{%endif%}{{slug}}{{suffix}}.html"><img src="images/spec-icons/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
     {% endfor %}
   </div>
 </li>
@@ -82,7 +82,7 @@
   <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
     
     {% for (name, slug, icon) in known_melee %}
-    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{%if active_raid!="nathria"%}{{active_raid}}-{%endif%}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{%if active_raid!="nathria"%}{{active_raid}}-{%endif%}{{slug}}{{suffix}}.html"><img src="images/spec-icons/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
           {% endfor %}
   </div>
 </li>
@@ -93,7 +93,7 @@
   </a>
   <div class="nav-item dropdown-menu" aria-labelledby="navbarSpecs">
     {% for (name, slug, icon) in known_ranged %}
-    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{%if active_raid!="nathria"%}{{active_raid}}-{%endif%}{{slug}}{{suffix}}.html"><img src="images/specs/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
+    <a class="dropdown-item{{ ' active' if slug in active_page else '' }}" href="{{prefix}}{%if active_raid!="nathria"%}{{active_raid}}-{%endif%}{{slug}}{{suffix}}.html"><img src="images/spec-icons/{{slug}}.jpg" height="22" width="22"/> &nbsp;{{name}}</a>
     {% endfor %}
   </div>
 </li>

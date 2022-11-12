@@ -571,7 +571,7 @@ def render_dungeon_tier_list(tiers, tm):
 
 def icon_spec(dname, prefix="", size=56):
     dslug = slugify.slugify(unicode(dname))
-    return '<a href="%s.html"><img src="images/specs/%s.jpg" width="%d" height="%d" title="%s" alt="%s" /><br/>%s</a>' % (prefix+dslug, dslug, size, size, dname, dname, dname)
+    return '<a href="%s.html"><img src="images/spec-icons/%s.jpg" width="%d" height="%d" title="%s" alt="%s" /><br/>%s</a>' % (prefix+dslug, dslug, size, size, dname, dname, dname)
 
 import pdb
 

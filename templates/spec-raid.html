@@ -5,7 +5,7 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col-12 py-3">
-      <h1><img src="images/specs/{{spec_slug}}.jpg" class="zoom-icon" width="56" height="56"/> {{spec}} - {{encounter_pretty}}{% if difficulty == "Heroic" %} (Heroic){% endif %}</h1>
+      <h1><img src="images/spec-icons/{{spec_slug}}.jpg" class="zoom-icon" width="56" height="56"/> {{spec}} - {{encounter_pretty}}{% if difficulty == "Heroic" %} (Heroic){% endif %}</h1>
       <p>
         <i>The {%include "blurb-top.html"%} based on data from the top {{n_parses}} {{spec}} {{available_difficulty}} {{encounter_pretty}} logs ({{n_uniques}} unique characters) by <b>{{metric}}</b> from the past 4 weeks.</i>
       </p>
