@@ -47,6 +47,9 @@ from tree import class_zero, class_eight, class_twenty
 from tree import spec_zero, spec_eight, spec_twenty
 from tree import talent_order
 from priority_talents import priority_talents
+from active_talents import class_active, spec_active
+
+from encode_talent_string import encode_talent_string
 
 from shadowlands import shards_of_domination, t29_items
 
@@ -2332,6 +2335,56 @@ def wcl_extract_talents(ranking, require_in=None):
 
     return canonical_talent_order(names_in_set, require_in), name_id_icons
 
+# given a ranking, extra talent ids
+def wcl_get_talent_ids(ranking):
+    talent_ids = {}
+    points = 0
+    for i, j in enumerate(ranking["talents"]):
+        if "talentID" not in j: # skip if we lack talent id info
+            continue
+        if j["talentID"] == 0: # skip empty talents
+            continue
+        if "points" not in j: # skip if we lack point info
+            continue
+
+        tid = j["talentID"]
+        
+        if tid not in talent_ids:
+            talent_ids[tid] = 0
+        talent_ids[tid] = j["points"]
+        points += j["points"]
+
+#    logging.info(talent_ids)
+    if points < 52:
+        logging.info("fewer than 52 points (only %d) in a talent string (%d, %d, %s)" % (points, ranking["class"], ranking["spec"], ranking["reportID"]))
+
+    return talent_ids
+
+# given a reportID, find that in rankings
+def wcl_find_report(reportID, rankings):
+    for v in rankings:
+        if v["reportID"] == reportID:
+            return v
+    return None
+
+# get talent strings for the max logs in parsed
+def wcl_get_talent_strings(parsed, rankings, spec_name):
+    talent_strings = []
+    for k in parsed:
+        if len(k)<3:
+            continue
+        if len(k[2])<1:
+            continue
+        if len(k[2][0])<4:
+            continue       
+        tid = wcl_get_talent_ids(wcl_find_report(k[2][0][3], rankings))
+        if tid == {}:
+            talent_strings += [""] # no talent string available
+            continue
+        talent_strings += [encode_talent_string(tid, spec_name)]
+
+    return talent_strings  
+
 def wcl_talents(rankings, require_in=None):
     return wcl_parse(rankings, lambda e: wcl_extract_talents(e, require_in), is_sorted=False)
 
@@ -2838,26 +2891,38 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     
 
     talents_container = {}
-            
+
+    # wcl_parse returns [n, (talents), [[max_n, band, text, report]]]
     talents, update_spells = wcl_talents(rankings)
-    
+
     talents_container["talents"] = talents
     spells.update(update_spells)
+    talents_container["talents_string"] = wcl_get_talent_strings(talents, rankings, spec)
 
     talents_top, _ = wcl_talents_top(rankings, require_in=priority_talents)
     talents_container["top"] = talents_top
+    talents_container["top_string"] = wcl_get_talent_strings(talents_top, rankings, spec)        
 
     talents_priority, _ = wcl_talents(rankings, require_in=priority_talents)
     talents_container["priority"] = talents_priority
-
+    talents_container["priority_string"] = wcl_get_talent_strings(talents_priority, rankings, spec)    
 
     talents_class, _ = wcl_talents(rankings, require_in=(class_zero+class_eight+class_twenty))
     talents_container["class"] = talents_class
+    talents_container["class_string"] = wcl_get_talent_strings(talents_class, rankings, spec)    
 
     talents_spec, _ = wcl_talents(rankings, require_in=(spec_zero+spec_eight+spec_twenty))
     talents_container["spec"] = talents_spec
-    
-               
+    talents_container["spec_string"] = wcl_get_talent_strings(talents_spec, rankings, spec)
+
+    talents_class_active, _ = wcl_talents(rankings, require_in=(class_active))
+    talents_container["class_active"] = talents_class_active
+    talents_container["class_active_string"] = wcl_get_talent_strings(talents_class_active, rankings, spec)    
+   
+    talents_spec_active, _ = wcl_talents(rankings, require_in=(spec_active))
+    talents_container["spec_active"] = talents_spec_active
+    talents_container["spec_active_string"] = wcl_get_talent_strings(talents_spec_active, rankings, spec)    
+
     # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
     # raid will return available_difficulty in max_maxima
     return len(rankings), n_uniques, max_maxima, min_maxima, tea, talents_container, legendaries, \
@@ -4163,6 +4228,10 @@ def update_wcl_rankings(spec, dungeon, page):
     
     rankings = _rankings(dungeon_id, wcl_specs[spec][0], wcl_specs[spec][1], page=page)
 
+    # if there's no data, just get out
+    if "rankings" not in rankings:
+        return
+    
     for k in rankings["rankings"]:
         aggregate += [k]
     
@@ -4448,7 +4517,9 @@ class TestWCLGetRankings(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
 #        update_wcl_update_subset(["Havoc Demon Hunter", "Fury Warrior"])
-        update_wcl_update_subset(["Survival Hunter"])
+#        update_wcl_update_subset(["Survival Hunter"])
+#        update_wcl_update_subset(["Arms Warrior"])
+        update_wcl_update_subset(["Feral Druid"])
 
 class WCLGetRankingsRaidOnly(webapp2.RequestHandler):
     def get(self):

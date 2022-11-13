@@ -1,4 +1,4 @@
-{% macro spec_overview_table(sizing, title, heading, data, lookup, lookup_type, n_parses, offset_first="", offset_at = [0], anchor_id="", expanded="true", metric="dps", enchant_mapping = {}) -%}
+{% macro spec_overview_table(sizing, title, heading, data, lookup, lookup_type, n_parses, offset_first="", offset_at = [0], anchor_id="", expanded="true", metric="dps", enchant_mapping = {}, talent_string = None) -%}
 
 <div class="{{sizing}} py-3">
   <a name="#{{anchor_id}}" class="anchor">
@@ -45,6 +45,13 @@
         {{offset_first}}
         {% endif %}
         {% endfor %}
+
+        {% if talent_string != None %}
+        {% if talent_string[loop.index0] != "" %}
+        <button type="button" class="btn btn-sm btn-outline-info" title="talent string for import in-game" onclick="window.prompt('Here\'s a talent string you can import in-game:', '{{talent_string[loop.index0]}}')">copy</button>
+        <a class="btn btn-outline-info btn-sm" target='_blank' title="open wowhead talent calculator" href="https://www.wowhead.com/talent-calc/blizzard/{{talent_string[loop.index0]}}">calc &UpperRightArrow;</a>
+        {% endif %}
+        {% endif %}
       </td>
       <td>
         {% if popover|length > 0 %}
