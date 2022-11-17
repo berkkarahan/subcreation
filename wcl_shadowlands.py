@@ -65,6 +65,7 @@ unity_ids[9] = 364738 # shaman
 unity_ids[10] = 364939 # warlock
 unity_ids[11] = 364929 # warrior
 unity_ids[12] = 364824 # dh
+unity_ids[13] = 387431 # evoker
 
 # ids from https://www.wowhead.com/guides/covenant-specific-legendaries-in-shadowlands-9-1
 # ordering according to cov id
@@ -83,3 +84,5 @@ covenant_legendaries[9] = [356789, 356250, 356218, 354647] # shaman
 covenant_legendaries[10] = [356254, 356259, 356362, 356342] # warlock
 covenant_legendaries[11] = [357996, 354131, 354161, 353577] # warrior
 covenant_legendaries[12] = [355893, 355886, 355890, 355996] # dh
+covenant_legendaries[13] = [387431, 387431, 387431, 387431] # evoker
+

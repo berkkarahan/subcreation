@@ -4519,7 +4519,9 @@ class TestWCLGetRankings(webapp2.RequestHandler):
 #        update_wcl_update_subset(["Havoc Demon Hunter", "Fury Warrior"])
 #        update_wcl_update_subset(["Survival Hunter"])
 #        update_wcl_update_subset(["Arms Warrior"])
-        update_wcl_update_subset(["Feral Druid"])
+#        update_wcl_update_subset(["Feral Druid"])
+        update_wcl_update_subset(["Guardian Druid"])
+#        update_wcl_update_subset(["Devastation Evoker"])
 
 class WCLGetRankingsRaidOnly(webapp2.RequestHandler):
     def get(self):
@@ -4542,9 +4544,10 @@ class TestWCLGetRankingsRaid(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/plain'
         self.response.write("Queueing updates...\n")
 #        update_wcl_raid_update_subset(["Havoc Demon Hunter", "Fury Warrior"])
-        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="nathria")
-        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sanctum")
-#        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sepulcher")                
+#        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="nathria")
+#        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sanctum")
+#        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sepulcher")
+        update_wcl_raid_update_subset(["Devastation Evoker"], active_raid="sepulcher")                
 
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):
