@@ -17,3 +17,5 @@ vault_short_names["Dathea, Ascended"] = "Dathea"
 vault_short_names["Kurog Grimtotem"] = "Kurog Grimtotem"
 vault_short_names["Broodkeeper Diurna"] = "Broodkeeper Diurna"
 vault_short_names["Raszageth the Storm-Eater"] = "Raszageth"
+
+vault_ignore = []
