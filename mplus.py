@@ -4015,28 +4015,8 @@ def test_raid_view(destination):
         if slugify.slugify(unicode(s)) in destination:
             spec = s
 
-    active_raid = ""
-    if "index" in destination:
-        active_raid = determine_fated_raid()
-    
-    if "nathria" in destination:
-        active_raid = "nathria"
-        
-    if "sanctum" in destination:
-        active_raid = "sanctum"
-
-    if "sepulcher" in destination:
-        active_raid = "sepulcher"
-
-    if active_raid == "":
-        active_raid = "nathria"
-
-
-    raid_canonical_order = nathria_canonical_order
-    if active_raid == "sanctum":
-        raid_canonical_order = sanctum_canonical_order
-    if active_raid == "sepulcher":
-        raid_canonical_order = sepulcher_canonical_order        
+    active_raid = "vault"
+    raid_canonical_order = vault_canonical_order
                     
     for e in raid_canonical_order:
         if slugify.slugify(unicode(e)) in destination:
