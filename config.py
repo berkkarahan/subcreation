@@ -6,7 +6,7 @@ RIO_MAX_PAGE = 5
 # need to update in templates/stats_table.html
 # need to update in templates/compositions.html
 # need to update in templates/navbar.html
-RIO_SEASON = "season-sl-4-post" 
+RIO_SEASON = "season-df-1" 
 
 # used for m+
 WCL_SEASON = 2
@@ -15,11 +15,11 @@ WCL_SEASON = 2
 WCL_PARTITION = 5
 
 # config
-RAID_NAME = "Fated Raids"
+RAID_NAME = "Vault of the Incarnates"
 
 # for heroic week, set this to 10
 # after that in the season, set this at 16
-MIN_KEY_LEVEL = 16
+MIN_KEY_LEVEL = 20
 
 # to generate a tier list based on heroic week data
 # have to manually toggle this
