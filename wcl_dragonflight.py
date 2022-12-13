@@ -1,0 +1,19 @@
+dungeon_encounters = {}
+dungeon_encounters["Algeth'ar Academy"] = 12526
+dungeon_encounters["Court of Stars"] = 61571
+dungeon_encounters["Halls of Valor"] = 61477
+dungeon_encounters["Ruby Life Pools"] = 12521
+dungeon_encounters["Shadowmoon Burial Grounds"] = 61176
+dungeon_encounters["Temple of the Jade Serpent"] = 10960
+dungeon_encounters["The Azure Vault"] = 12515
+dungeon_encounters["The Nokhud Offensive"] = 12516
+
+vault_encounters = {}
+vault_encounters["Eranog"] = 2587
+vault_encounters["Terros"] = 2639
+vault_encounters["The Primal Council"] = 2590
+vault_encounters["Sennarth, The Cold Breath"] = 2592
+vault_encounters["Dathea, Ascended"] = 2635
+vault_encounters["Kurog Grimtotem"] = 2605
+vault_encounters["Broodkeeper Diurna"] = 2614
+vault_encounters["Raszageth the Storm-Eater"] = 2607
