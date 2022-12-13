@@ -9,10 +9,10 @@ RIO_MAX_PAGE = 5
 RIO_SEASON = "season-df-1" 
 
 # used for m+
-WCL_SEASON = 2
+WCL_SEASON = 1
 
 # used for raid
-WCL_PARTITION = 5
+WCL_PARTITION = 1
 
 # config
 RAID_NAME = "Vault of the Incarnates"
