@@ -25,10 +25,7 @@ import cloudstorage as gcs
 import datetime
 import pytz
 
-from shadowlands import dungeons, dungeon_slugs, dungeon_short_names, slugs_to_dungeons
-from shadowlands import tormented_weeks as affix_rotation_weeks
-from shadowlands import covenantID_mapping
-from shadowlands import covenantNameToID
+from dragonflight import dungeons, dungeon_slugs, dungeon_short_names, slugs_to_dungeons
 
 from warcraft import specs, tanks, healers, melee, ranged, role_titles, regions, pvp_regions, pvp_modes
 from warcraft import spec_short_names
@@ -40,7 +37,7 @@ from models import Run, DungeonAffixRegion, KnownAffixes, PvPLadderStats, PvPCou
 from models import SpecRankings, SpecRankingsRaid, CovenantStats, RaidCounts, DungeonEaseTierList
 from auth import api_key
 from wcl import wcl_specs
-from wcl_shadowlands import dungeon_encounters
+from wcl_dragonflight import dungeon_encounters
 
 # information about dragonflight talent trees
 from tree import class_zero, class_eight, class_twenty
@@ -51,7 +48,7 @@ from active_talents import class_active, spec_active
 
 from encode_talent_string import encode_talent_string
 
-from shadowlands import shards_of_domination, t29_items
+from dragonflight import t30_items
 
 from enchants import enchant_mapping
 
@@ -63,9 +60,7 @@ from auth import ludus_access_key
 
 ## globals
 from config import RIO_MAX_PAGE
-from shadowlands import dungeons as DUNGEONS
-from wcl_shadowlands import covenant_legendaries as covenant_legendaries
-from wcl_shadowlands import unity_ids as unity_ids
+from dragonflight import dungeons as DUNGEONS
 
 from warcraft import regions as REGIONS
 from config import RIO_MAX_PAGE, RIO_SEASON, RAID_NAME
@@ -76,104 +71,30 @@ from config import MAX_RAID_DIFFICULTY
 last_updated = None
 
 ## raid rotation
-
-known_raids = ["nathria", "sanctum", "sepulcher"]
-
-from wcl_shadowlands import nathria_encounters 
-from nathria import nathria_canonical_order
-from nathria import nathria_short_names 
-from nathria import nathria_ignore
-
-from wcl_shadowlands import sanctum_encounters
-from sanctum import sanctum_canonical_order
-from sanctum import sanctum_short_names
-from sanctum import sanctum_ignore
-
-from wcl_shadowlands import sepulcher_encounters
-from sepulcher import sepulcher_canonical_order
-from sepulcher import sepulcher_short_names
-from sepulcher import sepulcher_ignore
-
-# raid rotation helper functions
+known_raids = ["vault"]
+from wcl_dragonflight import vault_encounters 
+from vaultoftheincarnates import vault_canonical_order, vault_short_names, vault_ignore
 
 def get_raid_encounters(active_raid):
-    if active_raid == "nathria":
-        return nathria_encounters
-    if active_raid == "sanctum":
-        return sanctum_encounters
-    if active_raid == "sepulcher":
-        return sepulcher_encounters
-    logging.info(active_raid)
+    return vault_encounters
 
 def get_raid_canonical_order(active_raid):
-    if active_raid == "nathria":
-        return nathria_canonical_order
-    if active_raid == "sanctum":
-        return sanctum_canonical_order
-    if active_raid == "sepulcher":
-        return sepulcher_canonical_order
-    logging.info(active_raid)    
+    return vault_canonical_order  
 
 def get_raid_short_names(active_raid):
-    if active_raid == "nathria":
-        return nathria_short_names
-    if active_raid == "sanctum":
-        return sanctum_short_names
-    if active_raid == "sepulcher":
-        return sepulcher_short_names
-    logging.info(active_raid)    
+    return vault_short_names
 
 def get_raid_ignore(active_raid):
-    if active_raid == "nathria":
-        return nathria_ignore
-    if active_raid == "sanctum":
-        return sanctum_ignore
-    if active_raid == "sepulcher":
-        return sepulcher_ignore
-    logging.info(active_raid)
-
-
-# all raids are fated
-# but we just return nathria as the default raid
-# and handle the fated icon in templatex
-def determine_fated_raid(current_time=None):
-    return "nathria"
+    return vault_ignore
 
 # rotate updating raids every day
-def determine_raids_to_update(current_time=None):
-    if current_time == None:
-        current_time = pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
-
-    remainder = current_time.day % 3
-        
-    raids_to_update = []
-
-    if remainder == 0:
-        raids_to_update += ["nathria"]
-    if remainder == 1:
-        raids_to_update += ["sanctum"]
-    if remainder == 2:
-        raids_to_update += ["sepulcher"]
-
+def determine_raids_to_update(current_time=None):        
+    raids_to_update = ["vault"]
     return raids_to_update
 
 # rotate updating raids every day
 def determine_raids_to_generate(current_time=None):
-
-    if current_time == None:
-        current_time = pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
-
-    remainder = current_time.day % 3
-
-    raids_to_update = []
-    
-    if remainder == 0:
-        raids_to_update += ["nathria"]
-    if remainder == 1:
-        raids_to_update += ["sanctum"]
-    if remainder == 2:
-        raids_to_update += ["sepulcher"]
-
+    raids_to_update = ["vault"]
     return raids_to_update
 
 ## raider.io handling
@@ -1780,9 +1701,6 @@ def process_pvp_counts():
 ##   generating common reports
 
 def affix_rotation_affixes(affixes):
-    global affix_rotation_weeks
-    if affixes in affix_rotation_weeks:
-        return affixes + " (%s)" % affix_rotation_weeks[affixes]
     return affixes
 
 # given a list of affixes, return a pretty affix string
@@ -2151,17 +2069,7 @@ def wcl_extract_legendaries(ranking):
     if "class" not in ranking:
         return [], []
     
-    # need covenant info
-    if "covenantID" not in ranking:
-        return [], []
-    
-    for i, j in enumerate(ranking[category]):
-        # each class has its own unity id >.>
-        if j["id"] == unity_ids[ranking["class"]]: 
-            if ranking["class"] in covenant_legendaries:
-                # hacky as hell but well, it works
-                j["id"] = covenant_legendaries[ranking["class"]][ranking["covenantID"]-1]
-                            
+    for i, j in enumerate(ranking[category]):                   
         names_in_set += [j["id"]]
         name_id_icons += [j]
 
@@ -2188,19 +2096,13 @@ def wcl_gear(rankings, slots):
                      lambda e: wcl_extract_gear(e, slots),
                      is_sorted = is_sorted)
 
-def wcl_extract_gems(ranking, shards=False):
+def wcl_extract_gems(ranking):
     names_in_set = []
     name_id_icons = []
     
     for i, j in enumerate(ranking["gear"]):
         if "gems" in j:
             for each_gem in j["gems"]:
-                if shards: # filter to shards
-                    if each_gem["id"] not in shards_of_domination:
-                        continue
-                else: # filter out shards
-                    if each_gem["id"] in shards_of_domination:                    
-                        continue
                 names_in_set += [each_gem["id"]]
                 name_id_icons += [each_gem]
 
@@ -2212,7 +2114,7 @@ def wcl_extract_tier(ranking):
     
     for i, j in enumerate(ranking["gear"]):
         if "id" in j:
-            if j["id"] in t29_items:
+            if j["id"] in t30_items:
                 names_in_set += [j["id"]]
                 name_id_icons += [j]
 
@@ -2231,13 +2133,13 @@ def wcl_gem_builds(rankings):
 
 def wcl_shards(rankings):
     return wcl_parse(rankings,
-                     lambda e: wcl_extract_gems(e, shards=True),
+                     lambda e: wcl_extract_gems(e),
                      only_use_ids=True,
                      flatten=True)
 
 def wcl_shard_builds(rankings):
     return wcl_parse(rankings,
-                     lambda e: wcl_extract_gems(e, shards=True),                     
+                     lambda e: wcl_extract_gems(e),                     
                      only_use_ids=True)
 
 def wcl_tier_items(rankings):
@@ -2774,29 +2676,29 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     gear["legendaries"] = []
 
     # covenants
-    covenants, update_spells = wcl_covenants(rankings)
-    spells.update(update_spells)    
+    # covenants, update_spells = wcl_covenants(rankings)
+    # spells.update(update_spells)    
 
     # soulbinds & soulbind abilities
-    soulbinds, update_spells = wcl_soulbinds(rankings)
-    spells.update(update_spells)
+    # soulbinds, update_spells = wcl_soulbinds(rankings)
+    # spells.update(update_spells)
 
-    soulbind_abilities, update_spells = wcl_soulbind_abilities(rankings)
-    spells.update(update_spells)
+    # soulbind_abilities, update_spells = wcl_soulbind_abilities(rankings)
+    # spells.update(update_spells)
     
     # conduits & conduits builds
-    conduits, update_spells = wcl_conduits(rankings)
-    spells.update(update_spells)
+    # conduits, update_spells = wcl_conduits(rankings)
+    # spells.update(update_spells)
     
-    conduit_builds, update_spells = wcl_conduit_builds(rankings)
-    spells.update(update_spells)
+    # conduit_builds, update_spells = wcl_conduit_builds(rankings)
+    # spells.update(update_spells)
 
     # legendary power
-    legendary_builds, update_spells = wcl_legendary_builds(rankings)
-    spells.update(update_spells)
+    # legendary_builds, update_spells = wcl_legendary_builds(rankings)
+    # spells.update(update_spells)
 
-    legendaries, update_spells = wcl_legendaries(rankings)
-    spells.update(update_spells)
+    # legendaries, update_spells = wcl_legendaries(rankings)
+    # spells.update(update_spells)
 
     gems, update_items = wcl_gems(rankings)
     items.update(update_items)
@@ -2809,8 +2711,8 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
 #    shards, update_items = wcl_shards(rankings)
 #    items.update(update_items)
             
-    shard_builds, update_items = wcl_shard_builds(rankings)
-    items.update(update_items)
+    # shard_builds, update_items = wcl_shard_builds(rankings)
+    # items.update(update_items)
 
     tier_items, update_items = wcl_tier_items(rankings)
     items.update(update_items)
@@ -3833,8 +3735,7 @@ def write_api_json(filename, rendered):
                           content_type="application/json")
         
 def create_main_pages():
-    main_pages = [["index.html", render_main_index],
-                  ["top-covenants.html", render_main_covenants]]
+    main_pages = [["index.html", render_main_index]]
 
     for (filename, render_function) in main_pages:
         rendered = render_function()
@@ -4164,9 +4065,6 @@ def test_main_view(destination):
 
     if "faq" in destination:
         return render_faq(prefix=prefix)    
-
-    if "top-covenants" in destination:
-        return render_main_covenants(prefix=prefix)
 
 def test_pvp_view(destination):
     prefix = "pvp?goto="
