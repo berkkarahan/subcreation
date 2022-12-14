@@ -21,9 +21,16 @@
         {% if lookup_type == "enchant" %}
         {% if lookup[k][0] in enchant_mapping %}
         {% if "id" in enchant_mapping[lookup[k][0]] %} 
-        <a href="https://www.wowhead.com/item={{enchant_mapping[lookup[k][0]]["id"]}}" data-wh-icon-size="tiny">{{enchant_mapping[lookup[k][0]]["name"]}} <img src="images/items/tier{{enchant_mapping[lookup[k][0]]["quality"]}}.png" height="22" width="22"/></a><br/>
+        <a href="https://www.wowhead.com/item={{enchant_mapping[lookup[k][0]]["id"]}}" data-wh-icon-size="tiny">{{enchant_mapping[lookup[k][0]]["name"]}}&nbsp;
+          {% if "quality" in enchant_mapping[lookup[k][0]] %}
+          <img src="images/items/tier{{enchant_mapping[lookup[k][0]]["quality"]}}.png" height="22" width="22"/>
+          {% endif %}
+        </a><br/>
         {% elif "spell_id" in enchant_mapping[lookup[k][0]] %}
-        <a href="https://www.wowhead.com/spell={{enchant_mapping[lookup[k][0]]["spell_id"]}}" data-wh-icon-size="tiny">{{enchant_mapping[lookup[k][0]]["name"]}} <img src="images/items/tier{{enchant_mapping[lookup[k][0]]["quality"]}}.png" height="22" width="22"/></a><br/>
+        <a href="https://www.wowhead.com/spell={{enchant_mapping[lookup[k][0]]["spell_id"]}}" data-wh-icon-size="tiny">{{enchant_mapping[lookup[k][0]]["name"]}}&nbsp;
+          {% if "quality" in enchant_mapping[lookup[k][0]] %}
+          <img src="images/items/tier{{enchant_mapping[lookup[k][0]]["quality"]}}.png" height="22" width="22"/>
+          {% endif %}</a><br/>
         {% endif %}
         {% else %}
         (unknown enchant: {{lookup[k][0]}})<br/>
