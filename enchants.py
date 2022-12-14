@@ -209,3 +209,19 @@ enchant_mapping["6196"] = {"id": 172920,
 
 enchant_mapping["6195"] = {"id": 172921,
                        "name" : "Infra-green Reflex Sight"}
+
+# Dragonflight
+
+# Back
+enchant_mapping["6587"] = {"id": 199950, "name": "Writ of Avoidance (1)"}
+enchant_mapping["6590"] = {"id": 199947, "name": "Graceful Avoidance (1)"}
+enchant_mapping["6591"] = {"id": 199989, "name": "Graceful Avoidance (2)"}
+enchant_mapping["6593"] = {"id": 199951, "name": "Writ of Leech (1)"}
+enchant_mapping["6594"] = {"id": 199993, "name": "Writ of Leech (2)"}
+enchant_mapping["6595"] = {"id": 200035, "name": "Writ of Leech (3)"}
+enchant_mapping["6596"] = {"id": 199949, "name": "Regenerative Leech (1)"}
+enchant_mapping["6597"] = {"id": 199991, "name": "Regenerative Leech (2)"}
+enchant_mapping["6598"] = {"id": 200033, "name": "Regenerative Leech (3)"}
+
+# Weapon
+enchant_mapping["6651"] = {"id": 200017, "name": "Wafting Writ (2)"}
