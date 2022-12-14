@@ -7,7 +7,7 @@
   <a href="#class_active"><button type="button" class="btn btn-primary">Talented Abilities</button></a>
   <a href="#class_tree"><button type="button" class="btn btn-primary">Class Tree</button></a>
   <a href="#spec_tree"><button type="button" class="btn btn-primary">Spec Tree</button></a>
-  <a href="#full_tree"><button type="button" class="btn btn-primary">Full Talent Tree</button></a>  
+  <a href="#full_tree"><button type="button" class="btn btn-primary">Full Tree</button></a>  
   <a href="#gems"><button type="button" class="btn btn-primary">Gems</button></a>
   <a href="#tier"><button type="button" class="btn btn-primary">Tier</button></a>
   <a href="#enchants"><button type="button" class="btn btn-primary">Enchants</button></a>
@@ -38,7 +38,7 @@
 
 {{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Spec Tree Talents", "Talents", talents["spec"], spells, "spell", n_parses, anchor_id="spec_tree", expanded="true", metric=metric, talent_string = talents["spec_string"]) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-12 col-lg-12", "Full Talent Tree Talents", "Talents", talents["full"], spells, "spell", n_parses, anchor_id="full_tree", expanded="true", metric=metric, talent_string = talents["full_string"]) }}
+{{ spec_overview_table.spec_overview_table("col-xl-12 col-lg-12", "Full Talent Tree", "Talents", talents["talents"], spells, "spell", n_parses, anchor_id="full_tree", expanded="true", metric=metric, talent_string = talents["talents_string"]) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Gems", "Gem", gems, items, "item", n_parses, anchor_id="gems", metric=metric) }}
 

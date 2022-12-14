@@ -2410,8 +2410,7 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
 
     talents_container["talents"] = talents
     spells.update(update_spells)
-    talents_container["full_talents"] = talents
-    talents_container["full_string"] = wcl_get_talent_strings(talents, rankings, spec)
+    talents_container["talents_string"] = wcl_get_talent_strings(talents, rankings, spec)
 
     talents_top, _ = wcl_talents_top(rankings, require_in=priority_talents)
     talents_container["top"] = talents_top
