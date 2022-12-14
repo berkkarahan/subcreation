@@ -13,12 +13,12 @@ enchant_mapping["6597"] = {"id": 199991, "name": "Regenerative Leech", "quality"
 enchant_mapping["6598"] = {"id": 200033, "name": "Regenerative Leech", "quality": 3}
 
 # Chest
-enchant_mapping["6614"] = {"id": 0, "name": "Accelerated Agility", "quality": 1}
-enchant_mapping["6617"] = {"id": 0, "name": "Reserve of Intellect", "quality": 1}
-enchant_mapping["6618"] = {"id": 0, "name": "Reserve of Intellect", "quality": 2}
-enchant_mapping["6623"] = {"id": 0, "name": "Waking Stats", "quality": 1}
-enchant_mapping["6624"] = {"id": 0, "name": "Waking Stats", "quality": 2}
-enchant_mapping["6625"] = {"id": 0, "name": "Waking Stats", "quality": 3}
+enchant_mapping["6614"] = {"id": 199943, "name": "Accelerated Agility", "quality": 1}
+enchant_mapping["6617"] = {"id": 199944, "name": "Reserve of Intellect", "quality": 1}
+enchant_mapping["6618"] = {"id": 199986, "name": "Reserve of Intellect", "quality": 2}
+enchant_mapping["6623"] = {"id": 199946, "name": "Waking Stats", "quality": 1}
+enchant_mapping["6624"] = {"id": 199988, "name": "Waking Stats", "quality": 2}
+enchant_mapping["6625"] = {"id": 200030, "name": "Waking Stats", "quality": 3}
 
 # Wrist
 enchant_mapping["6569"] = {"id": 199940, "name": "Writ of Avoidance", "quality": 1}
