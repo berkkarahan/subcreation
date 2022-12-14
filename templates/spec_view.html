@@ -1,18 +1,15 @@
-{% macro spec_view(n_parses, tea, talents, legendaries, legendary_builds, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, covenantNameToID, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, tier_items, tier_builds, enchant_mapping={}, metric="dps") -%}
+{% macro spec_view(n_parses, talents, gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds, enchant_mapping={}, metric="dps") -%}
 {% import 'spec_overview_table.html' as spec_overview_table %}
 
 <div class="quicknav">
   <a href="#top"><button type="button" class="btn btn-light">&uarr; Top</button></a>
   <a href="#talents"><button type="button" class="btn btn-primary">Capstone + Choice Talents</button></a>
-    <a href="#class_active"><button type="button" class="btn btn-primary">Talented Abilities</button></a>    
+  <a href="#class_active"><button type="button" class="btn btn-primary">Talented Abilities</button></a>
   <a href="#class_tree"><button type="button" class="btn btn-primary">Class Tree</button></a>
-    <a href="#spec_tree"><button type="button" class="btn btn-primary">Spec Tree</button></a>
-    <a href="#covenants"><button type="button" class="btn btn-primary">Covenants</button></a>  
-    <a href="#legendaries"><button type="button" class="btn btn-primary">Legendaries</button></a>
-  <a href="#soulbinds"><button type="button" class="btn btn-primary">Soulbinds</button></a>
-  <a href="#conduits"><button type="button" class="btn btn-primary">Conduits</button></a>
+  <a href="#spec_tree"><button type="button" class="btn btn-primary">Spec Tree</button></a>
+  <a href="#full_tree"><button type="button" class="btn btn-primary">Full Talent Tree</button></a>  
   <a href="#gems"><button type="button" class="btn btn-primary">Gems</button></a>
-<!--  <a href="#tier"><button type="button" class="btn btn-primary">Tier</button></a>   -->
+  <a href="#tier"><button type="button" class="btn btn-primary">Tier</button></a>
   <a href="#enchants"><button type="button" class="btn btn-primary">Enchants</button></a>
   <a href="#weapons"><button type="button" class="btn btn-primary">Weapon</button></a>
   <a href="#trinkets"><button type="button" class="btn btn-primary">Trinkets</button></a>
@@ -27,7 +24,6 @@
   <a href="#legs"><button type="button" class="btn btn-primary">Leg</button></a>
   <a href="#feet"><button type="button" class="btn btn-primary">Feet</button></a>
   <a href="#rings"><button type="button" class="btn btn-primary">Rings</button></a>
-<!--  <a href="#combos"><button type="button" class="btn btn-primary">Combos</button></a> -->
 </div>
 
 {{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-7", "Capstone + Choice Talents", "Talents", talents["priority"], spells, "spell", n_parses, anchor_id="talents", expanded="true", metric=metric, talent_string = talents["priority_string"]) }}
@@ -42,27 +38,15 @@
 
 {{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Spec Tree Talents", "Talents", talents["spec"], spells, "spell", n_parses, anchor_id="spec_tree", expanded="true", metric=metric, talent_string = talents["spec_string"]) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-4", "Covenants", "Covenant", covenants, covenantNameToID, "covenant", n_parses, anchor_id="covenants", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-4", "Legendaries", "Legendary Power", legendaries, spells, "spell", n_parses, anchor_id="legendaries", metric=metric) }}
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-4", "Legendary Builds", "Legendary Builds", legendary_builds, spells, "spell", n_parses, anchor_id="legendary_builds", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-5", "Soulbinds", "Soulbind", soulbinds, spells, "soulbind", n_parses, anchor_id="soulbinds", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-8 col-lg-7", "Soulbind Abilities", "Soulbind Abilities", soulbind_abilities, spells, "soulbind", n_parses, anchor_id="soulbind_abilities", metric=metric) }}
-
-
-{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Conduits", "Conduits", conduits, spells, "spell", n_parses, anchor_id="conduits", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Conduit Builds", "Conduit Builds", conduit_builds, spells, "spell", n_parses, anchor_id="conduit_builds", metric=metric) }}
+{{ spec_overview_table.spec_overview_table("col-xl-12 col-lg-12", "Full Talent Tree Talents", "Talents", talents["full"], spells, "spell", n_parses, anchor_id="full_tree", expanded="true", metric=metric, talent_string = talents["full_string"]) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Gems", "Gem", gems, items, "item", n_parses, anchor_id="gems", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Gem Builds", "Gem(s)", gem_builds, items, "item", n_parses, anchor_id="gem_builds", metric=metric) }}
 
-<!-- {{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Tier Items", "Item(s)", tier_items, items, "item", n_parses, anchor_id="tier", metric=metric) }} -->
+{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Tier Items", "Item(s)", tier_items, items, "item", n_parses, anchor_id="tier", metric=metric) }}
 
-<!-- {{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Tier Builds", "Item(s)", tier_builds, items, "item", n_parses, anchor_id="tier_builds", metric=metric) }} -->
+{{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Tier Builds", "Item(s)", tier_builds, items, "item", n_parses, anchor_id="tier_builds", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Back Enchants", "Enchant(s)", enchants["cloaks"], enchant_ids, "enchant", n_parses, anchor_id="enchants", metric=metric, enchant_mapping=enchant_mapping) }}
 

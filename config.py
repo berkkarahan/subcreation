@@ -19,7 +19,7 @@ RAID_NAME = "Vault of the Incarnates"
 
 # for heroic week, set this to 10
 # after that in the season, set this at 16
-MIN_KEY_LEVEL = 20
+MIN_KEY_LEVEL = 10
 
 # to generate a tier list based on heroic week data
 # have to manually toggle this

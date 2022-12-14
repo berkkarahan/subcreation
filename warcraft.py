@@ -1,4 +1,4 @@
-regions = ["tw", "cn", "kr", "eu", "us"]
+regions = ["tw", "kr", "eu", "us"]
 
 pvp_regions = ["us", "eu"]
 pvp_modes = ["2v2", "3v3", "rbg"]

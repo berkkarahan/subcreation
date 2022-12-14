@@ -34,7 +34,7 @@ from t_interval import t_interval
 from models import Run, DungeonAffixRegion, KnownAffixes, PvPLadderStats, PvPCounts
 
 # wcl handling
-from models import SpecRankings, SpecRankingsRaid, CovenantStats, RaidCounts, DungeonEaseTierList
+from models import SpecRankings, SpecRankingsRaid, RaidCounts, DungeonEaseTierList
 from auth import api_key
 from wcl import wcl_specs
 from wcl_dragonflight import dungeon_encounters
@@ -266,160 +266,12 @@ def std(data, ddof=0):
 from math import sqrt
 from ckmeans import ckmeans
 
-def look_up_covenants(spec, mode, active_raid=""):
-    spec_slug = slugify.slugify(unicode(spec))
-    mode_slug = slugify.slugify(unicode(mode))
-    
-    key_slug = "%s-%s" % (spec_slug, mode_slug)
-    if mode == "raid":
-        key_slug = "%s-%s-%s" % (spec_slug, mode_slug, active_raid)    
-    key = ndb.Key('CovenantStats', key_slug)
-
-    cs = key.get()
-
-    if cs == None:
-        return 0, 0, []
-    
-    data = json.loads(cs.data)
-    n_parses = data["n_parses"]
-    n_uniques = data["n_uniques"]
-    covenants = data["covenants"]
-
-    return n_parses, n_uniques, covenants
-
-def gen_top_covenant_report_for(spec, mode):
-    n_parses = 0
-    n_uniques = 0
-    covenants = []
-
-    if mode == "mplus":
-        n_parses, n_uniques, covenants = look_up_covenants(spec, mode)
-
-    if mode == "raid":
-        covenants_to_aggregate = []
-        # for the cov stats, we aggregate across all fated raids
-        for r in known_raids:
-            np, nu, covs = look_up_covenants(spec, mode, active_raid=r)
-            n_parses += np
-            n_uniques += nu
-            covenants_to_aggregate += [covs]
-
-        counts = {}
-        counts["Night Fae"] = 0
-        counts["Kyrian"] = 0
-        counts["Venthyr"] = 0
-        counts["Necrolord"] = 0
-        
-        for data in covenants_to_aggregate:
-            for cov in data:
-                counts[cov[1][0]] += cov[0]
-        
-        sorted_counts = sorted(counts.items(), key = operator.itemgetter(1), reverse=True)
-        covenants = [] 
-        for k, v in sorted_counts:
-            if v > 0:
-                covenants += [[v, [k]]]
-
-        
-    slug = slugify.slugify(unicode(spec))
-
-    # no data
-    if len(covenants) < 1:
-        return 0, "", {}
-
-    covenant_names = []
-    for i in [1, 2, 3, 4]:
-        covenant_names += [covenantID_mapping[i]["name"]]        
-
-    top_name = covenants[0][1][0]
-
-    # return n_parses, and then cov dict cov: #
-    
-    data = {}
-    for cc in covenants:
-        if cc[1] == []:
-            continue
-        if cc[1][0] not in covenant_names:
-            continue
-        cov_name = cc[1][0]
-        pct = int(round((float(cc[0])/n_parses)*100))
-        data[cov_name] = pct
-
-       
-    logging.info("%s %s" % (spec, mode))
-    logging.info(data)
-
-    cov_colors  = {}
-    cov_colors["Night Fae"] = "#c851ec"
-    cov_colors["Kyrian"] = "#a9dcfc" 
-    cov_colors["Venthyr"] = "#e02d2d"
-    cov_colors["Necrolord"] = "#96b364"
-
-    output = {}
-    for k, v in data.iteritems():
-        output[k] = [v, slugify.slugify(unicode(k)), cov_colors[k]]
-
-
-    output["max_cov"] = max(data.iteritems(), key=operator.itemgetter(1))[0]
-    logging.info(output)
-        
-
-    return n_parses, top_name, output
-    
 
 def create_package(name):
     package = {}
     package["name"] = name
     package["slug"] = slugify.slugify(unicode(name))
     return package
-
-def gen_covenants_report():
-    report = {}
-    report["Tanks"] = []
-    report["Healers"] = []
-    report["Melee"] = []
-    report["Ranged"] = []
-
-    # each report is a list with elements
-    # spec - the spec we're looking at
-    #   name - pretty name of the spec
-    #   slug - slug of the spec
-    # mplus - the covenant for m+
-    #   name - pretty name of the covenant
-    #   slug - slug of the covenant
-    # raid - the covenant for raid
-    #   name - pretty name of the covenant
-    #   slug - slug of the covenant
-
-    
-
-    # how many parses overall for raid + mplus
-    
-    n_parses = {}
-    n_parses["raid"] = 0
-    n_parses["mplus"] = 0
-
-    mm_data = {}
-    rr_data = {}
-
-
-    for i, display in enumerate([tanks, healers, melee, ranged]):
-        for spec in sorted(display):
-
-            n, mplus, m_data = gen_top_covenant_report_for(spec, "mplus")
-            n_parses["mplus"] += n
-            mm_data[spec] = m_data
-
-            n, raid, r_data = gen_top_covenant_report_for(spec, "raid")
-            n_parses["raid"] += n
-            rr_data[spec] = r_data
-            
-            report[role_titles[i]] += [[create_package(spec),
-                                        create_package(mplus),
-                                        create_package(raid)]]
-
-
-    return report, n_parses, mm_data, rr_data
 
 
 # generate a dungeon tier list
@@ -1566,6 +1418,7 @@ def known_specs_subset_links(subset, prefix=""):
 def current_affixes():
     pull_query = KnownAffixes.query().order(-KnownAffixes.last_seen, -KnownAffixes.first_seen)
     current_affixes_save = pull_query.fetch(1)[0].affixes
+        
     
     return current_affixes_save
 
@@ -2056,26 +1909,6 @@ def wcl_generic_extract(ranking, category):
 
     return names_in_set, name_id_icons
 
-# extract legendaries
-# have to handle covenant legendaries
-def wcl_extract_legendaries(ranking):
-    category = "legendaryEffects"
-    names_in_set = []
-    name_id_icons = []
-    if category not in ranking:
-        return [], []
-
-    # need class info
-    if "class" not in ranking:
-        return [], []
-    
-    for i, j in enumerate(ranking[category]):                   
-        names_in_set += [j["id"]]
-        name_id_icons += [j]
-
-    return names_in_set, name_id_icons
-
-
 # extract gear a single ranking
 def wcl_extract_gear(ranking, slots):
     names_in_set = []
@@ -2293,154 +2126,6 @@ def wcl_talents(rankings, require_in=None):
 def wcl_talents_top(rankings, require_in=None):
     return wcl_parse(rankings, lambda e: wcl_extract_talents(e, require_in), is_sorted=False, flatten=True)
 
-def wcl_extract_soulbinds(ranking):
-    names_in_set = []
-    name_id_icons = []
-
-    if "soulbindPowers" not in ranking:
-        return [], []
-
-    if "soulbindID" not in ranking:
-        return [], []
-
-    if ranking["soulbindID"] == 0:
-        return [], []
-
-    if ranking["covenantID"] not in [1, 2, 3, 4]:
-        return [], []
-        s
-    names_in_set += [covenantID_mapping[ranking["covenantID"]]["id"]]
-    name_id_icons += [
-        {
-            "name": covenantID_mapping[ranking["covenantID"]]["name"],
-            "id": covenantID_mapping[ranking["covenantID"]]["id"],
-            "icon": covenantID_mapping[ranking["covenantID"]]["icon"],
-        }
-    ]
-   
-    soulbindID_mapping = {}
-    soulbindID_mapping[1] = {"name": "Niya"}
-    soulbindID_mapping[2] = {"name": "Dreamweaver"}
-    soulbindID_mapping[3] = {"name": "General Draven"}
-    soulbindID_mapping[4] = {"name": "Plague Deviser Marileth"}
-    soulbindID_mapping[5] = {"name": "Emeni"}
-    soulbindID_mapping[6] = {"name": "Korayn"}
-    soulbindID_mapping[7] = {"name": "Pelagos"}
-    soulbindID_mapping[8] = {"name": "Nadjia the Mistblade"}
-    soulbindID_mapping[9] = {"name": "Theotar the Mad Duke"}
-    soulbindID_mapping[10] = {"name": "Bonesmith Heirmir"}
-    soulbindID_mapping[13] = {"name": "Kleia"}
-    soulbindID_mapping[18] = {"name": "Forgelite Prime Mikanikos"}
-
-    # there's no spell or item id for soulbinds
-    # so we have create our own icons
-    # and then map to them
-    # this is sadly very hacky for now
-    # we convert to slug
-    # and then use this in spec_view
-    for k, v in soulbindID_mapping.iteritems():
-        v["id"] = slugify.slugify(unicode(v["name"]))
-    
-    names_in_set += [soulbindID_mapping[ranking["soulbindID"]]["id"]]
-    name_id_icons += [{"id": soulbindID_mapping[ranking["soulbindID"]]["id"],
-                       "icon": soulbindID_mapping[ranking["soulbindID"]]["name"], # delib use name here
-                       "name": soulbindID_mapping[ranking["soulbindID"]]["name"]}]
-
-    return names_in_set, name_id_icons   
-    
-
-def wcl_extract_soulbind_abilities(ranking):
-    names_in_set = []
-    name_id_icons = []
-
-    if "soulbindPowers" not in ranking:
-        return [], []
-
-    if "soulbindID" not in ranking:
-        return [], []
-
-    if ranking["soulbindID"] == 0:
-        return [], []
-
-    if ranking["covenantID"] not in [1, 2, 3, 4]:
-        return [], []
-    
-    names_in_set, name_id_icons = wcl_extract_soulbinds(ranking)
-
-    for i, j in enumerate(ranking["soulbindPowers"]):
-        names_in_set += [j["id"]]
-        name_id_icons += [j]
-
-    return names_in_set, name_id_icons   
-
-def wcl_soulbinds(rankings):
-    return wcl_parse(rankings, wcl_extract_soulbinds, is_sorted=False)
-
-def wcl_soulbind_abilities(rankings):
-    return wcl_parse(rankings, wcl_extract_soulbind_abilities, is_sorted=False)
-
-def wcl_extract_covenants(ranking):
-    names_in_set = []
-    name_id_icons = []
-
-    if "covenantID" not in ranking:
-        return [], []
-    
-    if ranking["covenantID"] not in [1, 2, 3, 4]:
-        return [], []
-    
-    names_in_set += [covenantID_mapping[ranking["covenantID"]]["name"]]
-    name_id_icons += [
-        {
-            "name": covenantID_mapping[ranking["covenantID"]]["name"],
-            "id": covenantID_mapping[ranking["covenantID"]]["id"],
-            "icon": covenantID_mapping[ranking["covenantID"]]["icon"],
-        }
-    ]
-    
-    return names_in_set, name_id_icons   
-
-def wcl_covenants(rankings):
-    return wcl_parse(rankings, wcl_extract_covenants, only_use_ids=False)
-
-def wcl_legendary_builds(rankings):
-    return wcl_parse(rankings, lambda e: wcl_extract_legendaries(e))
-
-def wcl_legendaries(rankings):
-    return wcl_parse(rankings, lambda e: wcl_extract_legendaries(e), flatten=True)
-
-def wcl_conduit_builds(rankings):
-    return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "conduitPowers"))
-
-def wcl_conduits(rankings):
-    return wcl_parse(rankings, lambda e: wcl_generic_extract(e, "conduitPowers"), flatten=True)
-
-# talents, essences, azerite combo -- now talents, soulbind, conduit, legendary
-def wcl_extract_tea(ranking):
-    names_in_set = []
-    name_id_icons = []
-
-    add_names, add_icons = wcl_extract_talents(ranking)
-    names_in_set += add_names
-    name_id_icons += add_icons
-
-    add_names, add_icons = wcl_extract_legendaries(ranking)
-    names_in_set += add_names
-    name_id_icons += add_icons
-
-    add_names, add_icons = wcl_generic_extract(ranking, "soulbindPowers")
-    names_in_set += add_names
-    name_id_icons += add_icons
-    
-    add_names, add_icons = wcl_generic_extract(ranking, "conduitPowers")
-    names_in_set += add_names
-    name_id_icons += add_icons     
-    
-    return names_in_set, name_id_icons    
-
-def wcl_tea(rankings):
-    return wcl_parse(rankings, wcl_extract_tea, is_sorted=False)
-
 # we want enchants for particular set of slots
 def wcl_extract_enchants(ranking, slots, type="permanentEnchant"):
     names_in_set = []
@@ -2529,18 +2214,10 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
         latest = json.loads(k.rankings)
 
         no_blanks = []
-        # filter out reports that lack info (e.g. no covenant)
+        # filter out reports that lack info (e.g. notalents)
         for kk in latest:
-            if kk['covenantID'] == 0:
-                continue
-            if kk['soulbindPowers'] == []:
-                continue
             if kk['talents'] == []:
                 continue
-            if kk['legendaryEffects'] == []:
-                continue
-            if kk['conduitPowers'] == []:
-                continue            
             no_blanks += [kk]
 
         latest = no_blanks
@@ -2646,10 +2323,6 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     items = {}
     spells = {}
 
-    tea = []
-    tea, update_spells = wcl_tea(rankings)
-    spells.update(update_spells)
-           
     gear = {}    
 
     gear_slots = []
@@ -2674,31 +2347,6 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
 
     # legendaries
     gear["legendaries"] = []
-
-    # covenants
-    # covenants, update_spells = wcl_covenants(rankings)
-    # spells.update(update_spells)    
-
-    # soulbinds & soulbind abilities
-    # soulbinds, update_spells = wcl_soulbinds(rankings)
-    # spells.update(update_spells)
-
-    # soulbind_abilities, update_spells = wcl_soulbind_abilities(rankings)
-    # spells.update(update_spells)
-    
-    # conduits & conduits builds
-    # conduits, update_spells = wcl_conduits(rankings)
-    # spells.update(update_spells)
-    
-    # conduit_builds, update_spells = wcl_conduit_builds(rankings)
-    # spells.update(update_spells)
-
-    # legendary power
-    # legendary_builds, update_spells = wcl_legendary_builds(rankings)
-    # spells.update(update_spells)
-
-    # legendaries, update_spells = wcl_legendaries(rankings)
-    # spells.update(update_spells)
 
     gems, update_items = wcl_gems(rankings)
     items.update(update_items)
@@ -2755,43 +2403,6 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     if mode == "raid":
         max_maxima = available_difficulty
 
-    if encounter == "all":
-       
-        # log cov stats if it's all encounters
-        spec_slug = slugify.slugify(unicode(spec))
-        mode_slug = slugify.slugify(unicode(mode))
-
-        key_slug = "%s-%s" % (spec_slug, mode_slug)
-        if mode == "raid":
-            key_slug = "%s-%s-%s" % (spec_slug, mode_slug, active_raid)
-
-        data = {}
-        data["n_parses"] = len(rankings)
-        data["n_uniques"] = n_uniques
-        data["covenants"] = covenants
-
-        store_in_stats = False
-
-        # always store mplus stats
-        if mode == "mplus":
-            store_in_stats = True
-
-        # for raid
-        # only store stats from the max difficulty
-        # otherwise lesser difficulties will overwrite this
-        if mode == "raid":
-            if MAX_RAID_DIFFICULTY == difficulty:
-                store_in_stats = True
-
-        if store_in_stats:
-            cov_stats = CovenantStats(id = key_slug,
-                                      spec = spec,
-                                      mode = mode,
-                                      raid = active_raid,
-                                      data = json.dumps(data))
-            cov_stats.put()
-    
-
     talents_container = {}
 
     # wcl_parse returns [n, (talents), [[max_n, band, text, report]]]
@@ -2799,7 +2410,8 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
 
     talents_container["talents"] = talents
     spells.update(update_spells)
-    talents_container["talents_string"] = wcl_get_talent_strings(talents, rankings, spec)
+    talents_container["full_talents"] = talents
+    talents_container["full_string"] = wcl_get_talent_strings(talents, rankings, spec)
 
     talents_top, _ = wcl_talents_top(rankings, require_in=priority_talents)
     talents_container["top"] = talents_top
@@ -2827,13 +2439,7 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
 
     # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
     # raid will return available_difficulty in max_maxima
-    return len(rankings), n_uniques, max_maxima, min_maxima, tea, talents_container, legendaries, \
-        legendary_builds, \
-        gear, enchants, gems, gem_builds, shards, shard_builds, \
-        covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, \
-        spells, items, enchant_ids, tier_items, tier_builds
-
-
+    return len(rankings), n_uniques, max_maxima, min_maxima, talents_container, gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds
 
 ## end wcl parsing code
 
@@ -3163,7 +2769,7 @@ def get_archetype(spec):
 def render_wcl_spec(spec, dungeon="all", prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, n_uniques, key_max, key_min, tea, talents, legendaries, legendary_builds, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, tier_items, tier_builds = gen_wcl_spec_report(spec, dungeon)
+    n_parses, n_uniques, key_max, key_min, talents, gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds = gen_wcl_spec_report(spec, dungeon)
 
 
 
@@ -3186,10 +2792,7 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
                                dungeon_short_names = dungeon_short_names,
                                archetype = get_archetype(spec),
                                spec_slug = spec_slug,
-                               tea = tea,
                                talents = talents,
-                               legendaries = legendaries,
-                               legendary_builds = legendary_builds,
                                affixes = affixes,
                                gear = gear,
                                enchants = enchants,
@@ -3197,16 +2800,8 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
                                enchant_mapping = enchant_mapping,
                                gems = gems,
                                gem_builds = gem_builds,
-                               shards = shards,
-                               shard_builds = shard_builds,
                                tier_items = tier_items,
                                tier_builds = tier_builds,                               
-                               covenants = covenants,
-                               covenantNameToID = covenantNameToID,
-                               soulbinds = soulbinds,
-                               soulbind_abilities = soulbind_abilities,
-                               conduits = conduits,
-                               conduit_builds = conduit_builds,
                                spells = spells,
                                items = items,
                                n_parses = n_parses,
@@ -3275,7 +2870,6 @@ def render_raid_index(encounter="all", difficulty=MAX_RAID_DIFFICULTY, prefix=""
                                role_package=specs_report,
                                spec_stats = spec_stats,
                                encounter=encounter,
-                               fated_raid=determine_fated_raid(),
                                active_raid=active_raid,
                                raid_ignore = raid_ignore,
                                encounter_slugs = encounter_slugs,
@@ -3400,25 +2994,6 @@ def render_main_index(prefix=""):
     return rendered
 
 
-def render_main_covenants(prefix=""):
-    template = env.get_template("main-covenants.html")
-
-    covenants, n_parses, m_data, r_data = gen_covenants_report()
-    
-    rendered = template.render(prefix=prefix,
-                               covenants = covenants,
-                               n_parses = n_parses,
-                               m_data = m_data,
-                               r_data = r_data,
-                               title = "Top Covenants for Season 4",
-                               active_section = "main",
-                               active_page = "main-covenants",
-                               last_updated = localized_time(last_updated))
-
-
-    return rendered
-
-
 def render_privacy(prefix=""):
     template = env.get_template("privacy.html")
     rendered = template.render(prefix=prefix,
@@ -3443,7 +3018,7 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
     logging.info("%s %s %s" % (spec, encounter, difficulty))
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, n_uniques, available_difficulty, _, tea, talents, legendaries, legendary_builds, gear, enchants, gems, gem_builds, shards, shard_builds, covenants, soulbinds, soulbind_abilities, conduits, conduit_builds, spells, items, enchant_ids, tier_items, tier_builds = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty, active_raid=active_raid)
+    n_parses, n_uniques, available_difficulty, _, talents,gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty, active_raid=active_raid)
 
     encounter_pretty = encounter
     if encounter_pretty == "all":
@@ -3470,10 +3045,7 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
                                spec_slug = spec_slug,
                                archetype = get_archetype(spec),
                                active_page = spec_slug + "-" + encounter_slug + "-" + difficulty_slug,
-                               tea = tea,
                                talents = talents,
-                               legendaries = legendaries,
-                               legendary_builds = legendary_builds,
                                affixes = affixes,
                                gear = gear,
                                spells = spells,
@@ -3484,16 +3056,8 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
                                metric = metric,
                                gems = gems,
                                gem_builds = gem_builds,
-                               shards = shards,
-                               shard_builds = shard_builds,
                                tier_items = tier_items,
                                tier_builds = tier_builds,                               
-                               covenants = covenants,
-                               covenantNameToID = covenantNameToID,
-                               soulbinds = soulbinds,
-                               soulbind_abilities = soulbind_abilities,
-                               conduits = conduits, 
-                               conduit_builds = conduit_builds,
                                raid_canonical_order = raid_canonical_order,
                                encounter_slugs = encounter_slugs,
                                raid_short_names = raid_short_names,
@@ -3502,7 +3066,6 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
                                encounter = encounter,
                                encounter_slug = encounter_slug,
                                encounter_pretty = encounter_pretty,
-                               fated_raid=determine_fated_raid(),
                                active_raid=active_raid,
                                difficulty = difficulty,
                                available_difficulty = available_difficulty,
@@ -3763,16 +3326,14 @@ def create_raid_index(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     deferred.defer(raid_write_to_storage, filename, rendered,
                        _retry_options=options)
 
-    # also write as index if this is the fated raid so it's the home page
-    if active_raid in determine_fated_raid():
-        if difficulty == MAX_RAID_DIFFICULTY:
-            filename = "index.html"
-            options = TaskRetryOptions(task_retry_limit = 1)        
-            deferred.defer(raid_write_to_storage, filename, rendered,
-                           _retry_options=options)
+    # also write as index 
+    if difficulty == MAX_RAID_DIFFICULTY:
+        filename = "index.html"
+        options = TaskRetryOptions(task_retry_limit = 1)        
+        deferred.defer(raid_write_to_storage, filename, rendered,
+                       _retry_options=options)
 
     # if it's heroic week then heroic is also the index
-    # not adding fated raid handling here since we never have a heroic only fated week
     if MAX_RAID_DIFFICULTY == "Heroic":
         options = TaskRetryOptions(task_retry_limit = 1)        
         deferred.defer(raid_write_to_storage, "index.html", rendered,
@@ -3928,7 +3489,7 @@ def cloudflare_purge_cache(bucket, filename):
 ## test reset db
 
 def reset_db():
-    kind_list = [DungeonAffixRegion, KnownAffixes, SpecRankings, SpecRankingsRaid, CovenantStats, DungeonEaseTierList, PvPCounts, PvPLadderStats, RaidCounts ]
+    kind_list = [DungeonAffixRegion, KnownAffixes, SpecRankings, SpecRankingsRaid, DungeonEaseTierList, PvPCounts, PvPLadderStats, RaidCounts ]
     for a_kind in kind_list:
         kind_keys = a_kind.gql("").fetch(keys_only=True)
         ndb.delete_multi(kind_keys)
@@ -3936,7 +3497,7 @@ def reset_db():
 
 # just elements for fated raids
 def reset_fated_db():
-    kind_list = [ SpecRankingsRaid, CovenantStats, RaidCounts ]
+    kind_list = [ SpecRankingsRaid, RaidCounts ]
     for a_kind in kind_list:
         kind_keys = a_kind.gql("").fetch(keys_only=True)
         ndb.delete_multi(kind_keys)
@@ -3944,7 +3505,7 @@ def reset_fated_db():
 
 # just elements for prepatch
 def reset_prepatch_db():
-    kind_list = [ SpecRankings, SpecRankingsRaid, CovenantStats, RaidCounts ]
+    kind_list = [ SpecRankings, SpecRankingsRaid, RaidCounts ]
     for a_kind in kind_list:
         kind_keys = a_kind.gql("").fetch(keys_only=True)
         ndb.delete_multi(kind_keys)
@@ -4425,7 +3986,7 @@ class TestWCLGetRankingsRaid(webapp2.RequestHandler):
 #        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="nathria")
 #        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sanctum")
 #        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sepulcher")
-        update_wcl_raid_update_subset(["Devastation Evoker"], active_raid="sepulcher")                
+        update_wcl_raid_update_subset(["Devastation Evoker"], active_raid="vault")                
 
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):
@@ -4605,7 +4166,7 @@ app = webapp2.WSGIApplication([
         ('/process/pvp', ProcessPvPCounts),
         ('/generate/pvp', GenPVP),        
 
-    ## main page (incl top covenants)
+    ## main page
         ('/generate/main', GenMainHTML),
 
     # manually called if needed

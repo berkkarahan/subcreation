@@ -15,9 +15,9 @@ dungeon_short_names["Court of Stars"] = "COS"
 dungeon_short_names["Halls of Valor"] = "HOV"
 dungeon_short_names["Ruby Life Pools"] = "RLP"
 dungeon_short_names["Shadowmoon Burial Grounds"] = "SBG"
-dungeon_short_names["Temple of the Jade Serpent"] = "JADE"
-dungeon_short_names["The Azure Vault"] = "TAV"
-dungeon_short_names["The Nokhud Offensive"] = "TNO"
+dungeon_short_names["Temple of the Jade Serpent"] = "TJS"
+dungeon_short_names["The Azure Vault"] = "AV"
+dungeon_short_names["The Nokhud Offensive"] = "NO"
 
 dungeon_slugs = []
 for d in dungeons:

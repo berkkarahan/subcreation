@@ -8,17 +8,14 @@
   <div class="collapse navbar-collapse" id="navbarSupportedContent">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item">
-        <a class="nav-link{{ ' active' if active_section == 'mplus' else '' }}" href="https://mplus.subcreation.net/"><img src="https://mplus.subcreation.net/images/affixes/shrouded.jpg" width="20" height="20" /> Mythic+</a>
+        <a class="nav-link{{ ' active' if active_section == 'mplus' else '' }}" href="https://mplus.subcreation.net/"><img src="https://mplus.subcreation.net/images/affixes/thundering.jpg" width="20" height="20" /> Mythic+</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link{{ ' active' if active_section == 'raid' else '' }}" href="https://raid.subcreation.net/"><img src="https://raid.subcreation.net/images/bosses/fated.jpg" width="20" height="20" /> Fated Raids</a>
+        <a class="nav-link{{ ' active' if active_section == 'raid' else '' }}" href="https://raid.subcreation.net/"><img src="https://raid.subcreation.net/images/bosses/vault/vault.jpg" width="20" height="20" /> Vault of the Incarnates</a>
       </li>
       <li class="nav-item">
         <a class="nav-link{{ ' active' if active_section == 'pvp' else '' }}" href="https://pvp.subcreation.net/"><img src="https://pvp.subcreation.net/images/modes/all.jpg" width="20" height="20" /> Rated PvP</a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link{{ ' active' if active_page == 'main-covenants' else '' }}" href="https://subcreation.net/top-covenants.html"><img src="https://subcreation.net/images/covenants/night-fae.jpg" width="20" height="20" /> Top Covenants</a>
-      </li>           
     </ul>
     <ul class="navbar-nav justify-content-end">
       <li class="nav-item">
@@ -36,9 +33,6 @@
     <ul class="navbar-nav mr-auto">
       <li class="nav-item">
         <a class="nav-link{{ ' active' if active_page == 'main-index' else '' }}" href="{{prefix}}index.html">Home</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link{{ ' active' if active_page == 'main-covenants' else '' }}" href="{{prefix}}top-covenants.html">Top Covenants for Mythic+ Season 4 and Fated Raids</a>
       </li>
       <li class="nav-item">
         <a class="nav-link{{ ' active' if active_page == 'main-faq' else '' }}" href="{{prefix}}faq.html">FAQ</a>        
@@ -184,13 +178,11 @@
      </span>
     <ul class="navbar-nav mr-auto">     
       <li class="nav-item">
-        <a class="nav-link{{ ' active' if active_raid == 'nathria' else '' }}" href="{{prefix}}nathria.html">Castle Nathria</a>
+        <a class="nav-link" href="index.html">Mythic</a>
       </li>
       <li class="nav-item">
-        <a class="nav-link{{ ' active' if active_raid == 'sanctum' else '' }}" href="{{prefix}}sanctum.html">Sanctum</a>
+        <a class="nav-link" href="vault-heroic.html">Heroic</a>
       </li>
-      <li class="nav-item">        
-        <a class="nav-link{{ ' active' if active_raid == 'sepulcher' else '' }}" href="{{prefix}}sepulcher.html">Sepulcher</a>           </li>
       <span class="navbar-text" style="width: 2em; text-align: center;">
       </span>      
       {{navbar_top_builds(prefix, "", archetype, active_page, known_tanks, known_healers, known_melee, known_ranged, active_raid)}}
