@@ -42,3 +42,47 @@ enchant_mapping["6586"] = {"id": 200023, "name": "Devotion of Speed", "quality":
 
 # Weapon
 enchant_mapping["6651"] = {"id": 200017, "name": "Wafting Writ", "quality": 2}
+
+
+# -----------------------------------------
+# LEGACY
+# Battle for Azeroth Engineering
+## Eng. Belt Enhancements -- note this is by SPELL ID, since there's no item
+
+enchant_mapping["5953"] = {"spell_id": 255940,
+                           "name": "Personal Space Amplifier"}
+
+enchant_mapping["5967"] = {"spell_id": 269123,
+                           "name": "Miniaturized Plasma Shield"}
+
+enchant_mapping["5952"] = {"spell_id": 255936,
+                           "name": "Holographic Horror Projector"}
+
+## Eng. Belt Enhancements -- note this is by SPELL ID, since there's no item
+enchant_mapping["4223"] = {"spell_id": 55016,
+                           "name": "Nitro Boosts"}
+
+enchant_mapping["4222"] = {"spell_id": 67839,
+                           "name": "Mind Amplification Dish"}
+
+enchant_mapping["4214"] = {"spell_id": 84425,
+                           "name": "Cardboard Assassin"}
+
+enchant_mapping["3599"] = {"spell_id": 54736,
+                           "name": "EMP Generator"}
+
+enchant_mapping["3601"] = {"spell_id": 54793,
+                           "name": "Frag Belt"}
+
+enchant_mapping["4188"] = {"spell_id": 84427,
+                           "name": "Grounded Plasma Shield"}
+
+enchant_mapping["4187"] = {"spell_id": 84424,
+                           "name": "Invisibility Field"}
+
+enchant_mapping["4750"] = {"spell_id": 82200,
+                           "name": "Spinal Healing Injector"}
+
+enchant_mapping["5000"] = {"spell_id": 109099,
+                           "name": "Watergliding Jets"}
+
