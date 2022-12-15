@@ -1,6 +1,5 @@
 enchant_mapping = {}
 # Dragonflight
-
 # Back
 enchant_mapping["6587"] = {"id": 199950, "name": "Writ of Avoidance", "quality": 1}
 enchant_mapping["6590"] = {"id": 199947, "name": "Graceful Avoidance", "quality": 1}
@@ -43,6 +42,24 @@ enchant_mapping["6586"] = {"id": 200023, "name": "Devotion of Speed", "quality":
 # Weapon
 enchant_mapping["6651"] = {"id": 200017, "name": "Wafting Writ", "quality": 2}
 
+# -----------------------------------------
+# Death Knight Runeforging -- (note this is spell id, since there's no scroll)
+enchant_mapping["3368"] = {"spell_id" : 53344,
+                           "name" : "Fallen Crusader"}
+enchant_mapping["3370"] = {"spell_id" : 53343,
+                           "name" : "Razorice"}
+enchant_mapping["6241"] = {"spell_id" : 326805,
+                           "name" : "Sanguination"}
+enchant_mapping["6244"] = {"spell_id" : 326977,
+                           "name" : "Unending Thirst"}
+enchant_mapping["6242"] = {"spell_id" : 326855,
+                           "name" : "Spellwarding"}
+enchant_mapping["6243"] = {"spell_id" : 326911,
+                           "name" : "Hysteria"}
+enchant_mapping["6245"] = {"spell_id" : 327082,
+                           "name" : "Apocalypse"}
+enchant_mapping["3847"] = {"spell_id" : 62158,
+                           "name" : "Stoneskin Gargoyle"}
 
 # -----------------------------------------
 # LEGACY
