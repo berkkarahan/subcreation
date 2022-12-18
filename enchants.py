@@ -185,3 +185,4 @@ enchant_mapping["4214"] = {"spell_id": 84425, "name": "Cardboard Assassin"}
 enchant_mapping["4223"] = {"spell_id": 55016, "name": "Nitro Boosts"}
 enchant_mapping["4750"] = {"spell_id": 82200, "name": "Spinal Healing Injector"}
 enchant_mapping["5000"] = {"spell_id": 109099, "name": "Watergliding Jets"}
+enchant_mapping["6192"] = {"spell_id": 310495, "name": "Dimensional Shifter"}
