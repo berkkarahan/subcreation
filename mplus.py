@@ -1263,6 +1263,7 @@ def process_raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_
             if metric > max_found:
                 max_found = metric
                 max_link = k["reportID"]
+                # @@TODO add fight id
             
 
     
@@ -1868,15 +1869,20 @@ def wcl_parse(rankings, extractor, is_sorted=True, is_aggregated=True, only_use_
 
         # 0 is an artifact of band value, for aggregated reports in the popover -- unused now
         report_id = ""
+        fight_id = 0
         if "reportID" in k:
             report_id = k["reportID"]
+            if "fightID" in k:
+                fight_id = k["fightID"]
+            else:
+                logging.info("no fight ID found!")
 
         if flatten:
             for element in names_in_set:
                 add_this = tuple([element])
-                metadata[add_this] += [[sort_value, 0, link_text, report_id]]            
+                metadata[add_this] += [[sort_value, 0, link_text, report_id, fight_id]]            
         else:
-            metadata[add_this] += [[sort_value, 0, link_text, report_id]]
+            metadata[add_this] += [[sort_value, 0, link_text, report_id, fight_id]]
 
     # get rid of duplicate icons in the look up table / mapping
     no_duplicate_mapping = {}
@@ -2096,10 +2102,11 @@ def wcl_get_talent_ids(ranking):
     return talent_ids
 
 # given a reportID, find that in rankings
-def wcl_find_report(reportID, rankings):
+def wcl_find_report(reportID, fightID, rankings):
     for v in rankings:
         if v["reportID"] == reportID:
-            return v
+            if v["fightID"] == fightID:
+                return v
     return None
 
 # get talent strings for the max logs in parsed
@@ -2112,7 +2119,7 @@ def wcl_get_talent_strings(parsed, rankings, spec_name):
             continue
         if len(k[2][0])<4:
             continue       
-        tid = wcl_get_talent_ids(wcl_find_report(k[2][0][3], rankings))
+        tid = wcl_get_talent_ids(wcl_find_report(k[2][0][3], k[2][0][4], rankings))
         if tid == {}:
             talent_strings += [""] # no talent string available
             continue
@@ -3958,7 +3965,8 @@ class TestWCLGetRankings(webapp2.RequestHandler):
 #        update_wcl_update_subset(["Survival Hunter"])
 #        update_wcl_update_subset(["Arms Warrior"])
 #        update_wcl_update_subset(["Feral Druid"])
-        update_wcl_update_subset(["Guardian Druid"])
+#        update_wcl_update_subset(["Guardian Druid"])
+        update_wcl_update_subset(["Protection Warrior"])        
 #        update_wcl_update_subset(["Devastation Evoker"])
 
 class WCLGetRankingsRaidOnly(webapp2.RequestHandler):

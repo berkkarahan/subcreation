@@ -62,9 +62,10 @@
       </td>
       <td>
         {% if popover|length > 0 %}
+        {% set fight_id = popover[0][4] %}
         {% set report_id = popover[0][3] %}
         {% set link_text = popover[0][2] %}
-        <a href='https://www.warcraftlogs.com/reports/{{report_id}}' target='_blank'>{{link_text}}</a>
+        <a href='https://www.warcraftlogs.com/reports/{{report_id}}#fight={{fight_id}}' target='_blank'>{{link_text}}</a>
         {% endif %}
       </td>
       <td>
