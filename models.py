@@ -65,7 +65,7 @@ class SpecRankingsRaid(ndb.Model):
 # for storing affix specific tier lists
 class DungeonEaseTierList(ndb.Model):
     affixes = ndb.StringProperty()
-    tier_list = ndb.JsonProperty()
+    tier_list = ndb.JsonProperty(compressed=True)
     last_updated = ndb.DateTimeProperty(auto_now_add=True)    
 
 # for storing high level raid data for making the tier list
@@ -74,7 +74,7 @@ class RaidCounts(ndb.Model):
     difficulty = ndb.StringProperty()
     encounter = ndb.StringProperty()
     raid = ndb.StringProperty() # which raid    
-    data = ndb.JsonProperty()
+    data = ndb.JsonProperty(compressed=True)
 
     # when were these data last updated
     last_updated = ndb.DateTimeProperty(auto_now_add=True)    
@@ -85,7 +85,7 @@ class CovenantStats(ndb.Model):
     spec = ndb.StringProperty()
     mode = ndb.StringProperty()
     raid = ndb.StringProperty() # which raid
-    data = ndb.JsonProperty()
+    data = ndb.JsonProperty(compressed=True)
 
     # when were these data last updated
     last_updated = ndb.DateTimeProperty(auto_now_add=True)    
@@ -94,7 +94,7 @@ class CovenantStats(ndb.Model):
 class PvPLadderStats(ndb.Model):
     region = ndb.StringProperty()
     mode = ndb.StringProperty()
-    data = ndb.JsonProperty()
+    data = ndb.JsonProperty(compressed=True)
 
     # when were these data last updated
     last_updated = ndb.DateTimeProperty(auto_now_add=True)        
@@ -102,7 +102,7 @@ class PvPLadderStats(ndb.Model):
 class PvPCounts(ndb.Model):
     spec = ndb.StringProperty()
     mode = ndb.StringProperty()
-    data = ndb.JsonProperty()
+    data = ndb.JsonProperty(compressed=True)
 
     # when were these data last updated
     last_updated = ndb.DateTimeProperty(auto_now_add=True)
