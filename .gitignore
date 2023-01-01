@@ -3,5 +3,6 @@ auth.py
 *.pyc
 *~
 .#*
+*#*
 env/
 .gcloudignore
