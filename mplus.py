@@ -58,6 +58,9 @@ from auth import cloudflare_api_key, cloudflare_zone
 # ludus labs api
 from auth import ludus_access_key
 
+# internal api 
+from auth import internal_api
+
 ## globals
 from config import RIO_MAX_PAGE
 from dragonflight import dungeons as DUNGEONS
@@ -1013,8 +1016,49 @@ def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix="",
     
     return dtl   
 
+def gen_pvp_solo_shuffle_role_package(mode):
+    global role_titles, specs
+    role_package = {}
+    stats = {}
+
+    key_slug = "us-solo-shuffle"
+    pc = ndb.Key('PvPLadderStats', key_slug).get()
+    data = json.loads(pc.data)
+
+    proxy_role_titles = {}
+    proxy_role_titles[0] = "tank"
+    proxy_role_titles[1] = "healer"
+    proxy_role_titles[2] = "melee"
+    proxy_role_titles[3] = "ranged"
+    
+    for i in range(4):
+        role_package[role_titles[i]] = data["%s_data" % proxy_role_titles[i]]
+        stats[role_titles[i]] = {}
+        stats[role_titles[i]]["n"] = data["counts"][proxy_role_titles[i]]
+
+    logging.info(role_package)        
+    logging.info(stats)
+
+    # dirty hack to get around %z not working in strptime py2.7
+    # we know the api always gives us US ET time, which is -5 from UTC
+    this_updated = data["last_updated"][:-6] 
+    this_updated = datetime.datetime.strptime(this_updated, "%Y-%m-%d %H:%M:%S.%f")
+    this_updated += datetime.timedelta(hours=5)
+    
+    global last_updated
+    if last_updated == None:
+        last_updated = this_updated
+    if this_updated > last_updated:
+        last_updated = this_updated
+
+    return role_package, stats
+    
+    
 
 def gen_pvp_specs_role_package(mode):
+    if mode == "solo-shuffle":
+        return gen_pvp_solo_shuffle_role_package(mode)
+    
     global role_titles, specs
 
     role_package = {}
@@ -1052,10 +1096,88 @@ def gen_pvp_specs_role_package(mode):
 
     return role_package, stats
     
+# solo shuffle tier list
+# it has tier list embedded in the internal api call
+def gen_pvp_solo_suffle_spec_tier_list(specs_report, role, mode, api=False, prefix=""):
+    key_slug = "us-solo-shuffle"
+    pc = ndb.Key('PvPLadderStats', key_slug).get()
+    data = json.loads(pc.data)
+
+    proxy_role_titles = {}
+    proxy_role_titles[0] = "tank"
+    proxy_role_titles[1] = "healer"
+    proxy_role_titles[2] = "melee"
+    proxy_role_titles[3] = "ranged"
+    
+    proxy_role = ""
+    if role == "Tanks":
+        proxy_role = "tank"
+    elif role == "Healers":
+        proxy_role = "healer"
+    elif role == "Melee":
+        proxy_role = "melee"
+    elif role == "Ranged":
+        proxy_role = "ranged"
+    
+        
+    tiers = {}
+    tm = {}
+    tm[5] = "S"
+    tm[4] = "A"
+    tm[3] = "B"
+    tm[2] = "C"
+    tm[1] = "D"
+    tm[0] = "F"
+
+    for i in range(0, 6):
+        tiers[tm[i]] = data["%s_tier_list" % proxy_role][tm[i]]
+
+    logging.info(tiers)
+
+    
+
+    if api==False:
+        dtl = {}
+        dtl["S"] = ""
+        dtl["A"] = ""
+        dtl["B"] = ""
+        dtl["C"] = ""
+        dtl["D"] = ""
+        dtl["F"] = ""
+
+        global spec_short_names
+        template = env.get_template("pvp-spec-mini-icon.html")
+        for i in range(0, 6):
+            for k in tiers[tm[i]]:
+                rendered = template.render(spec_name = k,
+                                           spec_short_name = spec_short_names[k],
+                                           spec_slug = slugify.slugify(unicode(k)))
+                dtl[tm[i]] += rendered
+    
+        return dtl
+    else:
+        dtl = {}
+        dtl["S"] = []
+        dtl["A"] = []
+        dtl["B"] = []
+        dtl["C"] = []
+        dtl["D"] = []
+        dtl["F"] = []
+
+        for i in range(0, 6):
+            for k in tiers[tm[i]]:
+                dtl[tm[i]] += [k]
+        
+        return dtl        
+
+    
 
 # generate a specs tier list
 # placeholder code for now
 def gen_pvp_spec_tier_list(specs_report, role, mode, api=False, prefix=""):
+    if mode == "solo-shuffle":
+        return gen_pvp_solo_suffle_spec_tier_list(specs_report, role, mode, api, prefix)
+
     global role_titles
     
 
@@ -1428,6 +1550,9 @@ def current_affixes():
 # generate pvp counts and store them
 # we want counts, n, max_rating
 def process_pvp_counts_for_a_mode(actual_mode):
+    # don't process for solo-shuffle, the data comes preprocessed
+    if actual_mode == "solo-shuffle":
+        return
     global pvp_regions, pvp_modes, specs
 
     # for each spec
@@ -2901,8 +3026,9 @@ def render_pvp_index(mode="all", prefix=""):
     specs_report, spec_stats = gen_pvp_specs_role_package(mode)
 
     global pvp_modes
-    pvp_canonical_order = ["2v2", "3v3", "rbg"]
+    pvp_canonical_order = ["solo-shuffle", "2v2", "3v3", "rbg"]
     pvp_pretty_names = {}
+    pvp_pretty_names["solo-shuffle"] = "Solo Shuffle"    
     pvp_pretty_names["2v2"] = "2v2 Arena"
     pvp_pretty_names["3v3"] = "3v3 Arena"
     pvp_pretty_names["rbg"] = "Rated BGs"
@@ -2957,8 +3083,9 @@ def render_pvp_index(mode="all", prefix=""):
 def render_pvp_stats(mode, prefix=""):
     specs_report, spec_stats = gen_pvp_specs_role_package(mode)
 
-    pvp_canonical_order = ["2v2", "3v3", "rbg"]
+    pvp_canonical_order = ["solo-shuffle", "2v2", "3v3", "rbg"]
     pvp_pretty_names = {}
+    pvp_pretty_names["solo-shuffle"] = "Solo Shuffle"    
     pvp_pretty_names["2v2"] = "2v2 Arena"
     pvp_pretty_names["3v3"] = "3v3 Arena"
     pvp_pretty_names["rbg"] = "Rated BGs"
@@ -3872,7 +3999,21 @@ def update_wcl_all():
 
 # region = us or eu
 # mode = 2v2 or 3v3 or rbg
+
+# if mode == "solo-shuffle" we use internal_api
+def _pvp_rankings_internal(region, mode):
+    global internal_api
+    url = "%s/solo-shuffle.json" % (internal_api)
+    result = urlfetch.fetch(url, deadline=60)
+    data = json.loads(result.content)
+    return data
+
 def _pvp_rankings(region, mode):
+    if mode == "solo-shuffle":
+        if region == "us":
+            return _pvp_rankings_internal(region, mode)
+        else:
+            return None
     global ludus_access_key
     url = "https://luduslabs.org/api/leaderboard/%s/%s?access_key=%s" % (region, mode, ludus_access_key)
     result = urlfetch.fetch(url, deadline=60)
@@ -4141,6 +4282,11 @@ class APIPvP2v2(webapp2.RequestHandler):
         self.response.headers['Content-Type'] = 'text/html'
         self.response.write(api_pvp_specs("2v2"))
 
+class APIPvPSoloShuffle(webapp2.RequestHandler):
+    def get(self):
+        self.response.headers['Content-Type'] = 'text/html'
+        self.response.write(api_pvp_specs("solo-shuffle"))        
+
 
 class APIPvP3v3(webapp2.RequestHandler):
     def get(self):
@@ -4198,6 +4344,7 @@ app = webapp2.WSGIApplication([
         ('/api/mplus_affixes', APIAffixEase),
         ('/api/dungeon_ease_overall', APIDungeonEaseOverall),
         ('/api/pvp/all', APIPvPAll),
+        ('/api/pvp/solo-shuffle', APIPvPSoloShuffle),
         ('/api/pvp/2v2', APIPvP2v2),
         ('/api/pvp/3v3', APIPvP3v3),
         ('/api/pvp/rbg', APIPvPRBG),
