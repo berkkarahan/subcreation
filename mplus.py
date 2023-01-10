@@ -1075,7 +1075,6 @@ def gen_pvp_specs_role_package(mode):
 
             key_slug = "%s-%s" % (slugify.slugify(unicode(k)), mode)
             pc = ndb.Key('PvPCounts', key_slug).get()
-
             data = json.loads(pc.data)
             
             role_score += [[str("%.2f" % data["lb_ci"]), # lower bound of ci
@@ -1610,6 +1609,9 @@ def process_pvp_counts_overall():
 
     max_rating = {}
     for mode in pvp_modes:
+        # don't process for solo-shuffle, the data comes preprocessed
+        if mode == "solo-shuffle":
+            continue
         for s in specs:
             key_slug = "%s-%s" % (slugify.slugify(unicode(s)), mode)
             pcc = ndb.Key('PvPCounts', key_slug).get()
@@ -1630,6 +1632,9 @@ def process_pvp_counts_overall():
         
 
         for mode in pvp_modes:
+            # don't process for solo-shuffle, the data comes preprocessed
+            if mode == "solo-shuffle":
+                continue
             key_slug = "%s-%s" % (slugify.slugify(unicode(s)), mode)
             pcc = ndb.Key('PvPCounts', key_slug).get()
             data = json.loads(pcc.data)
