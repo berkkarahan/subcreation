@@ -4112,8 +4112,9 @@ class TestWCLGetRankings(webapp2.RequestHandler):
 #        update_wcl_update_subset(["Arms Warrior"])
 #        update_wcl_update_subset(["Feral Druid"])
 #        update_wcl_update_subset(["Guardian Druid"])
-        update_wcl_update_subset(["Protection Warrior"])        
+#        update_wcl_update_subset(["Protection Warrior"])        
 #        update_wcl_update_subset(["Devastation Evoker"])
+        update_wcl_update_subset(["Balance Druid"])
 
 class WCLGetRankingsRaidOnly(webapp2.RequestHandler):
     def get(self):
