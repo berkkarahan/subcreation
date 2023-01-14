@@ -30,6 +30,19 @@
 <script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
 <!-- end gpt -->
 
+{% if active_section == "pvp" %}
+<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
+<script>
+  window.googletag = window.googletag || {cmd: []};
+  googletag.cmd.push(function() {
+    googletag.defineSlot('/3940419/gam-display-unit', [468, 60], 'div-gpt-ad-1673637184599-0').addService(googletag.pubads());
+    googletag.pubads().enableSingleRequest();
+    googletag.enableServices();
+  });
+</script>
+{% endif %}
+
+
 <!-- start adsense -->
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4919503376631198"
      crossorigin="anonymous"></script>
@@ -55,14 +68,15 @@
   {{ navbar.navbar_pvp(active_page, prefix) }}
   {% endif %}  
 
-  {% if active_section == "main" and not active_page == "main-covenants" %}
+  {% if active_section == "main" %}
   {{ navbar.navbar_main_secondary(active_section, active_page, prefix) }}
-  {% elif active_page == "main-covenants" %}
-  {{ navbar.navbar_main_secondary(active_section, active_page, prefix) }}
-  {% include "advertisement.html" %}
+  {% else %}
+  {% if active_section == "pvp" %}
+  {% include "advertisement-gam.html" %}
   {% else %}
   {% include "advertisement.html" %}
-  {% endif %} 
+  {% endif %}
+  {% endif %}   
   
   {% include "announcement.html" %}
 
