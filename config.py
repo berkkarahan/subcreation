@@ -25,3 +25,14 @@ MIN_KEY_LEVEL = 16
 # have to manually toggle this
 MAX_RAID_DIFFICULTY = "Mythic"
 #MAX_RAID_DIFFICULTY = "Heroic"
+
+import datetime
+
+# patch times in UTC, god help us because of mktime
+# used for filtering out logs using old talents
+# tuesday
+latest_patch_us = datetime.datetime(2023, 1, 24, 16, 0)
+latest_patch_eu = datetime.datetime(2023, 1, 25, 4, 0)
+# wednesday
+latest_patch_tw = datetime.datetime(2023, 1, 25, 23, 0)
+latest_patch_kr = datetime.datetime(2023, 1, 25, 23, 0)

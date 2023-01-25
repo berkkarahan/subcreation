@@ -71,6 +71,11 @@ from config import WCL_SEASON, WCL_PARTITION
 from config import MIN_KEY_LEVEL
 from config import MAX_RAID_DIFFICULTY
 
+from config import latest_patch_us
+from config import latest_patch_eu
+from config import latest_patch_kr
+from config import latest_patch_tw
+
 last_updated = None
 
 ## raid rotation
@@ -3767,8 +3772,8 @@ def test_pvp_view(destination):
 def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
     # filter to the last 4 weeks, or latest patch, whichever is sooner
 
-    # prepatch - a few days after since initial logs were messed up with talents
-    latest_patch = datetime.datetime(2022, 10, 27, 0, 0)
+    global latest_patch_us
+    latest_patch = latest_patch_us
     
     now = datetime.datetime.now()
 
@@ -3808,8 +3813,41 @@ def update_wcl_rankings(spec, dungeon, page):
     # if there's no data, just get out
     if "rankings" not in rankings:
         return
-    
+
+    lpmkt_us = time.mktime(latest_patch_us.timetuple())*1000
+    lpmkt_eu = time.mktime(latest_patch_eu.timetuple())*1000
+    lpmkt_kr = time.mktime(latest_patch_kr.timetuple())*1000
+    lpmkt_tw = time.mktime(latest_patch_tw.timetuple())*1000
+        
     for k in rankings["rankings"]:
+        # filtering for patches that change talents
+        if "regionName" not in k:
+            continue
+        
+        if "startTime" not in k:
+            continue
+        
+        if k["regionName"] == "US":
+            # if the log happened before patch, skip it
+            if k["startTime"] < lpmkt_us:
+                continue
+
+        if k["regionName"] == "EU":
+            # if the log happened before patch, skip it
+            if k["startTime"] < lpmkt_eu:
+                continue
+
+        if k["regionName"] == "KR":
+            # if the log happened before patch, skip it
+            if k["startTime"] < lpmkt_kr:
+                continue
+            
+        if k["regionName"] == "TW":
+            # if the log happened before patch, skip it
+            if k["startTime"] < lpmkt_tw:
+                continue
+            
+        # add the log
         aggregate += [k]
     
     key = ndb.Key('SpecRankings', "%s-%s-%d" % (spec_key, dungeon_slug, page))
@@ -3906,8 +3944,41 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
         return False # otherwise fail
     else:
         logging.info("%d parses found for %s %s %s (page %d)" % (len(rankings["rankings"]), spec, difficulty, encounter, page))
-    
+
+    lpmkt_us = time.mktime(latest_patch_us.timetuple())*1000
+    lpmkt_eu = time.mktime(latest_patch_eu.timetuple())*1000
+    lpmkt_kr = time.mktime(latest_patch_kr.timetuple())*1000
+    lpmkt_tw = time.mktime(latest_patch_tw.timetuple())*1000
+        
     for k in rankings["rankings"]:
+        # filtering for patches that change talents
+        if "regionName" not in k:
+            continue
+        
+        if "startTime" not in k:
+            continue
+        
+        if k["regionName"] == "US":
+            # if the log happened before patch, skip it
+            if k["startTime"] < lpmkt_us:
+                continue
+
+        if k["regionName"] == "EU":
+            # if the log happened before patch, skip it
+            if k["startTime"] < lpmkt_eu:
+                continue
+
+        if k["regionName"] == "KR":
+            # if the log happened before patch, skip it
+            if k["startTime"] < lpmkt_kr:
+                continue
+       
+        if k["regionName"] == "TW":
+            # if the log happened before patch, skip it
+            if k["startTime"] < lpmkt_tw:
+                continue
+
+        # add the log
         aggregate += [k]
 
     key = ndb.Key('SpecRankingsRaid', "%s-%s-%s-%s-%d" % (spec_key, encounter_slug, slugify.slugify(unicode(difficulty)), active_raid, page))
@@ -4111,10 +4182,11 @@ class TestWCLGetRankings(webapp2.RequestHandler):
 #        update_wcl_update_subset(["Survival Hunter"])
 #        update_wcl_update_subset(["Arms Warrior"])
 #        update_wcl_update_subset(["Feral Druid"])
-#        update_wcl_update_subset(["Guardian Druid"])
+        update_wcl_update_subset(["Guardian Druid"])
+#        update_wcl_update_subset(["Blood Death Knight"])        
 #        update_wcl_update_subset(["Protection Warrior"])        
 #        update_wcl_update_subset(["Devastation Evoker"])
-        update_wcl_update_subset(["Balance Druid"])
+#        update_wcl_update_subset(["Balance Druid"])
 
 class WCLGetRankingsRaidOnly(webapp2.RequestHandler):
     def get(self):
