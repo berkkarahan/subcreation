@@ -3864,17 +3864,14 @@ def update_wcl_rankings(spec, dungeon, page):
 def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=WCL_PARTITION, metric="dps"):
     # filter to the last 4 weeks
     # prepatch - a few days after since initial logs were mesesed up with talents
-    latest_patch = datetime.datetime(2022, 10, 27, 0, 0)
-    
-    now = datetime.datetime.now()
-
-        
+    global latest_patch_us
+    latest_patch = latest_patch_us
     
     now = datetime.datetime.now()
 
     latest_patch_mkt = time.mktime(latest_patch.timetuple())
-    four_weeks_ago = time.mktime(now.timetuple())-4*7*60*60*24
-
+    four_weeks_ago = time.mktime(now.timetuple())-4*7*60*60*24        
+    
     filter_back_to = four_weeks_ago
     if latest_patch_mkt > four_weeks_ago:
         filter_back_to = latest_patch_mkt
@@ -3957,7 +3954,7 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
         
         if "startTime" not in k:
             continue
-        
+
         if k["regionName"] == "US":
             # if the log happened before patch, skip it
             if k["startTime"] < lpmkt_us:
@@ -4182,11 +4179,11 @@ class TestWCLGetRankings(webapp2.RequestHandler):
 #        update_wcl_update_subset(["Survival Hunter"])
 #        update_wcl_update_subset(["Arms Warrior"])
 #        update_wcl_update_subset(["Feral Druid"])
-        update_wcl_update_subset(["Guardian Druid"])
+#        update_wcl_update_subset(["Guardian Druid"])
 #        update_wcl_update_subset(["Blood Death Knight"])        
 #        update_wcl_update_subset(["Protection Warrior"])        
 #        update_wcl_update_subset(["Devastation Evoker"])
-#        update_wcl_update_subset(["Balance Druid"])
+        update_wcl_update_subset(["Balance Druid"])
 
 class WCLGetRankingsRaidOnly(webapp2.RequestHandler):
     def get(self):
@@ -4212,7 +4209,8 @@ class TestWCLGetRankingsRaid(webapp2.RequestHandler):
 #        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="nathria")
 #        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sanctum")
 #        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sepulcher")
-        update_wcl_raid_update_subset(["Devastation Evoker"], active_raid="vault")                
+#        update_wcl_raid_update_subset(["Devastation Evoker"], active_raid="vault")
+        update_wcl_raid_update_subset(["Balance Druid"], active_raid="vault")                        
 
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):
