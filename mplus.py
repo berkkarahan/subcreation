@@ -48,7 +48,7 @@ from active_talents import class_active, spec_active
 
 from encode_talent_string import encode_talent_string
 
-from dragonflight import t30_items
+from dragonflight import t30_items, embellished_items
 
 from enchants import enchant_mapping
 
@@ -2094,6 +2094,18 @@ def wcl_extract_tier(ranking):
 
     return names_in_set, name_id_icons
 
+def wcl_extract_embellishments(ranking):
+    names_in_set = []
+    name_id_icons = []
+    
+    for i, j in enumerate(ranking["gear"]):
+        if "id" in j:
+            if j["id"] in embellished_items:
+                names_in_set += [j["id"]]
+                name_id_icons += [j]
+
+    return names_in_set, name_id_icons
+
 def wcl_gems(rankings):
     return wcl_parse(rankings,
                      wcl_extract_gems,
@@ -2125,6 +2137,17 @@ def wcl_tier_items(rankings):
 def wcl_tier_builds(rankings):
     return wcl_parse(rankings,
                      lambda e: wcl_extract_tier(e),                     
+                     only_use_ids=True)
+
+def wcl_embellished_items(rankings):
+    return wcl_parse(rankings,
+                     lambda e: wcl_extract_embellishments(e),
+                     only_use_ids=True,
+                     flatten=True)
+
+def wcl_embellished_builds(rankings):
+    return wcl_parse(rankings,
+                     lambda e: wcl_extract_embellishments(e),                     
                      only_use_ids=True)
 
 def wcl_hsc(rankings):
@@ -2509,6 +2532,12 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
 
     tier_builds, update_items = wcl_tier_builds(rankings)
     items.update(update_items)    
+
+    embellished_items, update_items = wcl_embellished_items(rankings)
+    items.update(update_items)
+
+    embellished_builds, update_items = wcl_embellished_builds(rankings)
+    items.update(update_items)   
     
     enchants = {}
     enchant_ids = {}
@@ -2580,7 +2609,7 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
 
     # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
     # raid will return available_difficulty in max_maxima
-    return len(rankings), n_uniques, max_maxima, min_maxima, talents_container, gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds
+    return len(rankings), n_uniques, max_maxima, min_maxima, talents_container, gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds
 
 ## end wcl parsing code
 
@@ -2910,7 +2939,7 @@ def get_archetype(spec):
 def render_wcl_spec(spec, dungeon="all", prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, n_uniques, key_max, key_min, talents, gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds = gen_wcl_spec_report(spec, dungeon)
+    n_parses, n_uniques, key_max, key_min, talents, gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds = gen_wcl_spec_report(spec, dungeon)
 
 
 
@@ -2942,7 +2971,9 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
                                gems = gems,
                                gem_builds = gem_builds,
                                tier_items = tier_items,
-                               tier_builds = tier_builds,                               
+                               tier_builds = tier_builds,   
+                               embellished_items = embellished_items,
+                               embellished_builds = embellished_builds,                            
                                spells = spells,
                                items = items,
                                n_parses = n_parses,
