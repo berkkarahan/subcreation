@@ -30,6 +30,7 @@ from dragonflight import dungeons, dungeon_slugs, dungeon_short_names, slugs_to_
 from warcraft import specs, tanks, healers, melee, ranged, role_titles, regions, pvp_regions, pvp_modes
 from warcraft import spec_short_names
 from t_interval import t_interval
+from talents_to_spells import talents_to_spells
 
 from models import Run, DungeonAffixRegion, KnownAffixes, PvPLadderStats, PvPCounts
 
@@ -2227,9 +2228,14 @@ def wcl_extract_talents(ranking, require_in=None):
     name_id_icons = []
 
     for i, j in enumerate(ranking["talents"]):
-        if j["id"] == 0: # talents are now numbers, not strings
+        if j["talentID"] == 0: # talents are now numbers, not strings
             continue
-        names_in_set += [j["id"]] # need to make it a string since every other id is a string
+
+        talent_id = j["talentID"]
+        # find the corresponding spellID for this talent ID
+        spell_id = talents_to_spells[talent_id]
+        
+        names_in_set += [spell_id] # need to make it a string since every other id is a string
         name_id_icons += [j]
 
     return canonical_talent_order(names_in_set, require_in), name_id_icons
@@ -4216,11 +4222,11 @@ class TestWCLGetRankings(webapp2.RequestHandler):
 #        update_wcl_update_subset(["Blood Death Knight"])        
 #        update_wcl_update_subset(["Protection Warrior"])        
 #        update_wcl_update_subset(["Devastation Evoker"])
-        update_wcl_update_subset(["Balance Druid"])
+#        update_wcl_update_subset(["Balance Druid"])
         update_wcl_update_subset(["Feral Druid"])
-        update_wcl_update_subset(["Shadow Priest"])
-        update_wcl_update_subset(["Demonology Warlock"])
-        update_wcl_update_subset(["Outlaw Rogue"])        
+#        update_wcl_update_subset(["Shadow Priest"])
+#        update_wcl_update_subset(["Demonology Warlock"])
+#        update_wcl_update_subset(["Outlaw Rogue"])        
 
 class WCLGetRankingsRaidOnly(webapp2.RequestHandler):
     def get(self):
