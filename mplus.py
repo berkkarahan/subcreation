@@ -2097,7 +2097,7 @@ def wcl_extract_tier(ranking):
 def wcl_extract_embellishments(ranking):
     names_in_set = []
     name_id_icons = []
-    
+
     for i, j in enumerate(ranking["gear"]):
         if "id" in j:
             if j["id"] in embellished_items:
@@ -3192,7 +3192,7 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
     logging.info("%s %s %s" % (spec, encounter, difficulty))
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, n_uniques, available_difficulty, _, talents,gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty, active_raid=active_raid)
+    n_parses, n_uniques, available_difficulty, _, talents,gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty, active_raid=active_raid)
 
     encounter_pretty = encounter
     if encounter_pretty == "all":
@@ -3231,7 +3231,9 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
                                gems = gems,
                                gem_builds = gem_builds,
                                tier_items = tier_items,
-                               tier_builds = tier_builds,                               
+                               tier_builds = tier_builds,
+                               embellished_items = embellished_items,
+                               embellished_builds = embellished_builds,        
                                raid_canonical_order = raid_canonical_order,
                                encounter_slugs = encounter_slugs,
                                raid_short_names = raid_short_names,
@@ -4215,6 +4217,10 @@ class TestWCLGetRankings(webapp2.RequestHandler):
 #        update_wcl_update_subset(["Protection Warrior"])        
 #        update_wcl_update_subset(["Devastation Evoker"])
         update_wcl_update_subset(["Balance Druid"])
+        update_wcl_update_subset(["Feral Druid"])
+        update_wcl_update_subset(["Shadow Priest"])
+        update_wcl_update_subset(["Demonology Warlock"])
+        update_wcl_update_subset(["Outlaw Rogue"])        
 
 class WCLGetRankingsRaidOnly(webapp2.RequestHandler):
     def get(self):
@@ -4241,7 +4247,11 @@ class TestWCLGetRankingsRaid(webapp2.RequestHandler):
 #        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sanctum")
 #        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sepulcher")
 #        update_wcl_raid_update_subset(["Devastation Evoker"], active_raid="vault")
-        update_wcl_raid_update_subset(["Balance Druid"], active_raid="vault")                        
+        update_wcl_raid_update_subset(["Balance Druid"], active_raid="vault")
+        update_wcl_raid_update_subset(["Feral Druid"], active_raid="vault")
+        update_wcl_raid_update_subset(["Shadow Priest"], active_raid="vault")
+        update_wcl_raid_update_subset(["Demonology Warlock"], active_raid="vault")
+        update_wcl_raid_update_subset(["Outlaw Rogue"], active_raid="vault")                                
 
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):
