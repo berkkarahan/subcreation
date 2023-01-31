@@ -2233,7 +2233,12 @@ def wcl_extract_talents(ranking, require_in=None):
 
         talent_id = j["talentID"]
         # find the corresponding spellID for this talent ID
-        spell_id = talents_to_spells[talent_id]
+        if talent_id in talents_to_spells:
+            spell_id = talents_to_spells[talent_id]
+        else:
+            spell_id = j["id"] # fall back to the id
+            logging.info("missing talent_id in talents_to_spells: %d %s" % (talent_id, str(j)))
+        
         
         names_in_set += [spell_id] # need to make it a string since every other id is a string
         name_id_icons += [j]
