@@ -1,4 +1,4 @@
-{% macro spec_overview_table(sizing, title, heading, data, lookup, lookup_type, n_parses, offset_first="", offset_at = [0], anchor_id="", expanded="true", metric="dps", enchant_mapping = {}, talent_string = None) -%}
+{% macro spec_overview_table(sizing, title, heading, data, lookup, lookup_type, n_parses, offset_first="", offset_at = [0], anchor_id="", expanded="true", metric="dps", enchant_mapping = {}, talent_string = None, common_talents = None) -%}
 
 <div class="{{sizing}} py-3">
   <a name="#{{anchor_id}}" class="anchor">
@@ -12,11 +12,25 @@
         <th class="spec_max">max {{metric}}</th>
         <th class="spec_counts">Overall % (n)</th>
       </tr>
+      {% if common_talents is not none %}
+      <tr>
+        <th colspan=3 style="font-weight: 200;">Common Talents:<br/>
+          {% for k in common_talents %}
+          <a href="https://www.wowhead.com/spell={{k}}"></a>
+          {% endfor %}
+        </th>
+      </tr>
+      {% endif %}
     </thead>
     <tbody>
     {% for (frequency, build, popover) in data %}
     <tr>
       <td>
+        {% if common_talents is not none %}
+        {% if build|length == 0 %}
+        (only) Common Talents &nbsp;
+        {% endif %}
+        {% endif %}
         {% for k in build %}
         {% if lookup_type == "enchant" %}
         {% if lookup[k][0] in enchant_mapping %}

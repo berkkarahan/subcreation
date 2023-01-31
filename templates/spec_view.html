@@ -26,11 +26,11 @@
   <a href="#rings"><button type="button" class="btn btn-primary">Rings</button></a>
 </div>
 
-{{ spec_overview_table.spec_overview_table("col-xl-12 col-lg-12", "Full Talent Tree", "Talents", talents["talents"], spells, "spell", n_parses, anchor_id="full_tree", expanded="true", metric=metric, talent_string = talents["talents_string"]) }}
+{{ spec_overview_table.spec_overview_table("col-xl-12 col-lg-12", "Full Talent Tree", "Talents", talents["talents"], spells, "spell", n_parses, anchor_id="full_tree", expanded="true", metric=metric, talent_string = talents["talents_string"], common_talents = talents["common"]["talents"]) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Class Tree Talents", "Talents", talents["class"], spells, "spell", n_parses, anchor_id="class_tree", expanded="true", metric=metric, talent_string = talents["class_string"]) }}
+{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Class Tree Talents", "Talents", talents["class"], spells, "spell", n_parses, anchor_id="class_tree", expanded="true", metric=metric, talent_string = talents["class_string"], common_talents = talents["common"]["class"]) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Spec Tree Talents", "Talents", talents["spec"], spells, "spell", n_parses, anchor_id="spec_tree", expanded="true", metric=metric, talent_string = talents["spec_string"]) }}
+{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Spec Tree Talents", "Talents", talents["spec"], spells, "spell", n_parses, anchor_id="spec_tree", expanded="true", metric=metric, talent_string = talents["spec_string"], common_talents = talents["common"]["spec"]) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Talented Abilities (Class)", "Talents", talents["class_active"], spells, "spell", n_parses, anchor_id="class_active", expanded="true", metric=metric, talent_string = talents["class_active_string"]) }}
 

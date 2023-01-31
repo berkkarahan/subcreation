@@ -2233,7 +2233,11 @@ def wcl_extract_talents(ranking, require_in=None):
 
         talent_id = j["talentID"]
         # find the corresponding spellID for this talent ID
-        spell_id = talents_to_spells[talent_id]
+        if talent_id in talents_to_spells:
+            spell_id = talents_to_spells[talent_id]
+        else:
+            spell_id = j["id"] # fall back to the id
+            logging.info("missing talent_id in talents_to_spells: %d %s" % (talent_id, str(j)))
         
         names_in_set += [spell_id] # need to make it a string since every other id is a string
         name_id_icons += [j]
@@ -2332,6 +2336,27 @@ def wcl_top10(d, pop=None, top_n = 10):
             output += [[n, s, pop[s]]]
 
     return output
+
+# go through extracted talents and find commonalities
+# common talents must be in require_in if is not None
+def identify_common_talents(talents, require_in = None):
+    talent_lists = []
+    for k in talents:
+        talent_lists += [k[1]]
+    common = set(talent_lists[0])
+    for s in talent_lists[1:0]:
+        common.intersection_update(s)
+    if require_in != None:
+        common.intersection_update(require_in)
+    return set(common)
+
+# go through extracted talents and remove the common set once it's been found
+# return talents with the common talents removed
+def remove_common_talents(talents, common):
+    for k in talents:
+        k[1] = tuple(set(k[1]) - common)
+    return talents
+
 
 # spec report generation
 def gen_wcl_spec_report(spec, dungeon="all"):
@@ -2589,30 +2614,42 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
         max_maxima = available_difficulty
 
     talents_container = {}
-
+    talents_container["common"] = {}
+    
     # wcl_parse returns [n, (talents), [[max_n, band, text, report]]]
-    talents, update_spells = wcl_talents(rankings)
-
+    talents, update_spells = wcl_talents(rankings)   
     talents_container["talents"] = talents
     spells.update(update_spells)
     talents_container["talents_string"] = wcl_get_talent_strings(talents, rankings, spec)
 
-    talents_top, _ = wcl_talents_top(rankings, require_in=priority_talents)
-    talents_container["top"] = talents_top
-    talents_container["top_string"] = wcl_get_talent_strings(talents_top, rankings, spec)        
+    talents_common = identify_common_talents(talents)
+    talents = remove_common_talents(talents, talents_common)
+    talents_container["common"]["talents"] = canonical_talent_order(list(talents_common))
+    
+#    talents_top, _ = wcl_talents_top(rankings, require_in=priority_talents)
+#    talents_container["top"] = talents_top
+#    talents_container["top_string"] = wcl_get_talent_strings(talents_top, rankings, spec)        
 
-    talents_priority, _ = wcl_talents(rankings, require_in=priority_talents)
-    talents_container["priority"] = talents_priority
-    talents_container["priority_string"] = wcl_get_talent_strings(talents_priority, rankings, spec)    
+#    talents_priority, _ = wcl_talents(rankings, require_in=priority_talents)
+#    talents_container["priority"] = talents_priority
+#    talents_container["priority_string"] = wcl_get_talent_strings(talents_priority, rankings, spec)    
 
     talents_class, _ = wcl_talents(rankings, require_in=(class_zero+class_eight+class_twenty))
     talents_container["class"] = talents_class
-    talents_container["class_string"] = wcl_get_talent_strings(talents_class, rankings, spec)    
+    talents_container["class_string"] = wcl_get_talent_strings(talents_class, rankings, spec)
 
+    talents_class_common = identify_common_talents(talents_class)
+    talents_class = remove_common_talents(talents_class, talents_class_common)
+    talents_container["common"]["class"] = canonical_talent_order(list(talents_class_common))
+    
     talents_spec, _ = wcl_talents(rankings, require_in=(spec_zero+spec_eight+spec_twenty))
     talents_container["spec"] = talents_spec
     talents_container["spec_string"] = wcl_get_talent_strings(talents_spec, rankings, spec)
 
+    talents_spec_common = identify_common_talents(talents_spec)
+    talents_spec = remove_common_talents(talents_spec, talents_spec_common)
+    talents_container["common"]["spec"] = canonical_talent_order(list(talents_spec_common))
+    
     talents_class_active, _ = wcl_talents(rankings, require_in=(class_active))
     talents_container["class_active"] = talents_class_active
     talents_container["class_active_string"] = wcl_get_talent_strings(talents_class_active, rankings, spec)    
