@@ -51,7 +51,7 @@ from encode_talent_string import encode_talent_string
 
 from dragonflight import t30_items, embellished_items
 
-from enchants import enchant_mapping
+from enchants import enchant_mapping, enchant_collapse
 
 # cloudflare cache handling
 from auth import cloudflare_api_key, cloudflare_zone
@@ -2304,8 +2304,12 @@ def wcl_extract_enchants(ranking, slots, type="permanentEnchant"):
     for i, j in enumerate(ranking["gear"]):
         if i in slots:
             if type in j:
-                names_in_set += [j[type]]
-                name_id_icons += [{"id":j[type]}]
+                enchant_id = j[type]
+                # collapse lower ranks into the highest rank
+                if enchant_id in enchant_collapse:
+                    enchant_id = enchant_collapse[enchant_id]
+                names_in_set += [enchant_id]
+                name_id_icons += [{"id":enchant_id}]
 
     return names_in_set, name_id_icons
 
@@ -2547,7 +2551,8 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     
     enchants = {}
     enchant_ids = {}
-    
+
+    # slots are one LESS than what it is for macros because 0 indexing
     enchants["weapons"], update_enchant_ids = wcl_enchants(rankings, [15, 16])
     enchant_ids.update(update_enchant_ids)
 
@@ -2557,6 +2562,9 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     enchants["wrists"], update_enchant_ids = wcl_enchants(rankings, [8])
     enchant_ids.update(update_enchant_ids)
 
+    enchants["leg"], update_enchant_ids = wcl_enchants(rankings, [6])
+    enchant_ids.update(update_enchant_ids)    
+    
     enchants["feet"], update_enchant_ids = wcl_enchants(rankings, [7])
     enchant_ids.update(update_enchant_ids)    
 
@@ -4223,7 +4231,7 @@ class TestWCLGetRankings(webapp2.RequestHandler):
 #        update_wcl_update_subset(["Protection Warrior"])        
 #        update_wcl_update_subset(["Devastation Evoker"])
 #        update_wcl_update_subset(["Balance Druid"])
-        update_wcl_update_subset(["Feral Druid"])
+        update_wcl_update_subset(["Marksmanship Hunter"])
 #        update_wcl_update_subset(["Shadow Priest"])
 #        update_wcl_update_subset(["Demonology Warlock"])
 #        update_wcl_update_subset(["Outlaw Rogue"])        
@@ -4253,11 +4261,11 @@ class TestWCLGetRankingsRaid(webapp2.RequestHandler):
 #        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sanctum")
 #        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sepulcher")
 #        update_wcl_raid_update_subset(["Devastation Evoker"], active_raid="vault")
-        update_wcl_raid_update_subset(["Balance Druid"], active_raid="vault")
+#        update_wcl_raid_update_subset(["Balance Druid"], active_raid="vault")
         update_wcl_raid_update_subset(["Feral Druid"], active_raid="vault")
-        update_wcl_raid_update_subset(["Shadow Priest"], active_raid="vault")
-        update_wcl_raid_update_subset(["Demonology Warlock"], active_raid="vault")
-        update_wcl_raid_update_subset(["Outlaw Rogue"], active_raid="vault")                                
+#        update_wcl_raid_update_subset(["Shadow Priest"], active_raid="vault")
+#        update_wcl_raid_update_subset(["Demonology Warlock"], active_raid="vault")
+#        update_wcl_raid_update_subset(["Outlaw Rogue"], active_raid="vault")                                
 
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):
