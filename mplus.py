@@ -2339,7 +2339,10 @@ def identify_common_talents(talents):
     talent_lists = []
     for k in talents:
         talent_lists += [k[1]]
-    common = set(talent_lists[0])
+    if len(talent_lists)>0:
+        common = set(talent_lists[0])
+    else:
+        common = set()
     for s in talent_lists[1:]:
         common.intersection_update(s)
     return set(common)
@@ -3244,6 +3247,12 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
     affixes = "N/A"
     n_parses, n_uniques, available_difficulty, _, talents,gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty, active_raid=active_raid)
 
+    talent_metadata = {}
+    talent_metadata["talents_to_spells"] = talents_to_spells
+    talent_metadata["class"] = talent_id_class
+    talent_metadata["spec"] = talent_id_spec
+    talent_metadata["heights"] = talent_id_heights    
+
     encounter_pretty = encounter
     if encounter_pretty == "all":
         encounter_pretty = "All Bosses"
@@ -3277,6 +3286,7 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
                                enchants = enchants,
                                enchant_ids = enchant_ids,
                                enchant_mapping = enchant_mapping,
+                               talent_metadata = talent_metadata,                               
                                metric = metric,
                                gems = gems,
                                gem_builds = gem_builds,
