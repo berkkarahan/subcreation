@@ -1,10 +1,28 @@
-{% macro spec_overview_table(sizing, title, heading, data, lookup, lookup_type, n_parses, offset_first="", offset_at = [0], anchor_id="", expanded="true", metric="dps", enchant_mapping = {}, talent_string = None) -%}
-
+{% macro spec_overview_table(sizing, title, heading, data, lookup, lookup_type, n_parses, offset_first="", offset_at = [0], anchor_id="", expanded="true", metric="dps", enchant_mapping = {}, talent_string = None, common_talents = None, talent_metadata = None) -%}
+{% import 'talent_display.html' as td %}
 <div class="{{sizing}} py-3">
   <a name="#{{anchor_id}}" class="anchor">
     <h3 id="{{anchor_id}}" class="anchor">{{title}}</h3>
   </a>
   <div class="collapse multi-collapse{% if expanded=="true" %} show{% endif %}" id="collapse-{{anchor_id}}">
+    <table class="table table-secondary spec_table table-responsive-md">
+       {% if common_talents is not none %}
+      <tr>
+        <td style="font-weight: 200;">Talents shared among all these builds:<br/>
+          {% if anchor_id == "full_tree" or anchor_id == "class_tree" %}                  
+          {{ td.talent_display(common_talents, lookup, talent_metadata, "class") }}
+          {% endif %}
+          {% if anchor_id == "full_tree" %}
+          &nbsp;&nbsp;&nbsp;&parallel;&nbsp;&nbsp;&nbsp;<br/>
+          {% endif %}
+          {% if anchor_id == "full_tree" or anchor_id == "spec_tree" %}                          
+          {{ td.talent_display(common_talents, lookup, talent_metadata, "spec")}}
+          {% endif %}
+        </td>
+      </tr>
+      {% endif %}
+      </table>
+    
   <table class="table table-striped sort spec_table table-responsive-md table-hover" id="table-spec-{{anchor_id}}">
     <thead>
       <tr>
@@ -14,9 +32,33 @@
       </tr>
     </thead>
     <tbody>
+  
     {% for (frequency, build, popover) in data %}
     <tr>
       <td>
+        {% if lookup_type == "talent" %}
+        {% if common_talents is not none %}
+        {% if build|length == 0 %}
+        (only) Shared Talents &nbsp;
+        {% endif %}
+        {% endif %}
+        {% if anchor_id == "full_tree" or anchor_id == "class_tree" %}
+        {{ td.talent_display(build, lookup, talent_metadata, "class") }}
+        {% endif %}
+        {% if anchor_id == "full_tree" %}        
+        &nbsp;&nbsp;&nbsp;&parallel;&nbsp;&nbsp;&nbsp;
+        {% endif %}
+        {% if anchor_id == "full_tree" or anchor_id == "spec_tree" %}                
+        {{ td.talent_display(build, lookup, talent_metadata, "spec") }}
+        {% endif %}
+          {% if talent_string != None %}
+        {% if talent_string[loop.index0] != "" %}
+        &nbsp;&nbsp;&nbsp;
+          <button type="button" class="btn btn-sm btn-outline-info" title="talent string for import in-game" onclick="window.prompt('Here\'s a talent string you can import in-game:', '{{talent_string[loop.index0]}}')">copy</button>
+          <a class="btn btn-outline-info btn-sm" target='_blank' title="open wowhead talent calculator" href="https://www.wowhead.com/talent-calc/blizzard/{{talent_string[loop.index0]}}">calc &UpperRightArrow;</a>
+          {% endif %}
+          {% endif %}
+        {% else %}
         {% for k in build %}
         {% if lookup_type == "enchant" %}
         {% if lookup[k][0] in enchant_mapping %}
@@ -40,6 +82,8 @@
         {% endif %}
         {% elif lookup_type == "covenant" %}
         <a href="https://www.wowhead.com/spell={{lookup[k]}}" title="{{lookup[k]}}"></a>
+        {% elif lookup_type == "talent" %}
+        <a href="https://www.wowhead.com/spell={{lookup[k]}}"></a>
         {% else %}
         {% if k in lookup %}
         <a href="https://www.wowhead.com/{{lookup_type}}={{lookup[k][0]}}"></a>
@@ -49,12 +93,6 @@
         {{offset_first}}
         {% endif %}
         {% endfor %}
-
-        {% if talent_string != None %}
-        {% if talent_string[loop.index0] != "" %}
-        <button type="button" class="btn btn-sm btn-outline-info" title="talent string for import in-game" onclick="window.prompt('Here\'s a talent string you can import in-game:', '{{talent_string[loop.index0]}}')">copy</button>
-        <a class="btn btn-outline-info btn-sm" target='_blank' title="open wowhead talent calculator" href="https://www.wowhead.com/talent-calc/blizzard/{{talent_string[loop.index0]}}">calc &UpperRightArrow;</a>
-        {% endif %}
         {% endif %}
       </td>
       <td>

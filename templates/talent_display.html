@@ -1,0 +1,12 @@
+{% macro talent_display(talents_to_show, lookup, talent_metadata, which_tree) -%}
+{% set height = -1 %}
+{% set showdot = 0 %}
+{% for k in talents_to_show -%}
+{% if k in talent_metadata[which_tree] -%}
+{% if height == -1 %}{% set height = talent_metadata["heights"][k] %}{% endif %}
+{% if showdot == 1 %}&nbsp;&middot;&nbsp;{% set showdot = 0 %}{% endif %}
+<a href="https://www.wowhead.com/spell={{lookup[k]}}"></a>
+{% if talent_metadata["heights"][k] != height %}{% set showdot = 1 %}{% set height = talent_metadata["heights"][k] %}{% endif %}
+{%- endif %}
+{%- endfor %}
+{%- endmacro %}
