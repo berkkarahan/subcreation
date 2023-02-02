@@ -6,10 +6,9 @@
   <a href="#full_tree"><button type="button" class="btn btn-primary">Full Tree</button></a>    
   <a href="#class_tree"><button type="button" class="btn btn-primary">Class Tree</button></a>
   <a href="#spec_tree"><button type="button" class="btn btn-primary">Spec Tree</button></a>
-  <a href="#class_active"><button type="button" class="btn btn-primary">Talented Abilities</button></a>
+  <a href="#embellishment"><button type="button" class="btn btn-primary">Embellishments</button></a>
   <a href="#gems"><button type="button" class="btn btn-primary">Gems</button></a>
   <a href="#tier"><button type="button" class="btn btn-primary">Tier</button></a>
-  <a href="#embellishment"><button type="button" class="btn btn-primary">Embellishments</button></a>
   <a href="#enchants"><button type="button" class="btn btn-primary">Enchants</button></a>
   <a href="#weapons"><button type="button" class="btn btn-primary">Weapon</button></a>
   <a href="#trinkets"><button type="button" class="btn btn-primary">Trinkets</button></a>
@@ -28,13 +27,13 @@
 
 {{ spec_overview_table.spec_overview_table("col-xl-12 col-lg-12", "Full Tree Talents", "Talent Variations", talents["talents"], talent_metadata["talents_to_spells"], "talent", n_parses, anchor_id="full_tree", expanded="true", metric=metric, talent_string = talents["talents_string"], common_talents = talents["common"]["talents"], talent_metadata = talent_metadata) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Class Tree Talents", "Talent Variations", talents["class"], spells, "talent", n_parses, anchor_id="class_tree", expanded="true", metric=metric, talent_string = talents["class_string"], common_talents = talents["common"]["class"], talent_metadata = talent_metadata) }}
+{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-12", "Class Tree Talents", "Talent Variations", talents["class"], talent_metadata["talents_to_spells"], "talent", n_parses, anchor_id="class_tree", expanded="true", metric=metric, talent_string = talents["class_string"], common_talents = talents["common"]["class"], talent_metadata = talent_metadata) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Spec Tree Talents", "Talent Variations", talents["spec"], spells, "talent", n_parses, anchor_id="spec_tree", expanded="true", metric=metric, talent_string = talents["spec_string"], common_talents = talents["common"]["spec"], talent_metadata = talent_metadata) }}
+{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-12", "Spec Tree Talents", "Talent Variations", talents["spec"], talent_metadata["talents_to_spells"], "talent", n_parses, anchor_id="spec_tree", expanded="true", metric=metric, talent_string = talents["spec_string"], common_talents = talents["common"]["spec"], talent_metadata = talent_metadata) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Talented Abilities (Class)", "Talent Variations", talents["class_active"], spells, "talent", n_parses, anchor_id="class_active", expanded="true", metric=metric, talent_string = talents["class_active_string"]) }}
+{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Embellishment Items", "Item(s)", embellished_items, items, "item", n_parses, anchor_id="embellishment", metric=metric) }}
 
-{{ spec_overview_table.spec_overview_table("col-xl-6 col-lg-6", "Talented Abilities (Spec)", "Talent Variations", talents["spec_active"], spells, "talent", n_parses, anchor_id="spec_active", expanded="true", metric=metric, talent_string = talents["spec_active_string"]) }}
+{{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Embellishment Builds", "Item(s)", embellished_builds, items, "item", n_parses, anchor_id="embellishment_builds", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Gems", "Gem", gems, items, "item", n_parses, anchor_id="gems", metric=metric) }}
 
@@ -43,10 +42,6 @@
 {{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Tier Items", "Item(s)", tier_items, items, "item", n_parses, anchor_id="tier", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Tier Builds", "Item(s)", tier_builds, items, "item", n_parses, anchor_id="tier_builds", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Embellishment Items", "Item(s)", embellished_items, items, "item", n_parses, anchor_id="embellishment", metric=metric) }}
-
-{{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Embellishment Builds", "Item(s)", embellished_builds, items, "item", n_parses, anchor_id="embellishment_builds", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-4 col-lg-6", "Back Enchants", "Enchant(s)", enchants["cloaks"], enchant_ids, "enchant", n_parses, anchor_id="enchants", metric=metric, enchant_mapping=enchant_mapping) }}
 

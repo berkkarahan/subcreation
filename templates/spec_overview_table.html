@@ -8,7 +8,7 @@
     <table class="table table-secondary spec_table table-responsive-md">
        {% if common_talents is not none %}
       <tr>
-        <td style="font-weight: 200;">{{title}} Shared by all Builds:<br/>
+        <td style="font-weight: 200;">{{title}} Shared by these Top Builds:<br/>
           {% if anchor_id == "full_tree" or anchor_id == "class_tree" %}                  
           {{ td.talent_display(common_talents, lookup, talent_metadata, "class") }}
           {% endif %}
