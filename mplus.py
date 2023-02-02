@@ -31,6 +31,7 @@ from warcraft import specs, tanks, healers, melee, ranged, role_titles, regions,
 from warcraft import spec_short_names
 from t_interval import t_interval
 from talents_to_spells import talents_to_spells
+from talent_ids import talent_id_order, talent_id_class, talent_id_spec, talent_id_heights
 
 from models import Run, DungeonAffixRegion, KnownAffixes, PvPLadderStats, PvPCounts
 
@@ -2202,12 +2203,11 @@ def wcl_extract_essences(ranking):
 def wcl_essences(rankings):
     return wcl_parse(rankings, wcl_extract_essences, is_sorted=False)
 
-# given a list of talent ids
-# talent ids are now numbers, not strings in wcl
+# now operates on talent_ids, not spell_ids
+# require_in needs to be talent_ids, not spell_ids
 def canonical_talent_order(talent_ids, require_in=None):
-    # talent_order has the talent order
-
-    d = {k:v for v,k in enumerate(talent_order)}
+    # talent_order has the talent order (using talent_ids!)
+    d = {k:v for v,k in enumerate(talent_id_order)}
 
     talent_ids.sort(key=d.get)
 
@@ -2220,9 +2220,7 @@ def canonical_talent_order(talent_ids, require_in=None):
    
     return filtered_talent_ids
 
-# todo: probably will want to rewrite this to handle
-# whereever talents end up, wcl is iterating a lot atm tho
-# so just running with this for now
+# now operates on talent_ids, not spell_ids
 def wcl_extract_talents(ranking, require_in=None):
     names_in_set = []
     name_id_icons = []
@@ -2230,16 +2228,14 @@ def wcl_extract_talents(ranking, require_in=None):
     for i, j in enumerate(ranking["talents"]):
         if j["talentID"] == 0: # talents are now numbers, not strings
             continue
-
-        talent_id = j["talentID"]
-        # find the corresponding spellID for this talent ID
-        if talent_id in talents_to_spells:
-            spell_id = talents_to_spells[talent_id]
-        else:
-            spell_id = j["id"] # fall back to the id
-            logging.info("missing talent_id in talents_to_spells: %d %s" % (talent_id, str(j)))
         
-        names_in_set += [spell_id] # need to make it a string since every other id is a string
+        talent_id = j["talentID"]
+
+        if require_in != None:
+            if talent_id not in require_in:
+                continue
+        
+        names_in_set += [talent_id] # need to make it a string since every other id is a string
         name_id_icons += [j]
 
     return canonical_talent_order(names_in_set, require_in), name_id_icons
@@ -2339,15 +2335,13 @@ def wcl_top10(d, pop=None, top_n = 10):
 
 # go through extracted talents and find commonalities
 # common talents must be in require_in if is not None
-def identify_common_talents(talents, require_in = None):
+def identify_common_talents(talents):
     talent_lists = []
     for k in talents:
         talent_lists += [k[1]]
     common = set(talent_lists[0])
-    for s in talent_lists[1:0]:
+    for s in talent_lists[1:]:
         common.intersection_update(s)
-    if require_in != None:
-        common.intersection_update(require_in)
     return set(common)
 
 # go through extracted talents and remove the common set once it's been found
@@ -2634,7 +2628,7 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
 #    talents_container["priority"] = talents_priority
 #    talents_container["priority_string"] = wcl_get_talent_strings(talents_priority, rankings, spec)    
 
-    talents_class, _ = wcl_talents(rankings, require_in=(class_zero+class_eight+class_twenty))
+    talents_class, _ = wcl_talents(rankings, require_in=talent_id_class)
     talents_container["class"] = talents_class
     talents_container["class_string"] = wcl_get_talent_strings(talents_class, rankings, spec)
 
@@ -2642,7 +2636,7 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     talents_class = remove_common_talents(talents_class, talents_class_common)
     talents_container["common"]["class"] = canonical_talent_order(list(talents_class_common))
     
-    talents_spec, _ = wcl_talents(rankings, require_in=(spec_zero+spec_eight+spec_twenty))
+    talents_spec, _ = wcl_talents(rankings, require_in=talent_id_spec)
     talents_container["spec"] = talents_spec
     talents_container["spec_string"] = wcl_get_talent_strings(talents_spec, rankings, spec)
 
@@ -2992,7 +2986,11 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
     affixes = "N/A"
     n_parses, n_uniques, key_max, key_min, talents, gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds = gen_wcl_spec_report(spec, dungeon)
 
-
+    talent_metadata = {}
+    talent_metadata["talents_to_spells"] = talents_to_spells
+    talent_metadata["class"] = talent_id_class
+    talent_metadata["spec"] = talent_id_spec
+    talent_metadata["heights"] = talent_id_heights    
 
     title = spec + " - Mythic+"
     if dungeon != "all":
@@ -3019,6 +3017,7 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
                                enchants = enchants,
                                enchant_ids = enchant_ids,
                                enchant_mapping = enchant_mapping,
+                               talent_metadata = talent_metadata,
                                gems = gems,
                                gem_builds = gem_builds,
                                tier_items = tier_items,
