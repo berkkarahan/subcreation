@@ -2351,7 +2351,7 @@ def identify_common_talents(talents):
 # return talents with the common talents removed
 def remove_common_talents(talents, common):
     for k in talents:
-        k[1] = tuple(set(k[1]) - common)
+        k[1] = tuple(canonical_talent_order(list(set(k[1]) - common)))
     return talents
 
 
@@ -4277,7 +4277,8 @@ class TestWCLGetRankings(webapp2.RequestHandler):
 #        update_wcl_update_subset(["Protection Warrior"])        
 #        update_wcl_update_subset(["Devastation Evoker"])
 #        update_wcl_update_subset(["Balance Druid"])
-        update_wcl_update_subset(["Marksmanship Hunter"])
+#        update_wcl_update_subset(["Marksmanship Hunter"])
+        update_wcl_update_subset(["Unholy Death Knight"])        
 #        update_wcl_update_subset(["Shadow Priest"])
 #        update_wcl_update_subset(["Demonology Warlock"])
 #        update_wcl_update_subset(["Outlaw Rogue"])        
