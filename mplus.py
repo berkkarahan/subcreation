@@ -1023,12 +1023,13 @@ def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix="",
     
     return dtl   
 
-def gen_pvp_solo_shuffle_role_package(mode):
+def gen_pvp_specs_role_package(mode):
     global role_titles, specs
     role_package = {}
     stats = {}
 
-    key_slug = "us-solo-shuffle"
+    logging.info(mode)
+    key_slug = "us-%s" % mode
     pc = ndb.Key('PvPLadderStats', key_slug).get()
     data = json.loads(pc.data)
 
@@ -1059,48 +1060,7 @@ def gen_pvp_solo_shuffle_role_package(mode):
         last_updated = this_updated
 
     return role_package, stats
-    
-    
 
-def gen_pvp_specs_role_package(mode):
-    if mode == "solo-shuffle":
-        return gen_pvp_solo_shuffle_role_package(mode)
-    
-    global role_titles, specs
-
-    role_package = {}
-    stats = {}
-
-    # go through all the specs, grouped by role
-    for i, display in enumerate([tanks, healers, melee, ranged]):
-        role_score = []
-        stats[role_titles[i]] = {}
-
-        n_runs = 0
-
-        for k in display: # for spec k
-
-            key_slug = "%s-%s" % (slugify.slugify(unicode(k)), mode)
-            pc = ndb.Key('PvPCounts', key_slug).get()
-            data = json.loads(pc.data)
-            
-            role_score += [[str("%.2f" % data["lb_ci"]), # lower bound of ci
-                            str(k), # name of the spec
-                            str("%.2f" % data["mean"]), # mean
-                            str("%d" % data["n"]), # n
-                            slugify.slugify(unicode(str(k))), # slug name
-                            str("%d" % data["max"]), # maximum rating
-                            "", # no links for pvp
-            ]]
-            n_runs += data["n"] # total number of specs at rating
-
-        stats[role_titles[i]]["n"] = n_runs
-
-        # sort role_score by lb_ci
-        role_score = sorted(role_score, key=lambda x: x[0], reverse=True)
-        role_package[role_titles[i]] = role_score
-
-    return role_package, stats
     
 # solo shuffle tier list
 # it has tier list embedded in the internal api call
@@ -4164,28 +4124,22 @@ def update_wcl_all():
 # update pvp ladder stats
 
 # region = us or eu
-# mode = 2v2 or 3v3 or rbg
+# mode = 2v2 or 3v3 or rbg or solo-shuffle
 
-# if mode == "solo-shuffle" we use internal_api
+# alway use internal api
 def _pvp_rankings_internal(region, mode):
     global internal_api
-    url = "%s/solo-shuffle.json" % (internal_api)
+    url = "%s/%s.json" % (internal_api, mode)
+    logging.info("fetching %s" % url)
     result = urlfetch.fetch(url, deadline=60)
     data = json.loads(result.content)
     return data
 
 def _pvp_rankings(region, mode):
-    if mode == "solo-shuffle":
-        if region == "us":
-            return _pvp_rankings_internal(region, mode)
-        else:
-            return None
-    global ludus_access_key
-    url = "https://luduslabs.org/api/leaderboard/%s/%s?access_key=%s" % (region, mode, ludus_access_key)
-    result = urlfetch.fetch(url, deadline=60)
-    data = json.loads(result.content)
-    return data
-
+    if region == "us": # all regions in one since we pre-process all now
+        return _pvp_rankings_internal(region, mode)
+    else:
+        return None
 
 def update_pvp_rankings(region, mode):
     data = _pvp_rankings(region, mode)
@@ -4198,8 +4152,10 @@ def update_pvp_rankings(region, mode):
 
 def update_all_pvp_rankings():
     global pvp_regions, pvp_modes
-    for region in pvp_regions:
-        for mode in pvp_modes:
+    use_these_modes = pvp_modes
+    use_these_modes += ["all"]
+    for region in ["us"]: # always us since we're using an internal api that aggregates for us
+        for mode in use_these_modes:
             options = TaskRetryOptions(task_retry_limit = 1)            
             deferred.defer(update_pvp_rankings, region, mode,
                            _retry_options=options)

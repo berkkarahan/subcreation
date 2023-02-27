@@ -50,8 +50,8 @@
 
 <h2 id="pvp">How do you calculate the tier lists for Rated PvP?</h2>
 
-      <p>The site looks at the top leaderboard entries for each mode of PvP, via an API graciously provided by <a href="https://luduslabs.org/">Ludus Labs</a>. It only considers rating, so effectively tanks, healers, melee, and ranged are on the same tier list.</p>
-      <p>For these top leaderboard entries, the site takes the lower bound of a 95% confidence interval of the top 100 leaderboard entries for each spec, and then, for the overall pvp tier list, averages it across all forms of rated PvP.</p>
+      <p>The site looks at the top leaderboard entries for each mode of PvP, using the Blizzard API. It only considers rating, so effectively tanks, healers, melee, and ranged are on the same tier list.</p>
+      <p>For these top leaderboard entries, the site takes the lower bound of a 95% confidence interval of the top leaderboard entries for each spec, and then, for the overall pvp tier list, averages it across all forms of rated PvP (excluding Solo Shuffle).</p>
 
       <p>For the "All Rated PvP Modes" view, the site uses a <b>normalized rating</b> so that the difference in ratings between modes doesn't skew results in favor of the mode with the highest ratings. For lower bounds for each mode are normalized and averaged to produce the lower bound for the "All Rated PvP Modes" view. The intent is for this view to provide an at a glance reference as to which specs are strong across all rated PvP modes.</p>
 
