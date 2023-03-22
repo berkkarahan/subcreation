@@ -26,6 +26,7 @@ import datetime
 import pytz
 
 from dragonflight import dungeons, dungeon_slugs, dungeon_short_names, slugs_to_dungeons
+from dragonflight import primordial_stones
 
 from warcraft import specs, tanks, healers, melee, ranged, role_titles, regions, pvp_regions, pvp_modes
 from warcraft import spec_short_names
@@ -1939,13 +1940,20 @@ def wcl_gear(rankings, slots):
                      lambda e: wcl_extract_gear(e, slots),
                      is_sorted = is_sorted)
 
-def wcl_extract_gems(ranking):
+def wcl_extract_gems(ranking, primordial=False):
     names_in_set = []
     name_id_icons = []
     
     for i, j in enumerate(ranking["gear"]):
         if "gems" in j:
             for each_gem in j["gems"]:
+                if primordial: # filter just to primordial
+                    if each_gem["id"] not in primordial_stones:
+                       continue
+                else: # filter out primordials
+                    if each_gem["id"] in primordial_stones:
+                       logging.info("filtering out primordials")                        
+                       continue                    
                 names_in_set += [each_gem["id"]]
                 name_id_icons += [each_gem]
 
@@ -1986,15 +1994,15 @@ def wcl_gem_builds(rankings):
                      wcl_extract_gems,
                      only_use_ids=True)
 
-def wcl_shards(rankings):
+def wcl_primordials(rankings):
     return wcl_parse(rankings,
-                     lambda e: wcl_extract_gems(e),
+                     lambda e: wcl_extract_gems(e, primordial=True),
                      only_use_ids=True,
                      flatten=True)
 
-def wcl_shard_builds(rankings):
+def wcl_primordial_builds(rankings):
     return wcl_parse(rankings,
-                     lambda e: wcl_extract_gems(e),                     
+                     lambda e: wcl_extract_gems(e, primordial=True),                     
                      only_use_ids=True)
 
 def wcl_tier_items(rankings):
@@ -2419,12 +2427,14 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     items.update(update_items)
 
     # 9.2: bye bye shards
-    shards = {}
-#    shards, update_items = wcl_shards(rankings)
-#    items.update(update_items)
+    # 10.0.7: hello primordials
+    primordials = {}
+    primordial_builds = {}
+    primordials, update_items = wcl_primordials(rankings)
+    items.update(update_items)
             
-    # shard_builds, update_items = wcl_shard_builds(rankings)
-    # items.update(update_items)
+    primordial_builds, update_items = wcl_primordial_builds(rankings)
+    items.update(update_items)
 
     tier_items, update_items = wcl_tier_items(rankings)
     items.update(update_items)
@@ -2524,7 +2534,7 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
 
     # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
     # raid will return available_difficulty in max_maxima
-    return len(rankings), n_uniques, max_maxima, min_maxima, talents_container, gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds
+    return len(rankings), n_uniques, max_maxima, min_maxima, talents_container, gear, enchants, gems, gem_builds, primordials, primordial_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds
 
 ## end wcl parsing code
 
@@ -2854,7 +2864,7 @@ def get_archetype(spec):
 def render_wcl_spec(spec, dungeon="all", prefix=""):
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, n_uniques, key_max, key_min, talents, gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds = gen_wcl_spec_report(spec, dungeon)
+    n_parses, n_uniques, key_max, key_min, talents, gear, enchants, gems, gem_builds, primordials, primordial_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds = gen_wcl_spec_report(spec, dungeon)
 
     talent_metadata = {}
     talent_metadata["talents_to_spells"] = talents_to_spells
@@ -2890,6 +2900,8 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
                                talent_metadata = talent_metadata,
                                gems = gems,
                                gem_builds = gem_builds,
+                               primordials = primordials,
+                               primordial_builds = primordial_builds,                               
                                tier_items = tier_items,
                                tier_builds = tier_builds,   
                                embellished_items = embellished_items,
@@ -3112,7 +3124,7 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
     logging.info("%s %s %s" % (spec, encounter, difficulty))
     spec_slug = slugify.slugify(unicode(spec))
     affixes = "N/A"
-    n_parses, n_uniques, available_difficulty, _, talents,gear, enchants, gems, gem_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty, active_raid=active_raid)
+    n_parses, n_uniques, available_difficulty, _, talents,gear, enchants, gems, gem_builds, primordials, primordial_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty, active_raid=active_raid)
 
     talent_metadata = {}
     talent_metadata["talents_to_spells"] = talents_to_spells
@@ -3157,6 +3169,8 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
                                metric = metric,
                                gems = gems,
                                gem_builds = gem_builds,
+                               primordials = primordials,
+                               primordial_builds = primordial_builds,
                                tier_items = tier_items,
                                tier_builds = tier_builds,
                                embellished_items = embellished_items,
@@ -4172,9 +4186,9 @@ class TestWCLGetRankingsRaid(webapp2.RequestHandler):
 #        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sepulcher")
 #        update_wcl_raid_update_subset(["Devastation Evoker"], active_raid="vault")
 #        update_wcl_raid_update_subset(["Balance Druid"], active_raid="vault")
-        update_wcl_raid_update_subset(["Feral Druid"], active_raid="vault")
+#        update_wcl_raid_update_subset(["Feral Druid"], active_raid="vault")
 #        update_wcl_raid_update_subset(["Shadow Priest"], active_raid="vault")
-#        update_wcl_raid_update_subset(["Demonology Warlock"], active_raid="vault")
+        update_wcl_raid_update_subset(["Demonology Warlock"], active_raid="vault")
 #        update_wcl_raid_update_subset(["Outlaw Rogue"], active_raid="vault")                                
 
 class WCLGenHTML(webapp2.RequestHandler):
