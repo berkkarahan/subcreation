@@ -3695,7 +3695,7 @@ def test_raid_view(destination):
             spec = s
 
     active_raid = "aberrus"
-    raid_canonical_order = vault_canonical_order
+    raid_canonical_order = aberrus_canonical_order
                     
     for e in raid_canonical_order:
         if slugify.slugify(unicode(e)) in destination:
