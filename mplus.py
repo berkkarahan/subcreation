@@ -82,7 +82,7 @@ from config import latest_patch_tw
 last_updated = None
 
 ## raid rotation
-known_raids = ["vault"]
+known_raids = ["vault", "aberrus"]
 from wcl_dragonflight import vault_encounters, aberrus_encounters
 from vaultoftheincarnates import vault_canonical_order, vault_short_names, vault_ignore
 from aberrus import aberrus_canonical_order, aberrus_short_names, aberrus_ignore
@@ -101,12 +101,12 @@ def get_raid_ignore(active_raid):
 
 # rotate updating raids every day
 def determine_raids_to_update(current_time=None):        
-    raids_to_update = ["vault"]
+    raids_to_update = ["aberrus"]
     return raids_to_update
 
 # rotate updating raids every day
 def determine_raids_to_generate(current_time=None):
-    raids_to_update = ["vault"]
+    raids_to_update = ["aberrus"]
     return raids_to_update
 
 ## raider.io handling
@@ -3694,7 +3694,7 @@ def test_raid_view(destination):
         if slugify.slugify(unicode(s)) in destination:
             spec = s
 
-    active_raid = "vault"
+    active_raid = "aberrus"
     raid_canonical_order = vault_canonical_order
                     
     for e in raid_canonical_order:
@@ -4189,7 +4189,7 @@ class TestWCLGetRankingsRaid(webapp2.RequestHandler):
 #        update_wcl_raid_update_subset(["Balance Druid"], active_raid="vault")
 #        update_wcl_raid_update_subset(["Feral Druid"], active_raid="vault")
 #        update_wcl_raid_update_subset(["Shadow Priest"], active_raid="vault")
-        update_wcl_raid_update_subset(["Demonology Warlock"], active_raid="vault")
+        update_wcl_raid_update_subset(["Demonology Warlock"], active_raid="aberrus")
 #        update_wcl_raid_update_subset(["Outlaw Rogue"], active_raid="vault")                                
 
 class WCLGenHTML(webapp2.RequestHandler):
