@@ -6,7 +6,7 @@ RIO_MAX_PAGE = 5
 # need to update in templates/stats_table.html
 # need to update in templates/compositions.html
 # need to update in templates/navbar.html
-RIO_SEASON = "season-df-1" 
+RIO_SEASON = "season-df-2" 
 
 # used for m+
 WCL_SEASON = 1
@@ -15,7 +15,7 @@ WCL_SEASON = 1
 WCL_PARTITION = 2
 
 # config
-RAID_NAME = "Vault of the Incarnates"
+RAID_NAME = "Aberrus, the Shadowed Crucible"
 
 # for heroic week, set this to 10
 # after that in the season, set this at 16
