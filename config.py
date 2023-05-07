@@ -9,10 +9,10 @@ RIO_MAX_PAGE = 5
 RIO_SEASON = "season-df-2" 
 
 # used for m+
-WCL_SEASON = 1
+WCL_SEASON = 2
 
 # used for raid
-WCL_PARTITION = 2
+WCL_PARTITION = 1
 
 # config
 RAID_NAME = "Aberrus, the Shadowed Crucible"

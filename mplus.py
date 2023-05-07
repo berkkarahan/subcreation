@@ -51,7 +51,7 @@ from active_talents import class_active, spec_active
 
 from encode_talent_string import encode_talent_string
 
-from dragonflight import t30_items, embellished_items
+from dragonflight import tier_items, embellished_items
 
 from enchants import enchant_mapping, enchant_collapse
 
@@ -83,20 +83,21 @@ last_updated = None
 
 ## raid rotation
 known_raids = ["vault"]
-from wcl_dragonflight import vault_encounters 
+from wcl_dragonflight import vault_encounters, aberrus_encounters
 from vaultoftheincarnates import vault_canonical_order, vault_short_names, vault_ignore
+from aberrus import aberrus_canonical_order, aberrus_short_names, aberrus_ignore
 
 def get_raid_encounters(active_raid):
-    return vault_encounters
+    return aberrus_encounters
 
 def get_raid_canonical_order(active_raid):
-    return vault_canonical_order  
+    return aberrus_canonical_order  
 
 def get_raid_short_names(active_raid):
-    return vault_short_names
+    return aberrus_short_names
 
 def get_raid_ignore(active_raid):
-    return vault_ignore
+    return aberrus_ignore
 
 # rotate updating raids every day
 def determine_raids_to_update(current_time=None):        
@@ -1965,7 +1966,7 @@ def wcl_extract_tier(ranking):
     
     for i, j in enumerate(ranking["gear"]):
         if "id" in j:
-            if j["id"] in t30_items:
+            if j["id"] in tier_items:
                 names_in_set += [j["id"]]
                 name_id_icons += [j]
 
