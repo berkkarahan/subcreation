@@ -82,9 +82,8 @@ from config import latest_patch_tw
 last_updated = None
 
 ## raid rotation
-known_raids = ["vault", "aberrus"]
-from wcl_dragonflight import vault_encounters, aberrus_encounters
-from vaultoftheincarnates import vault_canonical_order, vault_short_names, vault_ignore
+known_raids = ["aberrus"]
+from wcl_dragonflight import aberrus_encounters
 from aberrus import aberrus_canonical_order, aberrus_short_names, aberrus_ignore
 
 def get_raid_encounters(active_raid):
@@ -160,8 +159,9 @@ def parse_response(data, dungeon, affixes, region, page):
         affixes = ""
         affixes += data[0]["run"]["weekly_modifiers"][0]["name"] + ", "
         affixes += data[0]["run"]["weekly_modifiers"][1]["name"] + ", "
-        affixes += data[0]["run"]["weekly_modifiers"][2]["name"] + ", "
-        affixes += data[0]["run"]["weekly_modifiers"][3]["name"]
+        affixes += data[0]["run"]["weekly_modifiers"][2]["name"]
+        # R.I.P. Seasonal Affix
+#        affixes += data[0]["run"]["weekly_modifiers"][3]["name"]
 
     affixes_slug = slugify.slugify(unicode(affixes))
     update_known_affixes(affixes, affixes_slug)
@@ -470,7 +470,8 @@ def icon_affix(dname, size=28):
     output_string = output[0]
     output_string += output[1]
     output_string += output[2]
-    output_string += output[3]
+#   R.I.P. Seasonal Affix  
+#    output_string += output[3]
        
     return output_string
 

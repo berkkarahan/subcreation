@@ -1,7 +1,7 @@
 
 
 # raider.io api configuration
-RIO_MAX_PAGE = 5
+RIO_MAX_PAGE = 1
 
 # need to update in templates/stats_table.html
 # need to update in templates/compositions.html
