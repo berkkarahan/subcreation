@@ -9,7 +9,9 @@ RIO_MAX_PAGE = 25
 RIO_SEASON = "season-df-2" 
 
 # used for m+
-WCL_SEASON = 2
+# this is a season partition, so usually this is 1
+# unless the season has been partitioned (rarely happens)
+WCL_SEASON = 1
 
 # used for raid
 WCL_PARTITION = 1
@@ -30,9 +32,11 @@ import datetime
 
 # patch times in UTC, god help us because of mktime
 # used for filtering out logs using old talents
+# do not change the times, just year, month, date
+
 # tuesday
-latest_patch_us = datetime.datetime(2023, 3, 21, 16, 0) #0 date
-latest_patch_eu = datetime.datetime(2023, 3, 22, 4, 0)  #+1 date
+latest_patch_us = datetime.datetime(2023, 5, 9, 16, 0) #0 date
+latest_patch_eu = datetime.datetime(2023, 5, 10, 4, 0)  #+1 date
 # wednesday
-latest_patch_tw = datetime.datetime(2023, 3, 22, 23, 0) #+1 date
-latest_patch_kr = datetime.datetime(2023, 3, 22, 23, 0) #+1 date
+latest_patch_tw = datetime.datetime(2023, 5, 10, 23, 0) #+1 date
+latest_patch_kr = datetime.datetime(2023, 5, 10, 23, 0) #+1 date
