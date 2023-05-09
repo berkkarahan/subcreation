@@ -1,7 +1,7 @@
-aberrus_canonical_order = ["Kazarra, the Hellforged",
+aberrus_canonical_order = ["Kazzara, the Hellforged",
                              "The Amalgamation Chamber",
                              "The Forgotten Experiments",
-                             "Assault ofthe Zaqali",                        
+                             "Assault of the Zaqali",                        
                              "Rashok, the Elder",
                              "The Vigilant Steward, Zskarn",
                              "Magmorax",
@@ -11,8 +11,8 @@ aberrus_canonical_order = ["Kazarra, the Hellforged",
 
 aberrus_short_names = {}
 aberrus_short_names["Kazzara, the Hellforged"] = "Kazzara"
-aberrus_short_names["The Amalgamation Chamber"] = "Amalgamation Chamber"
-aberrus_short_names["The Forgotten Experiments"] = "Forgotten Experiments"
+aberrus_short_names["The Amalgamation Chamber"] = "Amalgamation"
+aberrus_short_names["The Forgotten Experiments"] = "Experiments"
 aberrus_short_names["Assault of the Zaqali"] = "Assault"
 aberrus_short_names["Rashok, the Elder"] = "Rashok"
 aberrus_short_names["The Vigilant Steward, Zskarn"] = "Zskarn"
