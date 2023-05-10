@@ -13,15 +13,17 @@
 <p>S-Tier is the best. For dungeons, that means that dungeon is <b>easier</b> compared to others. For specs, that means that spec is <strong>stronger</strong>. S-Tier is better than A-Tier which is better than B, which is better than C, and so on.</p>
 <h2 id="mplus">What&#39;s the lb_ci mean under detailed statistical analysis?</h2>
 <p>lb_ci stands for the lower bound of a 95% <a href="https://en.wikipedia.org/wiki/Confidence_interval">confidence interval</a>. Here&#39;s the site calculates it:</p>
-<p>For specs: The site looks at the top 100 keys per dungeon per affix across all region and examine their <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io scores</a>. From these, for each dungeon, for each spec, the site takes the lower bound of a 95% confidence interval of the top 100 runs for each spec. The site then averages these lower bounds, one per dungeon, to get an overall average lower bound for each spec, which the site then uses to create the tier list.</p>
-<p>For dungeons: We take the top 100 keys per dungeon for each region for a given affix. For each dungeon, the site calculates the lower bound of a 95% confidence interval and uses that to create the tier list.</p>
-<p>For affixes: We take the top 100 keys for each dungeon for each region per affix. For each affix set, the site calculates the lower bound of a 95% confidence interval and uses that to create the tier list.</p>
+<p>For specs: The site looks at the top <s>100</s> 500 keys per dungeon per affix across all region and examine their <a href="https://support.raider.io/kb/frequently-asked-questions/what-is-the-base-score-value-for-each-level-keystone">raider.io scores</a>. From these, for each dungeon, for each spec, the site takes the lower bound of a 95% confidence interval of the top 500 runs for each spec. The site then averages these lower bounds, one per dungeon, to get an overall average lower bound for each spec, which the site then uses to create the tier list.</p>
+<p>For dungeons: We take the top 500 keys per dungeon for each region for a given affix. For each dungeon, the site calculates the lower bound of a 95% confidence interval and uses that to create the tier list.</p>
+<p>For affixes: We take the top 500 keys for each dungeon for each region per affix. For each affix set, the site calculates the lower bound of a 95% confidence interval and uses that to create the tier list.</p>
 <p>This approach was inspired by a pair of articles by Evan Miller:</p>
 <ul>
 <li><a href="https://www.evanmiller.org/how-not-to-sort-by-average-rating.html">How Not To Sort By Average Rating</a></li>
 <li><a href="https://www.evanmiller.org/ranking-items-with-star-ratings.html">Ranking Items With Star Ratings</a></li>
 </ul>
-<p>It isn&#39;t perfect (no model is), but I&#39;ve found it gives a good sense of what the meta looks like at the top end and generally &quot;feels correct&quot; to folks. Very open to suggestions for how to make it better, if you have ideas.</p>
+      <p>It isn&#39;t perfect (no model is), but I&#39;ve found it gives a good sense of what the meta looks like at the top end and generally &quot;feels correct&quot; to folks. Very open to suggestions for how to make it better, if you have ideas.</p>
+
+      <p>And a shout out to DeadlyDog, who wrote up a &#9788;deep&#9788; analysis at <a href="https://zugzugcreation.fly.dev/">ZugZugCreation</a> pointing out several shortcomings and possible improvements -- will be aiming to incorporate many of those suggestions in future as dev time allows. And Bayesian statistical modeling is seriously damn cool.</p>
 <h2 id="how-do-you-calculate-the-tier-lists-for-mythic-">How do you calculate the tier lists for Mythic+?</h2>
 <p>The site takes the lower bounds of the 95% confidence interval calculated as per the question above and then clusters them into 6 buckets using the <a href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5148156/">Ckmeans</a> algorithm.</p>
 <p>Note that because we&#39;re using the lower bound of the 95% confidence interval of the <strong>raider.io score</strong>, Tanks, Healers, Melee, and Ranged are all on the same scale. They&#39;re just shown separately for ease of comparison across roles.</p>
@@ -33,8 +35,8 @@
 <h2 id="do-you-include-abandoned-runs-">Do you include abandoned runs?</h2>
 <p>No. Keys that are not completed do not show up in the API and thus the site doesn&#39;t have visibility into their existence.</p>
 <h2 id="isn-t-this-approach-biased-toward-the-top-end-">Isn&#39;t this approach biased toward the top end?</h2>
-<p>Yes. Because we&#39;re only looking at the top 100 keys per dungeon per affix for each region (since that&#39;s what the raider.io provides), we are necessarily biased toward the top end. We also don&#39;t look at keys below +16, and only consider timed keys.</p>
-      <p>For interesting statistics on timed vs. untimed keys, please check out <a href="https://bestkeystone.com">bestkeystone.com</a>.</p>
+<p>Yes. Because we&#39;re only looking at the top 500 keys per dungeon per affix for each region (since that&#39;s what the raider.io provides), we are necessarily biased toward the top end. We also don&#39;t look at keys below +16, and only consider timed keys.</p>
+
       <h2>How do you create the Top Builds?</h2>
 
       <p><b>For Mythic+</b>: The site looks at the Top 500 logs for each spec, for each dungeon (completed, whether timed or note) in the last four weeks, since the last major patch. This uses <a href="https://warcraftlogs.com/" target="_blank">WarcraftLogs</a>'s API.
@@ -63,8 +65,9 @@
 
 
 <h2 id="archives">Where can I find data from old seasons?</h2>
-
-Here are links to archives for previous seasons and raids. Please note these are no longer updated and may appear visually different from the current version of the site, as they're snapshots as the site existed back then.
+<p>
+  Here are links to archives for previous seasons and raids. Please note these are no longer updated and may appear visually different from the current version of the site, as they're snapshots as the site existed back then.
+  </p>
 
 <h3>Mythic+ Archives</h3>
 <ul>
@@ -76,7 +79,7 @@ Here are links to archives for previous seasons and raids. Please note these are
   <li><a href="https://mplus.subcreation.net/s4/">Battle for Azeroth Mythic+ Season 4 (Awakened)</a>
   <li><a href="https://mplus.subcreation.net/s3/">Battle for Azeroth Mythic+ Season 3 (Beguiling)</a>
   <li><a href="https://mplus.subcreation.net/s2/">Battle for Azeroth Mythic+ Season 2 (Reaping)</a>
-  <li><a href="https://docs.google.com/spreadsheets/d/1kvWgszCR6LIbhywIvBFOttTZKIOI1A8_LO7jl2fmB60/edit">Manually-created spreadsheet ranking each spec / class across Mythic+ seasons</a>
+  <li><a href="https://docs.google.com/spreadsheets/d/1kvWgszCR6LIbhywIvBFOttTZKIOI1A8_LO7jl2fmB60/edit">Manually-created spreadsheet ranking each spec / class across Mythic+ seasons (up through SL S3)</a>
 </ul>
 
 <h3>Raid Archives</h3>
@@ -106,7 +109,7 @@ Please check out our <a href="https://patreon.com/subcreation">Patreon</a>. Than
 
 <h2 id="i-have-more-questions-how-can-i-reach-you-">I have more questions. How can I reach you?</h2>
 <p>You can reach me at <a href="mailto:alcaras@subcreation.net">alcaras@subcreation.net</a>, on <a href="https://twitter.com/subcreation/">Twitter</a>, or in the site&#39;s <a href="https://discord.com/invite/X8dyq67">discord</a>.</p>
-<p>The site is also open source, so feel free to take a look at the <a href="https://github.com/alcaras/mplus.subcreation.net">source</a>. Pull requests welcome.</p>
+<p>The site is also open source, so feel free to take a look at the <a href="https://github.com/alcaras/mplus.subcreation.net">source</a>. Pull requests welcome. No pull request is too small. Special thanks to all our <a href="https://github.com/alcaras/mplus.subcreation.net/graphs/contributors">github contributors</a>.</p>
 
 
 
