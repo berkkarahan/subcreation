@@ -3285,9 +3285,7 @@ def render_and_write(af):
 
     affix_slug = slugify.slugify(unicode(af))
 
-    options = TaskRetryOptions(task_retry_limit = 1)
-    deferred.defer(write_to_storage, filename_slug + ".html", rendered,
-                   _retry_options=options)
+    write_to_storage(filename_slug + ".html", rendered)
 
 def render_and_write_compositions(af):
     rendered = render_compositions(af)
@@ -3297,8 +3295,7 @@ def render_and_write_compositions(af):
     affix_slug = slugify.slugify(unicode(af))
 
     options = TaskRetryOptions(task_retry_limit = 1)
-    deferred.defer(write_to_storage, "compositions-" + filename_slug + ".html", rendered,
-                   _retry_options=options)
+    write_to_storage("compositions-" + filename_slug + ".html", rendered)
 
 
 def render_and_write_stats(af):
@@ -3307,8 +3304,7 @@ def render_and_write_stats(af):
     filename_slug = slugify.slugify(unicode(af))
 
     options = TaskRetryOptions(task_retry_limit = 1)
-    deferred.defer(write_to_storage, "stats-" + filename_slug + ".html", rendered,
-                   _retry_options=options)
+    write_to_storage("stats-" + filename_slug + ".html", rendered)
 
 def render_and_write_raid_stats(encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     rendered = render_raid_stats(encounter, difficulty, active_raid=active_raid)
@@ -3322,9 +3318,7 @@ def render_and_write_raid_stats(encounter, difficulty=MAX_RAID_DIFFICULTY, activ
     if difficulty == "Heroic":
         filename_slug += "-heroic"
             
-    options = TaskRetryOptions(task_retry_limit = 1)
-    deferred.defer(raid_write_to_storage, "raid-stats-" + filename_slug + ".html", rendered,
-                   _retry_options=options)        
+    raid_write_to_storage("raid-stats-" + filename_slug + ".html", rendered)
     
 def write_overviews():
     affixes_to_write = []
@@ -3442,21 +3436,18 @@ def create_raid_index(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
         filename = active_raid + "-heroic.html"
 
     options = TaskRetryOptions(task_retry_limit = 1)        
-    deferred.defer(raid_write_to_storage, filename, rendered,
-                       _retry_options=options)
+    raid_write_to_storage(filename, rendered)
 
     # also write as index 
     if difficulty == MAX_RAID_DIFFICULTY:
         filename = "index.html"
         options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(raid_write_to_storage, filename, rendered,
-                       _retry_options=options)
+        raid_write_to_storage(filename, rendered)
 
     # if it's heroic week then heroic is also the index
     if MAX_RAID_DIFFICULTY == "Heroic":
         options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(raid_write_to_storage, "index.html", rendered,
-                       _retry_options=options)
+        raid_write_to_storage("index.html", rendered)
 
     encounters_to_write = []
     raid_canonical_order = get_raid_canonical_order(active_raid)    
@@ -3472,8 +3463,7 @@ def create_raid_index(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
             filename += "-heroic"
         filename += ".html"
         options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(raid_write_to_storage, filename, rendered,
-                       _retry_options=options)        
+        raid_write_to_storage(filename, rendered)
 
     # make sure to include all in stats
     encounters_to_write += ["all"]
@@ -3498,15 +3488,13 @@ def create_raid_spec_overview(s, e="all", difficulty=MAX_RAID_DIFFICULTY, active
     if MAX_RAID_DIFFICULTY == "Heroic":
         filename = filename_slug + ".html"
         options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(raid_write_to_storage, filename, rendered,
-                       _retry_options=options)
+        raid_write_to_storage(filename, rendered)
     
     if difficulty == "Heroic":
         filename_slug += "-heroic"
     filename = filename_slug + ".html"
     options = TaskRetryOptions(task_retry_limit = 1)        
-    deferred.defer(raid_write_to_storage, filename, rendered,
-                       _retry_options=options)
+    raid_write_to_storage(filename, rendered)
 
 def write_spec_overviews():
     for s in specs:
