@@ -1425,133 +1425,17 @@ def current_affixes():
 
 # generate pvp counts and store them
 # we want counts, n, max_rating
+
+# all abrogated by the new pvp backend
 def process_pvp_counts_for_a_mode(actual_mode):
-    # don't process for solo-shuffle, the data comes preprocessed
-    if actual_mode == "solo-shuffle":
-        return
-    global pvp_regions, pvp_modes, specs
-
-    # for each spec
-    raw_counts = {}
-
-    mode_list = [actual_mode]
-
-    for mode in mode_list:
-        for region in pvp_regions:
-            key_slug = "%s-%s" % (region, mode)
-            key = ndb.Key('PvPLadderStats', key_slug)
-            data = json.loads((key.get()).data)
-
-            for entry in data:
-                full_spec_name = "%s %s" % (entry["active_spec"], entry["character_class"])
-                if full_spec_name not in specs:
-                    continue
-                if full_spec_name not in raw_counts:
-                    raw_counts[full_spec_name] = []
-
-                raw_counts[full_spec_name] += [entry["rating"]]
-
-
-    # overall is a dict per spec
-    # each spec has a list
-    # [ lbci, n, average, [list with actual data]]
-    overall = construct_analysis_pvp(raw_counts)
-
-    for s in specs:
-        key_slug = "%s-%s" % (slugify.slugify(unicode(s)), actual_mode)
-        data = {}
-        if s in overall:
-            data["lb_ci"] = overall[s][0]
-            data["n"] = overall[s][1]
-            data["mean"] = overall[s][2]
-            data["max"] = max(overall[s][3])
-            data["raw"] = overall[s][3]
-        else:
-            data["lb_ci"] = 0
-            data["n"] = 0
-            data["mean"] = 0
-            data["max"] = 0
-            data["raw"] = []
-
-        pc = PvPCounts(id = key_slug,
-                       spec = s,
-                       mode = actual_mode,
-                       data = json.dumps(data))
-        pc.put()
+    return
 
 
 def process_pvp_counts_overall():
-    global pvp_regions, pvp_modes, specs
-
-
-    max_rating = {}
-    for mode in pvp_modes:
-        # don't process for solo-shuffle, the data comes preprocessed
-        if mode == "solo-shuffle":
-            continue
-        for s in specs:
-            key_slug = "%s-%s" % (slugify.slugify(unicode(s)), mode)
-            pcc = ndb.Key('PvPCounts', key_slug).get()
-            data = json.loads(pcc.data)
-
-            if mode not in max_rating:
-                max_rating[mode] = data["max"]
-                
-            if data["max"] > max_rating[mode]:
-                max_rating[mode] = data["max"]
-    
-    
-    for s in specs:
-        _lbci = []
-        _n = []
-        _mean = []
-        _max = []
-        
-
-        for mode in pvp_modes:
-            # don't process for solo-shuffle, the data comes preprocessed
-            if mode == "solo-shuffle":
-                continue
-            key_slug = "%s-%s" % (slugify.slugify(unicode(s)), mode)
-            pcc = ndb.Key('PvPCounts', key_slug).get()
-            data = json.loads(pcc.data)
-            
-            
-            _lbci += [float(data["lb_ci"])/max_rating[mode]*3000]
-            _n += [data["n"]]
-            _mean += [data["mean"]]
-            _max += [data["max"]]
-
-
-        data = {}
-        data["lb_ci"] = average(_lbci)
-        data["n"] = sum(_n)
-        data["mean"] = average(_mean)
-        data["max"] = max(_max)
-
-        key_slug = "%s-%s" % (slugify.slugify(unicode(s)), "all")
-        pc = PvPCounts(id = key_slug,
-                       spec = s,
-                       mode = "all",
-                       data = json.dumps(data))
-        pc.put()
-        
+    return
         
 def process_pvp_counts():
-    global pvp_modes
-    modes_to_process =  []
-    modes_to_process += pvp_modes
-    
-    for mode in modes_to_process:
-        options = TaskRetryOptions(task_retry_limit=1)        
-        deferred.defer(process_pvp_counts_for_a_mode, mode,
-                       _retry_options=options)
-
-    options = TaskRetryOptions(task_retry_limit=1)        
-    deferred.defer(process_pvp_counts_overall,
-                   _retry_options=options)        
-        
-
+    return
 
 ## end getting data out into counts
 
