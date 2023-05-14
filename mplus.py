@@ -692,7 +692,7 @@ def gen_dungeon_tier_list_small(dungeons_report):
 # https://www.evanmiller.org/how-not-to-sort-by-average-rating.html
 # https://www.evanmiller.org/ranking-items-with-star-ratings.html 
 
-def construct_analysis(counts, sort_by="lb_ci", limit=100):
+def construct_analysis(counts, sort_by="lb_ci", limit=500):
     overall = []
     all_data = []
     for name, runs in counts.iteritems():
@@ -727,9 +727,10 @@ def construct_analysis(counts, sort_by="lb_ci", limit=100):
             continue
 
 
-        # filter to top 100
+        # filter to top 500
         sorted_data = sorted(data, reverse=True)
-        sorted_data = sorted_data[:limit]
+        # don't filter
+#        sorted_data = sorted_data[:limit]
                 
         stddev = std(sorted_data, ddof=1)
         sorted_mean = average(sorted_data)
@@ -746,7 +747,9 @@ def construct_analysis(counts, sort_by="lb_ci", limit=100):
 
     overall = sorted(overall, key=lambda x: x[4][0], reverse=True)        
     if sort_by == "max":
-        overall = sorted(overall, key=lambda x: x[5][0], reverse=True)            
+        overall = sorted(overall, key=lambda x: x[5][0], reverse=True)
+    if sort_by == "n":
+        overall = sorted(overall, key=lambda x: x[3], reverse=True)          
     
     return overall
 
@@ -1490,7 +1493,7 @@ def pretty_set(s):
     return output_string
 
 def gen_set_report(set_counts):
-    set_overall = construct_analysis(set_counts, sort_by="max")
+    set_overall = construct_analysis(set_counts, sort_by="n")
 
     set_output = []
     for x in set_overall:
