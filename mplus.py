@@ -729,8 +729,7 @@ def construct_analysis(counts, sort_by="lb_ci", limit=500):
 
         # filter to top 500
         sorted_data = sorted(data, reverse=True)
-        # don't filter
-#        sorted_data = sorted_data[:limit]
+        sorted_data = sorted_data[:limit]
                 
         stddev = std(sorted_data, ddof=1)
         sorted_mean = average(sorted_data)
@@ -797,52 +796,6 @@ def construct_analysis_raid(spec_counts):
 #        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
         # lbci, n, mean, data
         overall[encounter]= [ci[0], n, mean, data]
-
-    return overall
-
-
-# for pvp
-# we filter to the _top 100_ for lb_ci
-def construct_analysis_pvp(spec_counts):
-    counts = spec_counts
-    
-    overall = {}
-    all_data = []
-    
-    for specs, metrics in counts.iteritems():
-        for m in metrics:
-            all_data += [m]
-    
-    master_stddev = 1
-    if len(all_data) >= 2:
-        master_stddev = std(all_data, ddof=1)
-       
-    for spec, metrics in counts.iteritems():
-        data = []
-        for m in metrics:
-            data += [m]
-
-        n = len(data)
-        if n == 0:
-            overall[spec] = [0, 0, 0, []]
-            continue
-        mean = average(data)
-        if n <= 1:
-            overall[spec] = [mean, n, mean, data]
-            continue
-
-
-        # filter to top 100
-        sorted_data = sorted(data, reverse=True)
-        sorted_data = sorted_data[:100]
-                
-        stddev = std(sorted_data, ddof=1)
-        sorted_mean = average(sorted_data)
-        sorted_n = len(sorted_data)
-        t_bounds = t_interval(n)
-        ci = [sorted_mean + critval * master_stddev / sqrt(sorted_n) for critval in t_bounds]
-        # lbci, n, mean, data
-        overall[spec] = [ci[0], n, mean, data]
 
     return overall
 
@@ -1558,7 +1511,7 @@ def gen_dungeon_report(dungeon_counts):
     return dungeon_output, stats
 
 def gen_affix_report(affix_counts):
-    affixes_overall = construct_analysis(affix_counts, limit=3200) # look at all runs for affixes
+    affixes_overall = construct_analysis(affix_counts, limit=3200*5) # look at all runs for affixes
     
     stats = {}
 
