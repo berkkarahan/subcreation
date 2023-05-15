@@ -141,7 +141,13 @@ enchant_collapse = \
      '6652': '6652',
      '6653': '6655',
      '6654': '6655',
-     '6655': '6655'}
+     '6655': '6655',
+    '6822': '6824',
+    '6823': '6824',
+    '6824': '6824',
+    '6825': '6827',
+    '6826': '6827',
+    '6827': '6827'}
 
 # Leg armor
 enchant_mapping["6488"] = {"id": 193557, "name": "Fierce Armor Kit", "quality": 1}
@@ -298,7 +304,12 @@ enchant_mapping["6652"] = {"id": 200059, "name": "Wafting Writ", "quality": 3}
 enchant_mapping["6653"] = {"id": 199974, "name": "Wafting Devotion", "quality": 1}
 enchant_mapping["6654"] = {"id": 200016, "name": "Wafting Devotion", "quality": 2}
 enchant_mapping["6655"] = {"id": 200058, "name": "Wafting Devotion", "quality": 3}
-
+enchant_mapping["6822"] = {"id": 204613, "name": "Spore Tender", "quality": 1}
+enchant_mapping["6823"] = {"id": 204614, "name": "Spore Tender", "quality": 2}
+enchant_mapping["6824"] = {"id": 204615, "name": "Spore Tender", "quality": 3}
+enchant_mapping["6825"] = {"id": 204621, "name": "Shadowflame Wreathe", "quality": 1}
+enchant_mapping["6826"] = {"id": 204622, "name": "Shadowflame Wreathe", "quality": 2}
+enchant_mapping["6827"] = {"id": 204623, "name": "Shadowflame Wreathe", "quality": 3}
 # -----------------------------------------
 # Death Knight Runeforging -- (note this is spell id, since there's no scroll)
 enchant_mapping["3368"] = {"spell_id" : 53344, "name" : "Fallen Crusader"}
