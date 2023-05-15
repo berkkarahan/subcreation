@@ -147,7 +147,10 @@ enchant_collapse = \
     '6824': '6824',
     '6825': '6827',
     '6826': '6827',
-    '6827': '6827'}
+    '6827': '6827',
+    '6828': '6830',
+    '6829': '6830',
+    '6830': '6830'}
 
 # Leg armor
 enchant_mapping["6488"] = {"id": 193557, "name": "Fierce Armor Kit", "quality": 1}
@@ -159,6 +162,9 @@ enchant_mapping["6493"] = {"id": 193567, "name": "Reinforced Armor Kit", "qualit
 enchant_mapping["6494"] = {"id": 193556, "name": "Frosted Armor Kit", "quality": 1}
 enchant_mapping["6495"] = {"id": 193560, "name": "Frosted Armor Kit", "quality": 2}
 enchant_mapping["6496"] = {"id": 193564, "name": "Frosted Armor Kit", "quality": 3}
+enchant_mapping["6828"] = {"id": 204700, "name": "Lambent Armor Kit", "quality": 1}
+enchant_mapping["6829"] = {"id": 204701, "name": "Lambent Armor Kit", "quality": 2}
+enchant_mapping["6830"] = {"id": 204702, "name": "Lambent Armor Kit", "quality": 3}
 
 # Scope
 enchant_mapping["6520"] = {"id": 198310, "name": "Gyroscopic Kaleidoscope", "quality": 1}
