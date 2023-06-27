@@ -1174,8 +1174,9 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
                                     dps_counts[canonical_order(run.roster)[-3:]] += [run]
 
                                     for ch in run.roster:
-                                        spec_counts[ch] += [run]
-                                        dung_spec_counts[dung][ch] += [run]
+                                        if ch in spec_counts: # handle "fire paladin" errors
+                                            spec_counts[ch] += [run]
+                                            dung_spec_counts[dung][ch] += [run]
                             
     return dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts
 
