@@ -37,7 +37,4 @@ wcl_specs['Havoc Demon Hunter'] = [12, 1]
 wcl_specs['Vengeance Demon Hunter'] = [12, 2]
 wcl_specs['Devastation Evoker'] = [13, 1]
 wcl_specs['Preservation Evoker'] = [13, 2]
-
-
-
-
+wcl_specs['Augmentation Evoker'] = [13, 3]

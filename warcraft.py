@@ -3,7 +3,7 @@ regions = ["tw", "kr", "eu", "us"]
 pvp_regions = ["us", "eu"]
 pvp_modes = ["solo-shuffle", "2v2", "3v3", "rbg"]
 
-specs = [u'Frost Mage', u'Balance Druid', u'Restoration Druid', u'Vengeance Demon Hunter', u'Windwalker Monk', u'Destruction Warlock', u'Holy Paladin', u'Arms Warrior', u'Brewmaster Monk', u'Retribution Paladin', u'Discipline Priest', u'Outlaw Rogue', u'Restoration Shaman', u'Blood Death Knight', u'Havoc Demon Hunter', u'Guardian Druid', u'Subtlety Rogue', u'Beast Mastery Hunter', u'Mistweaver Monk', u'Protection Paladin', u'Affliction Warlock', u'Enhancement Shaman', u'Shadow Priest', u'Survival Hunter', u'Assassination Rogue', u'Frost Death Knight', u'Elemental Shaman', u'Fury Warrior', u'Holy Priest', u'Arcane Mage', u'Unholy Death Knight', u'Feral Druid', u'Protection Warrior', u'Demonology Warlock', u'Marksmanship Hunter', u'Fire Mage', u'Devastation Evoker', u'Preservation Evoker']
+specs = [u'Frost Mage', u'Balance Druid', u'Restoration Druid', u'Vengeance Demon Hunter', u'Windwalker Monk', u'Destruction Warlock', u'Holy Paladin', u'Arms Warrior', u'Brewmaster Monk', u'Retribution Paladin', u'Discipline Priest', u'Outlaw Rogue', u'Restoration Shaman', u'Blood Death Knight', u'Havoc Demon Hunter', u'Guardian Druid', u'Subtlety Rogue', u'Beast Mastery Hunter', u'Mistweaver Monk', u'Protection Paladin', u'Affliction Warlock', u'Enhancement Shaman', u'Shadow Priest', u'Survival Hunter', u'Assassination Rogue', u'Frost Death Knight', u'Elemental Shaman', u'Fury Warrior', u'Holy Priest', u'Arcane Mage', u'Unholy Death Knight', u'Feral Druid', u'Protection Warrior', u'Demonology Warlock', u'Marksmanship Hunter', u'Fire Mage', u'Devastation Evoker', u'Preservation Evoker', u'Augmentation Evoker']
 
 
 spec_short_names = {}
@@ -45,6 +45,7 @@ spec_short_names["Marksmanship Hunter"] = "MM"
 spec_short_names["Fire Mage"] = "Fire"
 spec_short_names["Devastation Evoker"] = "Dev"
 spec_short_names["Preservation Evoker"] = "Pres"
+spec_short_names["Augmentation Evoker"] = "Aug"
 
 tanks =  [u'Vengeance Demon Hunter',
           u'Brewmaster Monk',
@@ -86,7 +87,8 @@ ranged = [u'Frost Mage',
           u'Demonology Warlock',
           u'Marksmanship Hunter',
           u'Fire Mage',
-          u'Devastation Evoker']
+          u'Devastation Evoker',
+          u'Augmentation Evoker']
 
 role_titles = {}
 role_titles[0] = "Tanks"

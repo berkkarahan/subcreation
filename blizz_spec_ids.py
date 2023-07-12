@@ -39,3 +39,4 @@ blizz_spec_ids['Havoc Demon Hunter'] = 577
 blizz_spec_ids['Vengeance Demon Hunter'] = 581
 blizz_spec_ids['Devastation Evoker'] = 1467
 blizz_spec_ids['Preservation Evoker'] = 1468
+blizz_spec_ids['Augmentation Evoker'] = 1473
