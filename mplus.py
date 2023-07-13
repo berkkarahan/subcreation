@@ -3986,7 +3986,7 @@ class TestWCLGetRankings(webapp2.RequestHandler):
 #        update_wcl_update_subset(["Devastation Evoker"])
 #        update_wcl_update_subset(["Balance Druid"])
 #        update_wcl_update_subset(["Marksmanship Hunter"])
-        update_wcl_update_subset(["Unholy Death Knight"])        
+        update_wcl_update_subset(["Augmentation Evoker"])        
 #        update_wcl_update_subset(["Shadow Priest"])
 #        update_wcl_update_subset(["Demonology Warlock"])
 #        update_wcl_update_subset(["Outlaw Rogue"])        
@@ -4020,7 +4020,7 @@ class TestWCLGetRankingsRaid(webapp2.RequestHandler):
 #        update_wcl_raid_update_subset(["Feral Druid"], active_raid="vault")
 #        update_wcl_raid_update_subset(["Shadow Priest"], active_raid="vault")
 #        update_wcl_raid_update_subset(["Demonology Warlock"], active_raid="aberrus")
-        update_wcl_raid_update_subset(["Retribution Paladin"], active_raid="aberrus")
+        update_wcl_raid_update_subset(["Augmentation Evoker"], active_raid="aberrus")
 #        update_wcl_raid_update_subset(["Outlaw Rogue"], active_raid="vault")                                
 
 class WCLGenHTML(webapp2.RequestHandler):
