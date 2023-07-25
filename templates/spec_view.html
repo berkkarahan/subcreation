@@ -1,4 +1,4 @@
-{% macro spec_view(n_parses, talents, gear, enchants, gems, gem_builds, primordials, primordial_builds, talent_metadata, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds, enchant_mapping={}, metric="dps") -%}
+{% macro spec_view(n_parses, talents, gear, enchants, gems, gem_builds, primordials, primordial_builds, talent_metadata, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds, crafted_items, crafted_builds, enchant_mapping={}, metric="dps") -%}
 {% import 'spec_overview_table.html' as spec_overview_table %}
 
 <div class="quicknav">
@@ -35,6 +35,10 @@
 {{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Embellishment Items", "Item(s)", embellished_items, items, "item", n_parses, anchor_id="embellishment", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Embellishment Builds", "Item(s)", embellished_builds, items, "item", n_parses, anchor_id="embellishment_builds", metric=metric) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Crafted Items", "Item(s)", crafted_items, items, "item", n_parses, anchor_id="crafted", metric=metric) }}
+
+{{ spec_overview_table.spec_overview_table("col-xl-7 col-lg-7", "Crafted Builds", "Item(s)", crafted_builds, items, "item", n_parses, anchor_id="crafted_builds", metric=metric) }}
 
 {{ spec_overview_table.spec_overview_table("col-xl-5 col-lg-5", "Primordials", "Primordial", primordials, items, "item", n_parses, anchor_id="primordials", metric=metric) }}
 
