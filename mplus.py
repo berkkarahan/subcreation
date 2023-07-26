@@ -742,7 +742,8 @@ def construct_analysis(counts, sort_by="lb_ci", limit=500):
 #        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
         maxi = [max_found, max_id, max_level]
         all_runs = sorted(all_runs, key=lambda x: x[0], reverse=True)
-        overall += [[name, mean, stddev, n, ci, maxi, all_runs]]
+        # restrict the mean just to the runs actually used for lb_ci
+        overall += [[name, sorted_mean, stddev, n, ci, maxi, all_runs]]
 
     overall = sorted(overall, key=lambda x: x[4][0], reverse=True)        
     if sort_by == "max":
@@ -795,7 +796,8 @@ def construct_analysis_raid(spec_counts):
 #        t_bounds = t_interval(n)
 #        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
         # lbci, n, mean, data
-        overall[encounter]= [ci[0], n, mean, data]
+        # restrict the mean just to the runs actually used for lb_ci        
+        overall[encounter]= [ci[0], n, sorted_mean, data]
 
     return overall
 
@@ -2317,7 +2319,7 @@ def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFIC
     crafted_items, update_items = wcl_crafted_items(rankings)
     items.update(update_items)
 
-    crafted_builds, update_items = wcl_rafted_builds(rankings)
+    crafted_builds, update_items = wcl_crafted_builds(rankings)
     items.update(update_items)   
     
     enchants = {}
