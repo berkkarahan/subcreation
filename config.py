@@ -14,7 +14,7 @@ RIO_SEASON = "season-df-2"
 WCL_SEASON = 1
 
 # used for raid
-WCL_PARTITION = 2
+WCL_PARTITION = 3
 
 # config
 RAID_NAME = "Aberrus, the Shadowed Crucible"
@@ -35,8 +35,8 @@ import datetime
 # do not change the times, just year, month, date
 
 # tuesday
-latest_patch_us = datetime.datetime(2023, 7, 12, 16, 0) #0 date
-latest_patch_eu = datetime.datetime(2023, 7, 13, 4, 0)  #+1 date
+latest_patch_us = datetime.datetime(2023, 8, 8, 16, 0) #0 date
+latest_patch_eu = datetime.datetime(2023, 8, 9, 4, 0)  #+1 date
 # wednesday
-latest_patch_tw = datetime.datetime(2023, 7, 13, 23, 0) #+1 date
-latest_patch_kr = datetime.datetime(2023, 7, 13, 23, 0) #+1 date
+latest_patch_tw = datetime.datetime(2023, 8, 9, 23, 0) #+1 date
+latest_patch_kr = datetime.datetime(2023, 8, 9, 23, 0) #+1 date
