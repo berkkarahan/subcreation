@@ -14,7 +14,7 @@ RIO_SEASON = "season-df-2"
 WCL_SEASON = 1
 
 # used for raid
-WCL_PARTITION = 3
+WCL_PARTITION = 4
 
 # config
 RAID_NAME = "Aberrus, the Shadowed Crucible"

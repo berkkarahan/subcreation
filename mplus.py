@@ -4021,10 +4021,11 @@ class TestWCLGetRankings(webapp2.RequestHandler):
 #        update_wcl_update_subset(["Devastation Evoker"])
 #        update_wcl_update_subset(["Balance Druid"])
 #        update_wcl_update_subset(["Marksmanship Hunter"])
-        update_wcl_update_subset(["Augmentation Evoker"])        
+#        update_wcl_update_subset(["Augmentation Evoker"])        
 #        update_wcl_update_subset(["Shadow Priest"])
 #        update_wcl_update_subset(["Demonology Warlock"])
-#        update_wcl_update_subset(["Outlaw Rogue"])        
+#        update_wcl_update_subset(["Outlaw Rogue"])
+        update_wcl_update_subset(["Mistweaver Monk"])        
 
 class WCLGetRankingsRaidOnly(webapp2.RequestHandler):
     def get(self):
