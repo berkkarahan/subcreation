@@ -1,6 +1,6 @@
-from blizz_spec_ids import blizz_spec_ids
-from nodes import nodes
-from node_orders import node_orders
+from backend.constants.blizz_spec_ids import blizz_spec_ids
+from backend.constants.nodes import nodes
+from backend.constants.node_orders import node_orders
 import ExportDataStream
 
 def encode_talent_string(selected_talents, spec_name):

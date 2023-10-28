@@ -21,11 +21,11 @@ dungeon_short_names["Uldaman: Legacy of Tyr"] = "ULD"
 
 dungeon_slugs = []
 for d in dungeons:
-    dungeon_slugs += [slugify.slugify(unicode(d))]
+    dungeon_slugs += [slugify.slugify(str(d))]
 
 slugs_to_dungeons = {}
 for d in dungeons:
-    slugs_to_dungeons[slugify.slugify(unicode(d))] = d
+    slugs_to_dungeons[slugify.slugify(str(d))] = d
 
 
 

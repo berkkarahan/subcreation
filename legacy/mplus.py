@@ -1,13 +1,8 @@
 import webapp2
 import logging
-import os
 import json
-import copy
 import operator
 import time
-import pdb
-
-from google.appengine.api import app_identity
 
 from google.appengine.api import urlfetch
 from google.appengine.ext import ndb
@@ -25,56 +20,44 @@ import cloudstorage as gcs
 import datetime
 import pytz
 
-from dragonflight import dungeons, dungeon_slugs, dungeon_short_names, slugs_to_dungeons
-from dragonflight import primordial_stones
+from backend.constants.dragonflight import dungeon_slugs, slugs_to_dungeons
+from backend.constants.dragonflight import primordial_stones
 
-from warcraft import specs, tanks, healers, melee, ranged, role_titles, regions, pvp_regions, pvp_modes
-from warcraft import spec_short_names
 from t_interval import t_interval
-from talents_to_spells import talents_to_spells
-from talent_ids import talent_id_order, talent_id_class, talent_id_spec, talent_id_heights
+from backend.constants.talents_to_spells import talents_to_spells
+from backend.constants.talent_ids import talent_id_order, talent_id_class, talent_id_spec, talent_id_heights
 
 from models import Run, DungeonAffixRegion, KnownAffixes, PvPLadderStats, PvPCounts
 
 # wcl handling
 from models import SpecRankings, SpecRankingsRaid, RaidCounts, DungeonEaseTierList
 from auth import api_key
-from wcl import wcl_specs
-from wcl_dragonflight import dungeon_encounters
+from backend.constants.wcl import wcl_specs
+from backend.constants.wcl_dragonflight import dungeon_encounters
 
 # information about dragonflight talent trees
-from tree import class_zero, class_eight, class_twenty
-from tree import spec_zero, spec_eight, spec_twenty
-from tree import talent_order
-from priority_talents import priority_talents
 from active_talents import class_active, spec_active
 
 from encode_talent_string import encode_talent_string
 
-from dragonflight import tier_items, embellished_items, crafted_items
+from backend.constants.dragonflight import tier_items, embellished_items, crafted_items
 
-from enchants import enchant_mapping, enchant_collapse
+from backend.constants.enchants import enchant_mapping, enchant_collapse
 
 # cloudflare cache handling
 from auth import cloudflare_api_key, cloudflare_zone
 
 # ludus labs api
-from auth import ludus_access_key
 
-# internal api 
-from auth import internal_api
+# internal api
 
 ## globals
-from config import RIO_MAX_PAGE
-from dragonflight import dungeons as DUNGEONS
 
-from warcraft import regions as REGIONS
-from config import RIO_MAX_PAGE, RIO_SEASON, RAID_NAME
+from config import RIO_SEASON, RAID_NAME
 from config import WCL_SEASON, WCL_PARTITION
 from config import MIN_KEY_LEVEL
 from config import MAX_RAID_DIFFICULTY
 
-from config import latest_patch_us
 from config import latest_patch_eu
 from config import latest_patch_kr
 from config import latest_patch_tw
@@ -83,7 +66,7 @@ last_updated = None
 
 ## raid rotation
 known_raids = ["aberrus"]
-from wcl_dragonflight import aberrus_encounters
+from backend.constants.wcl_dragonflight import aberrus_encounters
 from aberrus import aberrus_canonical_order, aberrus_short_names, aberrus_ignore
 
 def get_raid_encounters(active_raid):
@@ -153,7 +136,7 @@ def parse_individual_ranking(ranking):
 
 def parse_response(data, dungeon, affixes, region, page):
     '''Parse the response from r.io and store it in our datastore'''
-    dungeon_slug = slugify.slugify(unicode(dungeon))
+    dungeon_slug = slugify.slugify(str(dungeon))
 
     if affixes == "current":
         affixes = ""
@@ -163,7 +146,7 @@ def parse_response(data, dungeon, affixes, region, page):
         # R.I.P. Seasonal Affix
 #        affixes += data[0]["run"]["weekly_modifiers"][3]["name"]
 
-    affixes_slug = slugify.slugify(unicode(affixes))
+    affixes_slug = slugify.slugify(str(affixes))
     update_known_affixes(affixes, affixes_slug)
 
 
@@ -193,12 +176,12 @@ def parse_response(data, dungeon, affixes, region, page):
 
 def update_dungeon_affix_region(dungeon, affixes, region, season=RIO_SEASON, page=0):
     '''For a given dungeon, affixes, region, season, and page, get top M+ runs'''
-    dungeon_slug = slugify.slugify(unicode(dungeon))
+    dungeon_slug = slugify.slugify(str(dungeon))
 
     if region == "cn" and affixes == "current": # not working properly for cn
         affixes = current_affixes()
     
-    affixes_slug = slugify.slugify(unicode(affixes))
+    affixes_slug = slugify.slugify(str(affixes))
 
 
     req_url = "https://raider.io/api/v1/mythic-plus/runs?"
@@ -282,7 +265,7 @@ from ckmeans import ckmeans
 def create_package(name):
     package = {}
     package["name"] = name
-    package["slug"] = slugify.slugify(unicode(name))
+    package["slug"] = slugify.slugify(str(name))
     return package
 
 
@@ -358,10 +341,9 @@ def render_dungeon_tier_list(tiers, tm):
     
 
 def icon_spec(dname, prefix="", size=56):
-    dslug = slugify.slugify(unicode(dname))
+    dslug = slugify.slugify(str(dname))
     return '<a href="%s.html"><img src="images/spec-icons/%s.jpg" width="%d" height="%d" title="%s" alt="%s" /><br/>%s</a>' % (prefix+dslug, dslug, size, size, dname, dname, dname)
 
-import pdb
 
 # generate a specs tier list
 def gen_spec_tier_list(specs_report, role, prefix="", api=False):
@@ -428,7 +410,7 @@ def gen_spec_tier_list(specs_report, role, prefix="", api=False):
             for k in tiers[tm[i]]:
                 rendered = template.render(spec_name = k[1],
                                        spec_short_name = spec_short_names[k[1]],
-                                       spec_slug = slugify.slugify(unicode(k[1])))
+                                       spec_slug = slugify.slugify(str(k[1])))
                 dtl[tm[i]] += rendered
     
         return dtl
@@ -452,7 +434,7 @@ def gen_spec_tier_list(specs_report, role, prefix="", api=False):
 
 def icon_affix(dname, size=28):
     dname = affix_rotation_affixes(dname)
-    dslug = slugify.slugify(unicode(dname))
+    dslug = slugify.slugify(str(dname))
     
     def miniaffix(aname, aslug, size):
         return '<img src="images/affixes/%s.jpg" class="zoom-icon" width="%d" height="%d" title="%s" alt="%s" />' % (aslug, size, size, aname, aname)
@@ -881,7 +863,7 @@ def gen_raid_specs_role_package(encounter, difficulty=MAX_RAID_DIFFICULTY, activ
                             str(k), # name of the spec
                             str("%.2f" % encounter_overall[k][2]), # mean
                             str("%d" % encounter_overall[k][1]).rjust(4), # n
-                            slugify.slugify(unicode(str(k))), # slug name
+                            slugify.slugify(str(str(k))), # slug name
                             str("%.2f" % rmf), # maximum run
                             rml, # id of the maximum run
             ]]
@@ -975,7 +957,7 @@ def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix="",
         for k in tiers[tm[i]]:
             rendered = template.render(spec_name = k[1],
                                        spec_short_name = spec_short_names[k[1]],
-                                       spec_slug = slugify.slugify(unicode(k[1])),
+                                       spec_slug = slugify.slugify(str(k[1])),
                                        encounter_slug = encounter_slug,
                                        difficulty = difficulty,
                                        active_raid = active_raid,
@@ -1078,7 +1060,7 @@ def gen_pvp_spec_tier_list(specs_report, role, mode, api=False, prefix=""):
             for k in tiers[tm[i]]:
                 rendered = template.render(spec_name = k,
                                            spec_short_name = spec_short_names[k],
-                                           spec_slug = slugify.slugify(unicode(k)))
+                                           spec_slug = slugify.slugify(str(k)))
                 dtl[tm[i]] += rendered
     
         return dtl
@@ -1129,11 +1111,11 @@ def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
             dung_spec_counts[d][s] = []
 
     for affix in affixes_to_get:
-        affixes_slug = slugify.slugify(unicode(affix))
+        affixes_slug = slugify.slugify(str(affix))
         for region in regions:
             for dung in dungeons:
                 for page in range(0, RIO_MAX_PAGE):
-                    dungeon_slug = slugify.slugify(unicode(dung))
+                    dungeon_slug = slugify.slugify(str(dung))
                     key_string = dungeon_slug + "-" + affixes_slug + "-" + region + "-" + str(page)
                     key = ndb.Key('DungeonAffixRegion',
                                   key_string)
@@ -1229,9 +1211,9 @@ def process_raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_
     data["max_found"] = max_found
     data["max_link"] = max_link
 
-    spec_slug = slugify.slugify(unicode(spec))
-    encounter_slug = slugify.slugify(unicode(encounter))
-    difficulty_slug = slugify.slugify(unicode(difficulty))
+    spec_slug = slugify.slugify(str(spec))
+    encounter_slug = slugify.slugify(str(encounter))
+    difficulty_slug = slugify.slugify(str(difficulty))
 
     key_slug = "%s-%s-%s-%s" % (spec_slug, encounter_slug, difficulty_slug, active_raid)
     key = ndb.Key('RaidCounts', key_slug)
@@ -1267,10 +1249,10 @@ def process_generate_raid_counts(active_raid=""):
 
 def raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     # read from the db
-    spec_slug = slugify.slugify(unicode(spec))
-    encounter_slug = slugify.slugify(unicode(encounter))
-    difficulty_slug = slugify.slugify(unicode(difficulty))
-    active_raid_slug = slugify.slugify(unicode(active_raid))
+    spec_slug = slugify.slugify(str(spec))
+    encounter_slug = slugify.slugify(str(encounter))
+    difficulty_slug = slugify.slugify(str(difficulty))
+    active_raid_slug = slugify.slugify(str(active_raid))
 
     key_slug = "%s-%s-%s-%s" % (spec_slug, encounter_slug, difficulty_slug, active_raid_slug)
     key = ndb.Key('RaidCounts', key_slug)
@@ -1335,11 +1317,11 @@ def known_affixes_links(prefix="", use_index=True):
                 known_affixes_report += [[affix_rotation_affixes(k), prefix+"index",
                                           icon_affix(k)]]
             else:
-                known_affixes_report += [[affix_rotation_affixes(k), prefix+slugify.slugify(unicode(k)),
+                known_affixes_report += [[affix_rotation_affixes(k), prefix+slugify.slugify(str(k)),
                                           icon_affix(k)]]
             
         else:
-            known_affixes_report += [[affix_rotation_affixes(k), prefix+slugify.slugify(unicode(k)),
+            known_affixes_report += [[affix_rotation_affixes(k), prefix+slugify.slugify(str(k)),
                                       icon_affix(k)]]
             
     known_affixes_report.reverse()
@@ -1351,7 +1333,7 @@ def known_dungeon_links(affixes_slug, prefix=""):
     known_dungeon_report = []
 
     for k in known_dungeon_list:
-        known_dungeon_report += [[k, prefix+slugify.slugify(unicode(k))+"-" + affixes_slug]]
+        known_dungeon_report += [[k, prefix+slugify.slugify(str(k))+"-" + affixes_slug]]
             
     return known_dungeon_report
 
@@ -1360,7 +1342,7 @@ def known_specs_links(prefix=""):
     known_specs_report = []
     for d in [sorted(tanks), sorted(healers), sorted(melee), sorted(ranged)]:
         for k in d:
-            known_specs_report += [[k, slugify.slugify(unicode(k)), icon_spec(k, size=22)]]
+            known_specs_report += [[k, slugify.slugify(str(k)), icon_spec(k, size=22)]]
 
     return known_specs_report
 
@@ -1368,7 +1350,7 @@ def known_specs_subset_links(subset, prefix=""):
     known_specs_report = []
     for d in [sorted(subset)]:
         for k in d:
-            known_specs_report += [[k, slugify.slugify(unicode(k)), icon_spec(k, size=22)]]
+            known_specs_report += [[k, slugify.slugify(str(k)), icon_spec(k, size=22)]]
 
     return known_specs_report
 
@@ -1484,7 +1466,7 @@ def gen_dungeon_report(dungeon_counts):
                             x[0],
                             str("%.2f" % x[1]),
                             str(x[3]),
-                            slugify.slugify(unicode(x[0])),
+                            slugify.slugify(str(x[0])),
                             str("%.2f" % x[5][0]), # maximum run
                             x[5][1], # id of the maximum run
                             x[5][2], # level of the max run
@@ -1529,7 +1511,7 @@ def gen_affix_report(affix_counts):
                             affix_rotation_affixes(x[0]),
                             str("%.2f" % x[1]),
                             str(x[3]),
-                            slugify.slugify(unicode(x[0])),
+                            slugify.slugify(str(x[0])),
                             str("%.2f" % x[5][0]), # maximum run
                             x[5][1], # id of the maximum run
                             x[5][2], # level of the max run
@@ -1581,7 +1563,7 @@ def gen_spec_report(spec_counts):
                                 str(k[0]), # name
                                 str("%.2f" % k[1]), # mean
                                 str("%d" % k[3]).rjust(4), # n
-                                slugify.slugify(unicode(str(k[0]))), # slug name
+                                slugify.slugify(str(str(k[0]))), # slug name
                                 str("%.2f" % k[5][0]), # maximum run
                                 k[5][1], # id of the maximum run
                                 k[5][2], # level of the max run
@@ -2428,7 +2410,7 @@ def localized_time(last_updated):
 def api_affixes_dungeons(affixes):
     global last_updated
     dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
-    affixes_slug = slugify.slugify(unicode(affixes))
+    affixes_slug = slugify.slugify(str(affixes))
     affixes_slug_special = affixes_slug
     if affixes == current_affixes():
         affixes_slug_special = "index"
@@ -2455,7 +2437,7 @@ def api_affixes_dungeons(affixes):
     rendered["source_url"] = "https://mplus.subcreation.net/"
 
     ## also store this
-    affixes_slug = slugify.slugify(unicode(affixes))
+    affixes_slug = slugify.slugify(str(affixes))
     key = ndb.Key('DungeonEaseTierList', affixes_slug)
     tier_list_entry = DungeonEaseTierList(id=affixes_slug,
                                           affixes=affixes,
@@ -2500,7 +2482,7 @@ def api_affixes_dungeons_overall():
 def api_affixes_specs(affixes):
     global last_updated
     dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
-    affixes_slug = slugify.slugify(unicode(affixes))
+    affixes_slug = slugify.slugify(str(affixes))
     affixes_slug_special = affixes_slug
     if affixes == current_affixes():
         affixes_slug_special = "index"
@@ -2536,7 +2518,7 @@ def api_affixes_tier_list():
     affixes = "All Affixes"
     
     dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
-    affixes_slug = slugify.slugify(unicode(affixes))
+    affixes_slug = slugify.slugify(str(affixes))
 
     affixes_report, affix_stats = gen_affix_report(affix_counts)        
     aftl = gen_affix_tier_list(affixes_report, api=True)
@@ -2554,7 +2536,7 @@ def api_affixes_tier_list():
 
 def render_affixes(affixes, prefix=""):
     dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
-    affixes_slug = slugify.slugify(unicode(affixes))
+    affixes_slug = slugify.slugify(str(affixes))
     affixes_slug_special = affixes_slug
     if affixes == current_affixes():
         affixes_slug_special = "index"
@@ -2628,7 +2610,7 @@ def api_pvp_specs(mode):
 # render compositions as a separate page from affixes
 def render_compositions(affixes, prefix=""):
     dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
-    affixes_slug = slugify.slugify(unicode(affixes))
+    affixes_slug = slugify.slugify(str(affixes))
     affixes_slug_special = affixes_slug
     if affixes == current_affixes():
         affixes_slug_special = "index"
@@ -2660,7 +2642,7 @@ def render_compositions(affixes, prefix=""):
 # render stats separately
 def render_stats(affixes, prefix=""):
     dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
-    affixes_slug = slugify.slugify(unicode(affixes))
+    affixes_slug = slugify.slugify(str(affixes))
     affixes_slug_special = affixes_slug
     if affixes == current_affixes():
         affixes_slug_special = "index"
@@ -2701,9 +2683,9 @@ def render_raid_stats(encounter, prefix="", difficulty=MAX_RAID_DIFFICULTY, acti
     encounter_slugs = {}
     raid_canonical_order = get_raid_canonical_order(active_raid)
     for e in raid_canonical_order:
-        encounter_slugs[e] = slugify.slugify(unicode(e))
+        encounter_slugs[e] = slugify.slugify(str(e))
 
-    encounter_slug = slugify.slugify(unicode(encounter))
+    encounter_slug = slugify.slugify(str(encounter))
     
     template = env.get_template('stats-raid.html')
     rendered = template.render(title=encounter,
@@ -2736,7 +2718,7 @@ def get_archetype(spec):
     return "unknown"
 
 def render_wcl_spec(spec, dungeon="all", prefix=""):
-    spec_slug = slugify.slugify(unicode(spec))
+    spec_slug = slugify.slugify(str(spec))
     affixes = "N/A"
     n_parses, n_uniques, key_max, key_min, talents, gear, enchants, gems, gem_builds, primordials, primordial_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds, crafted_items, crafted_builds = gen_wcl_spec_report(spec, dungeon)
 
@@ -2750,8 +2732,8 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
     if dungeon != "all":
         title = spec + " - %s - Mythic+" % dungeon
 
-    spec_slug = slugify.slugify(unicode(spec))
-    dungeon_slug = slugify.slugify(unicode(dungeon))
+    spec_slug = slugify.slugify(str(spec))
+    dungeon_slug = slugify.slugify(str(dungeon))
 
        
     template = env.get_template('spec.html')
@@ -2807,9 +2789,9 @@ def render_raid_index(encounter="all", difficulty=MAX_RAID_DIFFICULTY, prefix=""
     encounter_slugs = {}
     raid_canonical_order = get_raid_canonical_order(active_raid)    
     for e in raid_canonical_order:
-        encounter_slugs[e] = slugify.slugify(unicode(e))
+        encounter_slugs[e] = slugify.slugify(str(e))
 
-    encounter_slug = slugify.slugify(unicode(encounter))
+    encounter_slug = slugify.slugify(str(encounter))
    
     tankstl = gen_raid_spec_tier_list(specs_report, "Tanks",
                                       encounter_slug=encounter_slug, prefix=prefix,
@@ -2884,9 +2866,9 @@ def render_pvp_index(mode="all", prefix=""):
     
     mode_slugs = {}
     for e in pvp_canonical_order:
-        mode_slugs[e] = slugify.slugify(unicode(e))
+        mode_slugs[e] = slugify.slugify(str(e))
 
-    mode_slug = slugify.slugify(unicode(mode))
+    mode_slug = slugify.slugify(str(mode))
     
     tankstl = gen_pvp_spec_tier_list(specs_report, "Tanks", mode, prefix=prefix)
     healerstl = gen_pvp_spec_tier_list(specs_report, "Healers", mode, prefix=prefix)
@@ -2941,11 +2923,11 @@ def render_pvp_stats(mode, prefix=""):
     
     mode_slugs = {}
     for e in pvp_canonical_order:
-        mode_slugs[e] = slugify.slugify(unicode(e))
+        mode_slugs[e] = slugify.slugify(str(e))
 
-    mode_slug = slugify.slugify(unicode(mode))
+    mode_slug = slugify.slugify(str(mode))
         
-    mode_slug = slugify.slugify(unicode(mode))
+    mode_slug = slugify.slugify(str(mode))
     
     template = env.get_template('stats-pvp.html')
     rendered = template.render(title=mode,
@@ -2998,7 +2980,7 @@ def render_faq(prefix=""):
 
 def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     logging.info("%s %s %s" % (spec, encounter, difficulty))
-    spec_slug = slugify.slugify(unicode(spec))
+    spec_slug = slugify.slugify(str(spec))
     affixes = "N/A"
     n_parses, n_uniques, available_difficulty, _, talents,gear, enchants, gems, gem_builds, primordials, primordial_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds, crafted_items, crafted_builds = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty, active_raid=active_raid)
 
@@ -3015,10 +2997,10 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
     encounter_slugs = {}
     raid_canonical_order = get_raid_canonical_order(active_raid)
     for e in raid_canonical_order:
-        encounter_slugs[e] = slugify.slugify(unicode(e))
+        encounter_slugs[e] = slugify.slugify(str(e))
 
-    encounter_slug = slugify.slugify(unicode(encounter))
-    difficulty_slug = slugify.slugify(unicode(difficulty))
+    encounter_slug = slugify.slugify(str(encounter))
+    difficulty_slug = slugify.slugify(str(difficulty))
 
     metric = "dps"
     if spec in healers:
@@ -3154,21 +3136,21 @@ def raid_write_to_storage(filename, content):
 def render_and_write(af):
     rendered = render_affixes(af)
     
-    filename_slug = slugify.slugify(unicode(af))
+    filename_slug = slugify.slugify(str(af))
 
     if af == current_affixes():
         filename_slug = "index"
 
-    affix_slug = slugify.slugify(unicode(af))
+    affix_slug = slugify.slugify(str(af))
 
     write_to_storage(filename_slug + ".html", rendered)
 
 def render_and_write_compositions(af):
     rendered = render_compositions(af)
     
-    filename_slug = slugify.slugify(unicode(af))
+    filename_slug = slugify.slugify(str(af))
 
-    affix_slug = slugify.slugify(unicode(af))
+    affix_slug = slugify.slugify(str(af))
 
     options = TaskRetryOptions(task_retry_limit = 1)
     write_to_storage("compositions-" + filename_slug + ".html", rendered)
@@ -3177,7 +3159,7 @@ def render_and_write_compositions(af):
 def render_and_write_stats(af):
     rendered = render_stats(af)
     
-    filename_slug = slugify.slugify(unicode(af))
+    filename_slug = slugify.slugify(str(af))
 
     options = TaskRetryOptions(task_retry_limit = 1)
     write_to_storage("stats-" + filename_slug + ".html", rendered)
@@ -3189,7 +3171,7 @@ def render_and_write_raid_stats(encounter, difficulty=MAX_RAID_DIFFICULTY, activ
     if active_raid != "nathria":
         filename_slug += active_raid + "-"
     
-    filename_slug += slugify.slugify(unicode(encounter))
+    filename_slug += slugify.slugify(str(encounter))
 
     if difficulty == "Heroic":
         filename_slug += "-heroic"
@@ -3221,12 +3203,12 @@ def write_overviews():
 
 
 def create_spec_overview(s, d="all"):
-    spec_slug = slugify.slugify(unicode(s))
+    spec_slug = slugify.slugify(str(s))
     rendered = render_wcl_spec(s, dungeon=d)
     if d == "all":
         filename = "%s.html" % (spec_slug)
     else:
-        dungeon_slug = slugify.slugify(unicode(d))
+        dungeon_slug = slugify.slugify(str(d))
         filename = "%s-%s.html" % (spec_slug, dungeon_slug)
     options = TaskRetryOptions(task_retry_limit = 1)        
     deferred.defer(write_to_storage, filename, rendered,
@@ -3334,7 +3316,7 @@ def create_raid_index(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
         filename = ""
         if active_raid != "nathria": # nathria doesn't prefix, other raids do
             filename = active_raid + "-"
-        filename += slugify.slugify(unicode(encounter))
+        filename += slugify.slugify(str(encounter))
         if difficulty == "Heroic":
             filename += "-heroic"
         filename += ".html"
@@ -3349,7 +3331,7 @@ def create_raid_index(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
                        _retry_options=options)        
     
 def create_raid_spec_overview(s, e="all", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
-    spec_slug = slugify.slugify(unicode(s))
+    spec_slug = slugify.slugify(str(s))
     rendered = render_wcl_raid_spec(s, encounter=e, difficulty=difficulty, active_raid=active_raid)
     filename_slug = ""
     if active_raid != "nathria":
@@ -3357,7 +3339,7 @@ def create_raid_spec_overview(s, e="all", difficulty=MAX_RAID_DIFFICULTY, active
     if e == "all":
         filename_slug += "%s" % (spec_slug)
     else:
-        encounter_slug = slugify.slugify(unicode(e))
+        encounter_slug = slugify.slugify(str(e))
         filename_slug += "%s-%s" % (spec_slug, encounter_slug)
 
     # special handling for heroic week -- write both files
@@ -3517,12 +3499,12 @@ def test_view(destination):
         affixes = "All Affixes"
 
     for k in known_affixes():
-        if slugify.slugify(unicode(k)) in destination:
+        if slugify.slugify(str(k)) in destination:
             affixes = k
             break
 
     for s in specs:
-        if slugify.slugify(unicode(s)) in destination:
+        if slugify.slugify(str(s)) in destination:
             spec = s
 
     for i, k in enumerate(dungeon_slugs):
@@ -3556,14 +3538,14 @@ def test_raid_view(destination):
         difficulty = "Heroic"
     
     for s in specs:
-        if slugify.slugify(unicode(s)) in destination:
+        if slugify.slugify(str(s)) in destination:
             spec = s
 
     active_raid = "aberrus"
     raid_canonical_order = aberrus_canonical_order
                     
     for e in raid_canonical_order:
-        if slugify.slugify(unicode(e)) in destination:
+        if slugify.slugify(str(e)) in destination:
             encounter = e
             
     if "index" in destination:
@@ -3640,11 +3622,11 @@ def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
 def update_wcl_rankings(spec, dungeon, page):
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
-    spec_key = slugify.slugify(unicode(spec))
+    spec_key = slugify.slugify(str(spec))
     if dungeon not in dungeon_encounters:
         return "invalid dungeon [%s]" % dungeon
     dungeon_id = dungeon_encounters[dungeon]
-    dungeon_slug = slugify.slugify(unicode(dungeon))
+    dungeon_slug = slugify.slugify(str(dungeon))
 
     aggregate = []
     
@@ -3733,12 +3715,12 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
     
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
-    spec_key = slugify.slugify(unicode(spec))
+    spec_key = slugify.slugify(str(spec))
     raid_encounters = get_raid_encounters(active_raid)
     if encounter not in raid_encounters:
         return "invalid encounter [%s]" % encounter
     encounter_id = raid_encounters[encounter]
-    encounter_slug = slugify.slugify(unicode(encounter))
+    encounter_slug = slugify.slugify(str(encounter))
 
     logging.info("%s %s %s %s [%s]" % (spec, encounter, difficulty, page, active_raid))
     
@@ -3818,7 +3800,7 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
         # add the log
         aggregate += [k]
 
-    key = ndb.Key('SpecRankingsRaid', "%s-%s-%s-%s-%d" % (spec_key, encounter_slug, slugify.slugify(unicode(difficulty)), active_raid, page))
+    key = ndb.Key('SpecRankingsRaid', "%s-%s-%s-%s-%d" % (spec_key, encounter_slug, slugify.slugify(str(difficulty)), active_raid, page))
     sr = SpecRankingsRaid(key=key)
     sr.spec = spec
     sr.encounter = encounter
@@ -3834,7 +3816,7 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
 def update_wcl_spec(spec):
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
-    spec_key = slugify.slugify(unicode(spec))
+    spec_key = slugify.slugify(str(spec))
 
     aggregate = []
     for k, v in dungeon_encounters.iteritems():
@@ -3866,7 +3848,7 @@ def update_wcl_raid_spec(spec, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     logging.info("%s %s [%s]" % (spec, difficulty, active_raid))
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
-    spec_key = slugify.slugify(unicode(spec))
+    spec_key = slugify.slugify(str(spec))
 
     aggregate = []
     raid_encounters = get_raid_encounters(active_raid)
