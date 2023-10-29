@@ -69,103 +69,103 @@ known_raids = ["aberrus"]
 from backend.constants.wcl_dragonflight import aberrus_encounters
 from aberrus import aberrus_canonical_order, aberrus_short_names, aberrus_ignore
 
-def get_raid_encounters(active_raid):
-    return aberrus_encounters
-
-def get_raid_canonical_order(active_raid):
-    return aberrus_canonical_order  
-
-def get_raid_short_names(active_raid):
-    return aberrus_short_names
-
-def get_raid_ignore(active_raid):
-    return aberrus_ignore
-
-# rotate updating raids every day
-def determine_raids_to_update(current_time=None):        
-    raids_to_update = ["aberrus"]
-    return raids_to_update
+# def get_raid_encounters(active_raid):
+#     return aberrus_encounters
+#
+# def get_raid_canonical_order(active_raid):
+#     return aberrus_canonical_order
+#
+# def get_raid_short_names(active_raid):
+#     return aberrus_short_names
+#
+# def get_raid_ignore(active_raid):
+#     return aberrus_ignore
 
 # rotate updating raids every day
-def determine_raids_to_generate(current_time=None):
-    raids_to_update = ["aberrus"]
-    return raids_to_update
+# def determine_raids_to_update(current_time=None):
+#     raids_to_update = ["aberrus"]
+#     return raids_to_update
+#
+# # rotate updating raids every day
+# def determine_raids_to_generate(current_time=None):
+#     raids_to_update = ["aberrus"]
+#     return raids_to_update
 
 ## raider.io handling
-def update_known_affixes(affixes, affixes_slug):
-    '''Update datastore's list of known affixes and their last seen times'''
-    key = ndb.Key('KnownAffixes', affixes_slug)
-    known_affix = key.get()
+# def update_known_affixes(affixes, affixes_slug):
+#     '''Update datastore's list of known affixes and their last seen times'''
+#     key = ndb.Key('KnownAffixes', affixes_slug)
+#     known_affix = key.get()
+#
+#     if known_affix is None: # only add it if we haven't seen it before
+#         known_affix = KnownAffixes(id=affixes_slug, affixes=affixes)
+#         known_affix.put()
+#     else:
+#         known_affix.put() # put it back to update last seen
 
-    if known_affix is None: # only add it if we haven't seen it before
-        known_affix = KnownAffixes(id=affixes_slug, affixes=affixes)
-        known_affix.put()
-    else:
-        known_affix.put() # put it back to update last seen
-
-def parse_individual_ranking(ranking):
-    '''Parse an individual r.io run and return a Run model object for it'''
-
-    score = ranking["score"]
-    run = ranking["run"]
-
-    roster = []
-    ksrid = ""
-    completed_at = ""
-    completed_at = datetime.datetime.strptime(run["completed_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
-
-    clear_time_ms = run["clear_time_ms"]
-    mythic_level = run["mythic_level"]
-    if mythic_level < MIN_KEY_LEVEL: # only track runs at +16 or above
-        return None
-    num_chests = run["num_chests"]
-    keystone_time_ms = run["keystone_time_ms"]
-    faction = run["faction"]
-    ksrid = str(run["keystone_run_id"])
-
-    for roster_entry in run["roster"]:
-        character = roster_entry["character"]
-        spec_class = character["spec"]["name"] + " " + character["class"]["name"]
-        roster += [spec_class]
-
-    return Run(score=score, roster=roster, keystone_run_id=ksrid,
-               completed_at=completed_at, clear_time_ms=clear_time_ms,
-               mythic_level=mythic_level, num_chests=num_chests,
-               keystone_time_ms=keystone_time_ms, faction=faction)
-
-
-def parse_response(data, dungeon, affixes, region, page):
-    '''Parse the response from r.io and store it in our datastore'''
-    dungeon_slug = slugify.slugify(str(dungeon))
-
-    if affixes == "current":
-        affixes = ""
-        affixes += data[0]["run"]["weekly_modifiers"][0]["name"] + ", "
-        affixes += data[0]["run"]["weekly_modifiers"][1]["name"] + ", "
-        affixes += data[0]["run"]["weekly_modifiers"][2]["name"]
-        # R.I.P. Seasonal Affix
-#        affixes += data[0]["run"]["weekly_modifiers"][3]["name"]
-
-    affixes_slug = slugify.slugify(str(affixes))
-    update_known_affixes(affixes, affixes_slug)
+# def parse_individual_ranking(ranking):
+#     '''Parse an individual r.io run and return a Run model object for it'''
+#
+#     score = ranking["score"]
+#     run = ranking["run"]
+#
+#     roster = []
+#     ksrid = ""
+#     completed_at = ""
+#     completed_at = datetime.datetime.strptime(run["completed_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
+#
+#     clear_time_ms = run["clear_time_ms"]
+#     mythic_level = run["mythic_level"]
+#     if mythic_level < MIN_KEY_LEVEL: # only track runs at +16 or above
+#         return None
+#     num_chests = run["num_chests"]
+#     keystone_time_ms = run["keystone_time_ms"]
+#     faction = run["faction"]
+#     ksrid = str(run["keystone_run_id"])
+#
+#     for roster_entry in run["roster"]:
+#         character = roster_entry["character"]
+#         spec_class = character["spec"]["name"] + " " + character["class"]["name"]
+#         roster += [spec_class]
+#
+#     return Run(score=score, roster=roster, keystone_run_id=ksrid,
+#                completed_at=completed_at, clear_time_ms=clear_time_ms,
+#                mythic_level=mythic_level, num_chests=num_chests,
+#                keystone_time_ms=keystone_time_ms, faction=faction)
 
 
-    key_string = dungeon_slug + "-" + affixes_slug + "-" + region + "-" + str(page)
-    key = ndb.Key('DungeonAffixRegion',
-                  key_string)
-    dar = DungeonAffixRegion(key=key)
-
-    dar.dungeon = dungeon
-    dar.affixes = affixes
-    dar.region = region
-    dar.page = page
-
-    for individual_ranking in data:
-        parsed_run = parse_individual_ranking(individual_ranking)
-        if parsed_run is not None:
-            dar.runs += [parsed_run]
-
-    return dar
+# def parse_response(data, dungeon, affixes, region, page):
+#     '''Parse the response from r.io and store it in our datastore'''
+#     dungeon_slug = slugify.slugify(str(dungeon))
+#
+#     if affixes == "current":
+#         affixes = ""
+#         affixes += data[0]["run"]["weekly_modifiers"][0]["name"] + ", "
+#         affixes += data[0]["run"]["weekly_modifiers"][1]["name"] + ", "
+#         affixes += data[0]["run"]["weekly_modifiers"][2]["name"]
+#         # R.I.P. Seasonal Affix
+# #        affixes += data[0]["run"]["weekly_modifiers"][3]["name"]
+#
+#     affixes_slug = slugify.slugify(str(affixes))
+#     update_known_affixes(affixes, affixes_slug)
+#
+#
+#     key_string = dungeon_slug + "-" + affixes_slug + "-" + region + "-" + str(page)
+#     key = ndb.Key('DungeonAffixRegion',
+#                   key_string)
+#     dar = DungeonAffixRegion(key=key)
+#
+#     dar.dungeon = dungeon
+#     dar.affixes = affixes
+#     dar.region = region
+#     dar.page = page
+#
+#     for individual_ranking in data:
+#         parsed_run = parse_individual_ranking(individual_ranking)
+#         if parsed_run is not None:
+#             dar.runs += [parsed_run]
+#
+#     return dar
 
 
 # update
@@ -174,93 +174,59 @@ def parse_response(data, dungeon, affixes, region, page):
 ## also in templates/max_link and templates/by-affix
 ## also in wcl_ (also marked with @@)
 
-def update_dungeon_affix_region(dungeon, affixes, region, season=RIO_SEASON, page=0):
-    '''For a given dungeon, affixes, region, season, and page, get top M+ runs'''
-    dungeon_slug = slugify.slugify(str(dungeon))
-
-    if region == "cn" and affixes == "current": # not working properly for cn
-        affixes = current_affixes()
-    
-    affixes_slug = slugify.slugify(str(affixes))
-
-
-    req_url = "https://raider.io/api/v1/mythic-plus/runs?"
-    req_url += "season=%s&region=%s&affixes=%s&dungeon=%s&page=%d" \
-        % (season, region, affixes_slug, dungeon_slug, page)
-
-    response = {}
-    try:
-        result = urlfetch.fetch(req_url, deadline=60)
-        if result.status_code == 200:
-            response = json.loads(result.content)["rankings"]
-            if response == []: # empty rankings, as sometimes happens at week start
-                logging.info("no rankings found for %s / %s / %s / %s",
-                             dungeon, affixes, region, page)
-                return
-            dar = parse_response(response,
-                                 dungeon, affixes, region, page)
-            dar.put()
-    except DeadlineExceededError:
-        logging.exception('deadline exception fetching url: %s', req_url)
-        options = TaskRetryOptions(task_retry_limit=1)
-        deferred.defer(update_dungeon_affix_region, dungeon, affixes,
-                       region, season, page, _retry_options=options)
-
-    except urlfetch.Error:
-        logging.exception('caught exception fetching url: %s', req_url)
-
-def update_current():
-    '''Query the r.io api across all regions for each dungeon (current affixes)'''
-    global DUNGEONS, REGIONS, RIO_MAX_PAGE
-    for region in REGIONS:
-        for dungeon in DUNGEONS:
-            for page in range(0, RIO_MAX_PAGE):
-                options = TaskRetryOptions(task_retry_limit=1)
-                deferred.defer(update_dungeon_affix_region,
-                               dungeon,
-                               "current",
-                               region,
-                               page=page,
-                               _retry_options=options)
+# def update_dungeon_affix_region(dungeon, affixes, region, season=RIO_SEASON, page=0):
+#     '''For a given dungeon, affixes, region, season, and page, get top M+ runs'''
+#     dungeon_slug = slugify.slugify(str(dungeon))
+#
+#     if region == "cn" and affixes == "current": # not working properly for cn
+#         affixes = current_affixes()
+#
+#     affixes_slug = slugify.slugify(str(affixes))
+#
+#
+#     req_url = "https://raider.io/api/v1/mythic-plus/runs?"
+#     req_url += "season=%s&region=%s&affixes=%s&dungeon=%s&page=%d" \
+#         % (season, region, affixes_slug, dungeon_slug, page)
+#
+#     response = {}
+#     try:
+#         result = urlfetch.fetch(req_url, deadline=60)
+#         if result.status_code == 200:
+#             response = json.loads(result.content)["rankings"]
+#             if response == []: # empty rankings, as sometimes happens at week start
+#                 logging.info("no rankings found for %s / %s / %s / %s",
+#                              dungeon, affixes, region, page)
+#                 return
+#             dar = parse_response(response,
+#                                  dungeon, affixes, region, page)
+#             dar.put()
+#     except DeadlineExceededError:
+#         logging.exception('deadline exception fetching url: %s', req_url)
+#         options = TaskRetryOptions(task_retry_limit=1)
+#         deferred.defer(update_dungeon_affix_region, dungeon, affixes,
+#                        region, season, page, _retry_options=options)
+#
+#     except urlfetch.Error:
+#         logging.exception('caught exception fetching url: %s', req_url)
+#
+# def update_current():
+#     '''Query the r.io api across all regions for each dungeon (current affixes)'''
+#     global DUNGEONS, REGIONS, RIO_MAX_PAGE
+#     for region in REGIONS:
+#         for dungeon in DUNGEONS:
+#             for page in range(0, RIO_MAX_PAGE):
+#                 options = TaskRetryOptions(task_retry_limit=1)
+#                 deferred.defer(update_dungeon_affix_region,
+#                                dungeon,
+#                                "current",
+#                                region,
+#                                page=page,
+#                                _retry_options=options)
 
 
 ## end raider.io processing
 
 ## data analysis start
-
-
-## replacements for numpy
-def average(data):
-    return mean(data)
-
-def mean(data):
-    """Return the sample arithmetic mean of data."""
-    n = len(data)
-    if n < 1:
-        return 0
-    return sum(data)/float(n) 
-
-def _ss(data):
-    """Return sum of square deviations of sequence data."""
-    c = mean(data)
-    ss = sum((x-c)**2 for x in data)
-    return ss
-
-def std(data, ddof=0):
-    """Calculates the population standard deviation
-    by default; specify ddof=1 to compute the sample
-    standard deviation."""
-    n = len(data)
-    if n < 2:
-        return 0
-    ss = _ss(data)
-    pvar = ss/(n-ddof)
-    return pvar**0.5
-
-
-from math import sqrt
-from ckmeans import ckmeans
-
 
 def create_package(name):
     package = {}

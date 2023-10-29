@@ -21,14 +21,6 @@ dungeon_short_names["The Underrot"] = "UNDR"
 dungeon_short_names["The Vortex Pinnacle"] = "VP"
 dungeon_short_names["Uldaman: Legacy of Tyr"] = "ULD"
 
-dungeon_slugs = []
-for d in dungeons:
-    dungeon_slugs += [slugify.slugify(str(d))]
-
-slugs_to_dungeons = {}
-for d in dungeons:
-    slugs_to_dungeons[slugify.slugify(str(d))] = d
-
 
 tier_items = [  ### aberrus tier
     202464,
