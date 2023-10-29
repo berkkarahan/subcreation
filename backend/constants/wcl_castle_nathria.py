@@ -1,4 +1,3 @@
-
 nyalotha_encounters = {}
 nyalotha_encounters["Wrathion"] = 2329
 nyalotha_encounters["Maut"] = 2327

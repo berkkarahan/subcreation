@@ -1,14 +1,15 @@
-
-sanctum_canonical_order = ["Tarragrue",
-                                         "Eye of the Jailer",
-                                         "The Nine",
-                                         "Remnant of Ner'zhul",                        
-                                         "Soulrender Dormazain",
-                                         "Painsmith Raznal",
-                                         "Guardian of the First Ones",
-                                         "Fatescribe Roh-Kalo",
-                                         "Kel'Thuzad",
-                                         "Sylvanas Windrunner"]
+sanctum_canonical_order = [
+    "Tarragrue",
+    "Eye of the Jailer",
+    "The Nine",
+    "Remnant of Ner'zhul",
+    "Soulrender Dormazain",
+    "Painsmith Raznal",
+    "Guardian of the First Ones",
+    "Fatescribe Roh-Kalo",
+    "Kel'Thuzad",
+    "Sylvanas Windrunner",
+]
 
 sanctum_short_names = {}
 sanctum_short_names["Tarragrue"] = "Tarragrue"

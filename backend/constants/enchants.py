@@ -3,154 +3,155 @@ enchant_mapping = {}
 
 # simplified to ignore quality since it's not relevant for decision making
 # to collapse multiple ranks
-enchant_collapse = \
-    {'6488': '6490',
-     '6489': '6490',
-     '6490': '6490',
-     '6491': '6493',
-     '6492': '6493',
-     '6493': '6493',
-     '6494': '6496',
-     '6495': '6496',
-     '6496': '6496',
-     '6520': '6522',
-     '6521': '6522',
-     '6522': '6522',
-     '6523': '6525',
-     '6524': '6525',
-     '6525': '6525',
-     '6526': '6528',
-     '6527': '6528',
-     '6528': '6528',
-     '6536': '6538',
-     '6537': '6538',
-     '6538': '6538',
-     '6539': '6541',
-     '6540': '6541',
-     '6541': '6541',
-     '6542': '6544',
-     '6543': '6544',
-     '6544': '6544',
-     '6545': '6547',
-     '6546': '6547',
-     '6547': '6547',
-     '6548': '6550',
-     '6549': '6550',
-     '6550': '6550',
-     '6551': '6553',
-     '6552': '6553',
-     '6553': '6553',
-     '6554': '6556',
-     '6555': '6556',
-     '6556': '6556',
-     '6557': '6559',
-     '6558': '6559',
-     '6559': '6559',
-     '6560': '6562',
-     '6561': '6562',
-     '6562': '6562',
-     '6563': '6565',
-     '6564': '6565',
-     '6565': '6565',
-     '6566': '6568',
-     '6567': '6568',
-     '6568': '6568',
-     '6569': '6589',
-     '6570': '6589',
-     '6571': '6589',
-     '6572': '6574',
-     '6573': '6574',
-     '6574': '6574',
-     '6575': '6595',
-     '6576': '6595',
-     '6577': '6595',
-     '6578': '6580',
-     '6579': '6580',
-     '6580': '6580',
-     '6581': '6583',
-     '6582': '6583',
-     '6583': '6583',
-     '6584': '6586',
-     '6585': '6586',
-     '6586': '6586',
-     '6587': '6589',
-     '6588': '6589',
-     '6589': '6589',
-     '6590': '6592',
-     '6591': '6592',
-     '6592': '6592',
-     '6593': '6595',
-     '6594': '6595',
-     '6595': '6595',
-     '6596': '6598',
-     '6597': '6598',
-     '6598': '6598',
-     '6599': '6583',
-     '6600': '6583',
-     '6601': '6583',
-     '6602': '6604',
-     '6603': '6604',
-     '6604': '6604',
-     '6605': '6607',
-     '6606': '6607',
-     '6607': '6607',
-     '6608': '6610',
-     '6609': '6610',
-     '6610': '6610',
-     '6611': '6613',
-     '6612': '6613',
-     '6613': '6613',
-     '6614': '6616',
-     '6615': '6616',
-     '6616': '6616',
-     '6617': '6619',
-     '6618': '6619',
-     '6619': '6619',
-     '6620': '6622',
-     '6621': '6622',
-     '6622': '6622',
-     '6623': '6625',
-     '6624': '6625',
-     '6625': '6625',
-     '6626': '6628',
-     '6627': '6628',
-     '6628': '6628',
-     '6629': '6631',
-     '6630': '6631',
-     '6631': '6631',
-     '6632': '6634',
-     '6633': '6634',
-     '6634': '6634',
-     '6635': '6637',
-     '6636': '6637',
-     '6637': '6637',
-     '6638': '6640',
-     '6639': '6640',
-     '6640': '6640',
-     '6641': '6643',
-     '6642': '6643',
-     '6643': '6643',
-     '6644': '6646',
-     '6645': '6646',
-     '6646': '6646',
-     '6647': '6649',
-     '6648': '6649',
-     '6649': '6649',
-     '6650': '6652',
-     '6651': '6652',
-     '6652': '6652',
-     '6653': '6655',
-     '6654': '6655',
-     '6655': '6655',
-    '6822': '6824',
-    '6823': '6824',
-    '6824': '6824',
-    '6825': '6827',
-    '6826': '6827',
-    '6827': '6827',
-    '6828': '6830',
-    '6829': '6830',
-    '6830': '6830'}
+enchant_collapse = {
+    "6488": "6490",
+    "6489": "6490",
+    "6490": "6490",
+    "6491": "6493",
+    "6492": "6493",
+    "6493": "6493",
+    "6494": "6496",
+    "6495": "6496",
+    "6496": "6496",
+    "6520": "6522",
+    "6521": "6522",
+    "6522": "6522",
+    "6523": "6525",
+    "6524": "6525",
+    "6525": "6525",
+    "6526": "6528",
+    "6527": "6528",
+    "6528": "6528",
+    "6536": "6538",
+    "6537": "6538",
+    "6538": "6538",
+    "6539": "6541",
+    "6540": "6541",
+    "6541": "6541",
+    "6542": "6544",
+    "6543": "6544",
+    "6544": "6544",
+    "6545": "6547",
+    "6546": "6547",
+    "6547": "6547",
+    "6548": "6550",
+    "6549": "6550",
+    "6550": "6550",
+    "6551": "6553",
+    "6552": "6553",
+    "6553": "6553",
+    "6554": "6556",
+    "6555": "6556",
+    "6556": "6556",
+    "6557": "6559",
+    "6558": "6559",
+    "6559": "6559",
+    "6560": "6562",
+    "6561": "6562",
+    "6562": "6562",
+    "6563": "6565",
+    "6564": "6565",
+    "6565": "6565",
+    "6566": "6568",
+    "6567": "6568",
+    "6568": "6568",
+    "6569": "6589",
+    "6570": "6589",
+    "6571": "6589",
+    "6572": "6574",
+    "6573": "6574",
+    "6574": "6574",
+    "6575": "6595",
+    "6576": "6595",
+    "6577": "6595",
+    "6578": "6580",
+    "6579": "6580",
+    "6580": "6580",
+    "6581": "6583",
+    "6582": "6583",
+    "6583": "6583",
+    "6584": "6586",
+    "6585": "6586",
+    "6586": "6586",
+    "6587": "6589",
+    "6588": "6589",
+    "6589": "6589",
+    "6590": "6592",
+    "6591": "6592",
+    "6592": "6592",
+    "6593": "6595",
+    "6594": "6595",
+    "6595": "6595",
+    "6596": "6598",
+    "6597": "6598",
+    "6598": "6598",
+    "6599": "6583",
+    "6600": "6583",
+    "6601": "6583",
+    "6602": "6604",
+    "6603": "6604",
+    "6604": "6604",
+    "6605": "6607",
+    "6606": "6607",
+    "6607": "6607",
+    "6608": "6610",
+    "6609": "6610",
+    "6610": "6610",
+    "6611": "6613",
+    "6612": "6613",
+    "6613": "6613",
+    "6614": "6616",
+    "6615": "6616",
+    "6616": "6616",
+    "6617": "6619",
+    "6618": "6619",
+    "6619": "6619",
+    "6620": "6622",
+    "6621": "6622",
+    "6622": "6622",
+    "6623": "6625",
+    "6624": "6625",
+    "6625": "6625",
+    "6626": "6628",
+    "6627": "6628",
+    "6628": "6628",
+    "6629": "6631",
+    "6630": "6631",
+    "6631": "6631",
+    "6632": "6634",
+    "6633": "6634",
+    "6634": "6634",
+    "6635": "6637",
+    "6636": "6637",
+    "6637": "6637",
+    "6638": "6640",
+    "6639": "6640",
+    "6640": "6640",
+    "6641": "6643",
+    "6642": "6643",
+    "6643": "6643",
+    "6644": "6646",
+    "6645": "6646",
+    "6646": "6646",
+    "6647": "6649",
+    "6648": "6649",
+    "6649": "6649",
+    "6650": "6652",
+    "6651": "6652",
+    "6652": "6652",
+    "6653": "6655",
+    "6654": "6655",
+    "6655": "6655",
+    "6822": "6824",
+    "6823": "6824",
+    "6824": "6824",
+    "6825": "6827",
+    "6826": "6827",
+    "6827": "6827",
+    "6828": "6830",
+    "6829": "6830",
+    "6830": "6830",
+}
 
 # Leg armor
 enchant_mapping["6488"] = {"id": 193557, "name": "Fierce Armor Kit", "quality": 1}
@@ -167,15 +168,51 @@ enchant_mapping["6829"] = {"id": 204701, "name": "Lambent Armor Kit", "quality":
 enchant_mapping["6830"] = {"id": 204702, "name": "Lambent Armor Kit", "quality": 3}
 
 # Scope
-enchant_mapping["6520"] = {"id": 198310, "name": "Gyroscopic Kaleidoscope", "quality": 1}
-enchant_mapping["6521"] = {"id": 198311, "name": "Gyroscopic Kaleidoscope", "quality": 2}
-enchant_mapping["6522"] = {"id": 198312, "name": "Gyroscopic Kaleidoscope", "quality": 3}
-enchant_mapping["6523"] = {"id": 198313, "name": "Projectile Propulsion Pinion", "quality": 1}
-enchant_mapping["6524"] = {"id": 198314, "name": "Projectile Propulsion Pinion", "quality": 2}
-enchant_mapping["6525"] = {"id": 198315, "name": "Projectile Propulsion Pinion", "quality": 3}
-enchant_mapping["6526"] = {"id": 198316, "name": "High Intensity Thermal Scanner", "quality": 1}
-enchant_mapping["6527"] = {"id": 198317, "name": "High Intensity Thermal Scanner", "quality": 2}
-enchant_mapping["6528"] = {"id": 198318, "name": "High Intensity Thermal Scanner", "quality": 3}
+enchant_mapping["6520"] = {
+    "id": 198310,
+    "name": "Gyroscopic Kaleidoscope",
+    "quality": 1,
+}
+enchant_mapping["6521"] = {
+    "id": 198311,
+    "name": "Gyroscopic Kaleidoscope",
+    "quality": 2,
+}
+enchant_mapping["6522"] = {
+    "id": 198312,
+    "name": "Gyroscopic Kaleidoscope",
+    "quality": 3,
+}
+enchant_mapping["6523"] = {
+    "id": 198313,
+    "name": "Projectile Propulsion Pinion",
+    "quality": 1,
+}
+enchant_mapping["6524"] = {
+    "id": 198314,
+    "name": "Projectile Propulsion Pinion",
+    "quality": 2,
+}
+enchant_mapping["6525"] = {
+    "id": 198315,
+    "name": "Projectile Propulsion Pinion",
+    "quality": 3,
+}
+enchant_mapping["6526"] = {
+    "id": 198316,
+    "name": "High Intensity Thermal Scanner",
+    "quality": 1,
+}
+enchant_mapping["6527"] = {
+    "id": 198317,
+    "name": "High Intensity Thermal Scanner",
+    "quality": 2,
+}
+enchant_mapping["6528"] = {
+    "id": 198318,
+    "name": "High Intensity Thermal Scanner",
+    "quality": 3,
+}
 
 # Spellthread
 enchant_mapping["6536"] = {"id": 194008, "name": "Vibrant Spellthread", "quality": 1}
@@ -189,12 +226,36 @@ enchant_mapping["6543"] = {"id": 194015, "name": "Temporal Spellthread", "qualit
 enchant_mapping["6544"] = {"id": 194016, "name": "Temporal Spellthread", "quality": 3}
 
 # Ring
-enchant_mapping["6545"] = {"id": 199957, "name": "Writ of Critical Strike", "quality": 1}
-enchant_mapping["6546"] = {"id": 199999, "name": "Writ of Critical Strike", "quality": 2}
-enchant_mapping["6547"] = {"id": 200041, "name": "Writ of Critical Strike", "quality": 3}
-enchant_mapping["6548"] = {"id": 199953, "name": "Devotion of Critical Strike", "quality": 1}
-enchant_mapping["6549"] = {"id": 199995, "name": "Devotion of Critical Strike", "quality": 2}
-enchant_mapping["6550"] = {"id": 200037, "name": "Devotion of Critical Strike", "quality": 3}
+enchant_mapping["6545"] = {
+    "id": 199957,
+    "name": "Writ of Critical Strike",
+    "quality": 1,
+}
+enchant_mapping["6546"] = {
+    "id": 199999,
+    "name": "Writ of Critical Strike",
+    "quality": 2,
+}
+enchant_mapping["6547"] = {
+    "id": 200041,
+    "name": "Writ of Critical Strike",
+    "quality": 3,
+}
+enchant_mapping["6548"] = {
+    "id": 199953,
+    "name": "Devotion of Critical Strike",
+    "quality": 1,
+}
+enchant_mapping["6549"] = {
+    "id": 199995,
+    "name": "Devotion of Critical Strike",
+    "quality": 2,
+}
+enchant_mapping["6550"] = {
+    "id": 200037,
+    "name": "Devotion of Critical Strike",
+    "quality": 3,
+}
 enchant_mapping["6551"] = {"id": 199958, "name": "Writ of Haste", "quality": 1}
 enchant_mapping["6552"] = {"id": 200000, "name": "Writ of Haste", "quality": 2}
 enchant_mapping["6553"] = {"id": 200042, "name": "Writ of Haste", "quality": 3}
@@ -210,9 +271,21 @@ enchant_mapping["6562"] = {"id": 200039, "name": "Devotion of Mastery", "quality
 enchant_mapping["6563"] = {"id": 199960, "name": "Writ of Versatility", "quality": 1}
 enchant_mapping["6564"] = {"id": 200002, "name": "Writ of Versatility", "quality": 2}
 enchant_mapping["6565"] = {"id": 200044, "name": "Writ of Versatility", "quality": 3}
-enchant_mapping["6566"] = {"id": 199956, "name": "Devotion of Versatility", "quality": 1}
-enchant_mapping["6567"] = {"id": 199998, "name": "Devotion of Versatility", "quality": 2}
-enchant_mapping["6568"] = {"id": 200040, "name": "Devotion of Versatility", "quality": 3}
+enchant_mapping["6566"] = {
+    "id": 199956,
+    "name": "Devotion of Versatility",
+    "quality": 1,
+}
+enchant_mapping["6567"] = {
+    "id": 199998,
+    "name": "Devotion of Versatility",
+    "quality": 2,
+}
+enchant_mapping["6568"] = {
+    "id": 200040,
+    "name": "Devotion of Versatility",
+    "quality": 3,
+}
 
 # Wrist
 enchant_mapping["6569"] = {"id": 199940, "name": "Writ of Avoidance", "quality": 1}
@@ -318,21 +391,21 @@ enchant_mapping["6826"] = {"id": 204622, "name": "Shadowflame Wreathe", "quality
 enchant_mapping["6827"] = {"id": 204623, "name": "Shadowflame Wreathe", "quality": 3}
 # -----------------------------------------
 # Death Knight Runeforging -- (note this is spell id, since there's no scroll)
-enchant_mapping["3368"] = {"spell_id" : 53344, "name" : "Fallen Crusader"}
-enchant_mapping["3370"] = {"spell_id" : 53343, "name" : "Razorice"}
-enchant_mapping["3847"] = {"spell_id" : 62158, "name" : "Stoneskin Gargoyle"}
-enchant_mapping["6241"] = {"spell_id" : 326805, "name" : "Sanguination"}
-enchant_mapping["6242"] = {"spell_id" : 326855, "name" : "Spellwarding"}
-enchant_mapping["6243"] = {"spell_id" : 326911, "name" : "Hysteria"}
-enchant_mapping["6244"] = {"spell_id" : 326977, "name" : "Unending Thirst"}
-enchant_mapping["6245"] = {"spell_id" : 327082, "name" : "Apocalypse"}
+enchant_mapping["3368"] = {"spell_id": 53344, "name": "Fallen Crusader"}
+enchant_mapping["3370"] = {"spell_id": 53343, "name": "Razorice"}
+enchant_mapping["3847"] = {"spell_id": 62158, "name": "Stoneskin Gargoyle"}
+enchant_mapping["6241"] = {"spell_id": 326805, "name": "Sanguination"}
+enchant_mapping["6242"] = {"spell_id": 326855, "name": "Spellwarding"}
+enchant_mapping["6243"] = {"spell_id": 326911, "name": "Hysteria"}
+enchant_mapping["6244"] = {"spell_id": 326977, "name": "Unending Thirst"}
+enchant_mapping["6245"] = {"spell_id": 327082, "name": "Apocalypse"}
 
 # -----------------------------------------
 # LEGACY
 # Battle for Azeroth Engineering
 ## Eng. Belt Enhancements -- note this is by SPELL ID, since there's no item
-enchant_mapping["5953"] = {"spell_id": 255940,  "name": "Personal Space Amplifier"}
-enchant_mapping["5967"] = {"spell_id": 269123,  "name": "Miniaturized Plasma Shield"}
+enchant_mapping["5953"] = {"spell_id": 255940, "name": "Personal Space Amplifier"}
+enchant_mapping["5967"] = {"spell_id": 269123, "name": "Miniaturized Plasma Shield"}
 enchant_mapping["5952"] = {"spell_id": 255936, "name": "Holographic Horror Projector"}
 
 ## Eng. Belt Enhancements -- note this is by SPELL ID, since there's no item

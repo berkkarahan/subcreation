@@ -12,10 +12,20 @@ nyalotha_nox_notes_slugs["Il'gynoth, Corruption Reborn"] = "il-gynoth"
 nyalotha_nox_notes_slugs["Carapace of N'Zoth"] = "carapace"
 nyalotha_nox_notes_slugs["N'Zoth the Corruptor"] = "n-zoth"
 
-nyalotha_canonical_order = ["Wrathion", "Maut", "Prophet Skitra", "Dark Inquisitor Xanesh",
-                            "The Hivemind", "Shad'har the Insatiable", "Drest'agath",
-                            "Vexiona", "Ra-den the Despoiled", "Il'gynoth, Corruption Reborn",
-                            "Carapace of N'Zoth", "N'Zoth the Corruptor"]
+nyalotha_canonical_order = [
+    "Wrathion",
+    "Maut",
+    "Prophet Skitra",
+    "Dark Inquisitor Xanesh",
+    "The Hivemind",
+    "Shad'har the Insatiable",
+    "Drest'agath",
+    "Vexiona",
+    "Ra-den the Despoiled",
+    "Il'gynoth, Corruption Reborn",
+    "Carapace of N'Zoth",
+    "N'Zoth the Corruptor",
+]
 
 nyalotha_short_names = {}
 nyalotha_short_names["Wrathion"] = "Wrathion"
@@ -43,4 +53,3 @@ nyalotha_short_names["Ra-den the Despoiled"] = "Ra-den"
 nyalotha_short_names["Il'gynoth, Corruption Reborn"] = "Il'gy"
 nyalotha_short_names["Carapace of N'Zoth"] = "Cara"
 nyalotha_short_names["N'Zoth the Corruptor"] = "N'Zoth"
-

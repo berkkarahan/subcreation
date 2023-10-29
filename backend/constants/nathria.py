@@ -1,14 +1,15 @@
-
-nathria_canonical_order = ["Shriekwing",
-                                  "Huntsman Altimor",
-                                  "Sun King's Salvation",
-                                  "Artificer Xy'mox",
-                                  "Hungering Destroyer",
-                                  "Lady Inerva Darkvein",
-                                  "The Council of Blood",
-                                  "Sludgefist",
-                                  "Stone Legion Generals",
-                                  "Sire Denathrius"]
+nathria_canonical_order = [
+    "Shriekwing",
+    "Huntsman Altimor",
+    "Sun King's Salvation",
+    "Artificer Xy'mox",
+    "Hungering Destroyer",
+    "Lady Inerva Darkvein",
+    "The Council of Blood",
+    "Sludgefist",
+    "Stone Legion Generals",
+    "Sire Denathrius",
+]
 
 nathria_short_names = {}
 nathria_short_names["Shriekwing"] = "Shriekwing"

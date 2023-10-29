@@ -1,13 +1,14 @@
-aberrus_canonical_order = ["Kazzara, the Hellforged",
-                             "The Amalgamation Chamber",
-                             "The Forgotten Experiments",
-                             "Assault of the Zaqali",                        
-                             "Rashok, the Elder",
-                             "The Vigilant Steward, Zskarn",
-                             "Magmorax",
-                             "Echo of Neltharion",
-                             "Scalecommander Sarkareth"
-                             ]
+aberrus_canonical_order = [
+    "Kazzara, the Hellforged",
+    "The Amalgamation Chamber",
+    "The Forgotten Experiments",
+    "Assault of the Zaqali",
+    "Rashok, the Elder",
+    "The Vigilant Steward, Zskarn",
+    "Magmorax",
+    "Echo of Neltharion",
+    "Scalecommander Sarkareth",
+]
 
 aberrus_short_names = {}
 aberrus_short_names["Kazzara, the Hellforged"] = "Kazzara"

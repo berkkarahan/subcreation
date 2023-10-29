@@ -6,3 +6,4 @@ django-cors-headers==4.3.0
 # un-versioned
 slugify
 GoogleAppEngineCloudStorageClient
+black

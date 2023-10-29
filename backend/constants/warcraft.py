@@ -3,7 +3,47 @@ regions = ["tw", "kr", "eu", "us"]
 pvp_regions = ["us", "eu"]
 pvp_modes = ["solo-shuffle", "2v2", "3v3", "rbg"]
 
-specs = [u'Frost Mage', u'Balance Druid', u'Restoration Druid', u'Vengeance Demon Hunter', u'Windwalker Monk', u'Destruction Warlock', u'Holy Paladin', u'Arms Warrior', u'Brewmaster Monk', u'Retribution Paladin', u'Discipline Priest', u'Outlaw Rogue', u'Restoration Shaman', u'Blood Death Knight', u'Havoc Demon Hunter', u'Guardian Druid', u'Subtlety Rogue', u'Beast Mastery Hunter', u'Mistweaver Monk', u'Protection Paladin', u'Affliction Warlock', u'Enhancement Shaman', u'Shadow Priest', u'Survival Hunter', u'Assassination Rogue', u'Frost Death Knight', u'Elemental Shaman', u'Fury Warrior', u'Holy Priest', u'Arcane Mage', u'Unholy Death Knight', u'Feral Druid', u'Protection Warrior', u'Demonology Warlock', u'Marksmanship Hunter', u'Fire Mage', u'Devastation Evoker', u'Preservation Evoker', u'Augmentation Evoker']
+specs = [
+    "Frost Mage",
+    "Balance Druid",
+    "Restoration Druid",
+    "Vengeance Demon Hunter",
+    "Windwalker Monk",
+    "Destruction Warlock",
+    "Holy Paladin",
+    "Arms Warrior",
+    "Brewmaster Monk",
+    "Retribution Paladin",
+    "Discipline Priest",
+    "Outlaw Rogue",
+    "Restoration Shaman",
+    "Blood Death Knight",
+    "Havoc Demon Hunter",
+    "Guardian Druid",
+    "Subtlety Rogue",
+    "Beast Mastery Hunter",
+    "Mistweaver Monk",
+    "Protection Paladin",
+    "Affliction Warlock",
+    "Enhancement Shaman",
+    "Shadow Priest",
+    "Survival Hunter",
+    "Assassination Rogue",
+    "Frost Death Knight",
+    "Elemental Shaman",
+    "Fury Warrior",
+    "Holy Priest",
+    "Arcane Mage",
+    "Unholy Death Knight",
+    "Feral Druid",
+    "Protection Warrior",
+    "Demonology Warlock",
+    "Marksmanship Hunter",
+    "Fire Mage",
+    "Devastation Evoker",
+    "Preservation Evoker",
+    "Augmentation Evoker",
+]
 
 
 spec_short_names = {}
@@ -47,54 +87,59 @@ spec_short_names["Devastation Evoker"] = "Dev"
 spec_short_names["Preservation Evoker"] = "Pres"
 spec_short_names["Augmentation Evoker"] = "Aug"
 
-tanks =  [u'Vengeance Demon Hunter',
-          u'Brewmaster Monk',
-          u'Blood Death Knight',
-          u'Guardian Druid',
-          u'Protection Paladin',
-          u'Protection Warrior']
+tanks = [
+    "Vengeance Demon Hunter",
+    "Brewmaster Monk",
+    "Blood Death Knight",
+    "Guardian Druid",
+    "Protection Paladin",
+    "Protection Warrior",
+]
 
-healers = [u'Restoration Druid',
-           u'Holy Paladin',
-           u'Discipline Priest',
-           u'Restoration Shaman',
-           u'Mistweaver Monk',
-           u'Holy Priest',
-           u'Preservation Evoker']
+healers = [
+    "Restoration Druid",
+    "Holy Paladin",
+    "Discipline Priest",
+    "Restoration Shaman",
+    "Mistweaver Monk",
+    "Holy Priest",
+    "Preservation Evoker",
+]
 
-melee = [u'Windwalker Monk',
-         u'Arms Warrior',
-         u'Retribution Paladin',
-         u'Outlaw Rogue',
-         u'Havoc Demon Hunter',
-         u'Subtlety Rogue',
-         u'Enhancement Shaman',
-         u'Survival Hunter',
-         u'Assassination Rogue',
-         u'Frost Death Knight',
-         u'Fury Warrior',
-         u'Unholy Death Knight',
-         u'Feral Druid',]
+melee = [
+    "Windwalker Monk",
+    "Arms Warrior",
+    "Retribution Paladin",
+    "Outlaw Rogue",
+    "Havoc Demon Hunter",
+    "Subtlety Rogue",
+    "Enhancement Shaman",
+    "Survival Hunter",
+    "Assassination Rogue",
+    "Frost Death Knight",
+    "Fury Warrior",
+    "Unholy Death Knight",
+    "Feral Druid",
+]
 
-ranged = [u'Frost Mage',
-          u'Balance Druid',
-          u'Destruction Warlock',
-          u'Beast Mastery Hunter',
-          u'Affliction Warlock',
-          u'Shadow Priest',
-          u'Elemental Shaman',
-          u'Arcane Mage',
-          u'Demonology Warlock',
-          u'Marksmanship Hunter',
-          u'Fire Mage',
-          u'Devastation Evoker',
-          u'Augmentation Evoker']
+ranged = [
+    "Frost Mage",
+    "Balance Druid",
+    "Destruction Warlock",
+    "Beast Mastery Hunter",
+    "Affliction Warlock",
+    "Shadow Priest",
+    "Elemental Shaman",
+    "Arcane Mage",
+    "Demonology Warlock",
+    "Marksmanship Hunter",
+    "Fire Mage",
+    "Devastation Evoker",
+    "Augmentation Evoker",
+]
 
 role_titles = {}
 role_titles[0] = "Tanks"
 role_titles[1] = "Healers"
 role_titles[2] = "Melee"
 role_titles[3] = "Ranged"
-
-
-

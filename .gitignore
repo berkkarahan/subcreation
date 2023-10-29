@@ -7,3 +7,4 @@ auth.py
 env/
 venv/
 .gcloudignore
+.idea

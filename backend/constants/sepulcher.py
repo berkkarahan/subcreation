@@ -1,14 +1,16 @@
-sepulcher_canonical_order = ["Vigilant Guardian",
-                             "Dausegne, the Fallen Oracle",
-                             "Artificer Xy'mox",
-                             "Prototype Pantheon",                        
-                             "Skolex, the Insatiable Ravener",
-                             "Halondrus the Reclaimer",
-                             "Lihuvim, Principal Architect",
-                             "Anduin Wrynn",
-                             "Lords of Dread",
-                             "Rygelon",
-                             "The Jailer"]
+sepulcher_canonical_order = [
+    "Vigilant Guardian",
+    "Dausegne, the Fallen Oracle",
+    "Artificer Xy'mox",
+    "Prototype Pantheon",
+    "Skolex, the Insatiable Ravener",
+    "Halondrus the Reclaimer",
+    "Lihuvim, Principal Architect",
+    "Anduin Wrynn",
+    "Lords of Dread",
+    "Rygelon",
+    "The Jailer",
+]
 
 sepulcher_short_names = {}
 sepulcher_short_names["Vigilant Guardian"] = "Guardian"

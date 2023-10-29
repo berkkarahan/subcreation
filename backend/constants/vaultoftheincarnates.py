@@ -1,12 +1,13 @@
-vault_canonical_order = ["Eranog",
-                             "Terros",
-                             "The Primal Council",
-                             "Sennarth, The Cold Breath",                        
-                             "Dathea, Ascended",
-                             "Kurog Grimtotem",
-                             "Broodkeeper Diurna",
-                             "Raszageth the Storm-Eater",
-                             ]
+vault_canonical_order = [
+    "Eranog",
+    "Terros",
+    "The Primal Council",
+    "Sennarth, The Cold Breath",
+    "Dathea, Ascended",
+    "Kurog Grimtotem",
+    "Broodkeeper Diurna",
+    "Raszageth the Storm-Eater",
+]
 
 vault_short_names = {}
 vault_short_names["Eranog"] = "Eranog"
