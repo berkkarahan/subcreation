@@ -17,6 +17,28 @@ class ManagerMixin:
     objects = models.Manager()
 
 
+class SubcreationConfig(ManagerMixin, models.Model):
+    last_updated = NULL_DATETIME_FIELD
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        pass
+
+    @classmethod
+    def load(cls) -> "SubcreationConfig":
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    @classmethod
+    def set_last_updated(cls, value):
+        obj = cls.load()
+        obj.last_updated = value
+        obj.save(update_fields=["last_updated"])
+
+
 class Run(ManagerMixin, models.Model):
     keystone_run_id = models.CharField(unique=True)
     roster = NULL_CHAR_FIELD

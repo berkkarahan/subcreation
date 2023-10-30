@@ -1,4 +1,5 @@
 # numpy replacements
+from functools import lru_cache
 
 
 def average(data):
@@ -168,3 +169,116 @@ def ckmeans(data, n_clusters):
             cluster_right = cluster_left - 1
 
     return list(reversed(clusters))
+
+
+@lru_cache
+def t_interval(n):
+    t_table = {}
+    t_table[1] = 12.71
+    t_table[2] = 4.303
+    t_table[3] = 3.182
+    t_table[4] = 2.776
+    t_table[5] = 2.571
+    t_table[6] = 2.447
+    t_table[7] = 2.365
+    t_table[8] = 2.306
+    t_table[9] = 2.262
+    t_table[10] = 2.228
+    t_table[11] = 2.201
+    t_table[12] = 2.179
+    t_table[13] = 2.16
+    t_table[14] = 2.145
+    t_table[15] = 2.131
+    t_table[16] = 2.12
+    t_table[17] = 2.11
+    t_table[18] = 2.101
+    t_table[19] = 2.093
+    t_table[20] = 2.086
+    t_table[21] = 2.08
+    t_table[22] = 2.074
+    t_table[23] = 2.069
+    t_table[24] = 2.064
+    t_table[25] = 2.06
+    t_table[26] = 2.056
+    t_table[27] = 2.052
+    t_table[28] = 2.048
+    t_table[29] = 2.045
+    t_table[30] = 2.042
+    t_table[40] = 2.021
+    t_table[50] = 2.009
+    t_table[60] = 2
+    t_table[80] = 1.99
+    t_table[100] = 1.984
+    t_table[120] = 1.98
+    q = 1.96
+
+    for k, v in t_table.iteritems():
+        if n >= k:
+            q = v
+
+    return (-q, q)
+
+
+def construct_analysis(counts, sort_by="lb_ci", limit=500):
+    overall = []
+    all_data = []
+    for name, runs in counts.iteritems():
+        for r in runs:
+            all_data += [r.score]
+
+    master_stddev = 1
+    if len(all_data) >= 2:
+        master_stddev = std(all_data, ddof=1)
+
+    for name, runs in counts.iteritems():
+        data = []
+        max_found = 0
+        max_id = ""
+        max_level = 0
+        all_runs = []
+        for r in runs:
+            data += [r.score]
+            all_runs += [[r.score, r.mythic_level, r.keystone_run_id]]
+            if r.score >= max_found:
+                max_found = r.score
+                max_id = r.keystone_run_id
+                max_level = r.mythic_level
+        n = len(data)
+        if n == 0:
+            overall += [[name, 0, 0, n, [0, 0], [0, "", 0], []]]
+            continue
+        mean = average(data)
+        if n <= 1:
+            overall += [
+                [name, mean, 0, n, [0, 0], [max_found, max_id, max_level], all_runs]
+            ]
+            continue
+
+        # filter to top 500
+        sorted_data = sorted(data, reverse=True)
+        sorted_data = sorted_data[:limit]
+
+        stddev = std(sorted_data, ddof=1)
+        sorted_mean = average(sorted_data)
+        sorted_n = len(sorted_data)
+        t_bounds = t_interval(n)
+        ci = [
+            sorted_mean + critval * master_stddev / sqrt(sorted_n)
+            for critval in t_bounds
+        ]
+
+        #        stddev = std(data, ddof=1)
+        #        t_bounds = t_interval(n)
+        #        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
+        maxi = [max_found, max_id, max_level]
+        all_runs = sorted(all_runs, key=lambda x: x[0], reverse=True)
+        # restrict the mean just to the runs actually used for lb_ci
+        overall += [[name, sorted_mean, stddev, n, ci, maxi, all_runs]]
+
+    overall = sorted(overall, key=lambda x: x[4][0], reverse=True)
+    if sort_by == "max":
+        overall = sorted(overall, key=lambda x: x[5][0], reverse=True)
+    if sort_by == "n":
+        overall = sorted(overall, key=lambda x: x[3], reverse=True)
+
+    return overall

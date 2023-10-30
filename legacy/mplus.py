@@ -236,470 +236,470 @@ def create_package(name):
 
 
 # generate a dungeon tier list
-def gen_dungeon_tier_list(dungeons_report):
-
-    scores = []
-
-    for k in dungeons_report:
-        scores += [float(k[0])]
-
-    if len(dungeons_report) < 6:
-        # for some reason we're seeing fewer than 6 dungeons
-        # might be early in the week, etc.
-        return gen_dungeon_tier_list_small(dungeons_report)
-        
-    buckets = ckmeans(scores, 6)
-   
-    added = []
-
-    tiers = {}
-    tm = {}
-    tm[5] = "S"
-    tm[4] = "A"
-    tm[3] = "B"
-    tm[2] = "C"
-    tm[1] = "D"
-    tm[0] = "F"
-
-    for i in range(0, 6):
-        tiers[tm[i]] = []
+# def gen_dungeon_tier_list(dungeons_report):
+#
+#     scores = []
+#
+#     for k in dungeons_report:
+#         scores += [float(k[0])]
+#
+#     if len(dungeons_report) < 6:
+#         # for some reason we're seeing fewer than 6 dungeons
+#         # might be early in the week, etc.
+#         return gen_dungeon_tier_list_small(dungeons_report)
+#
+#     buckets = ckmeans(scores, 6)
+#
+#     added = []
+#
+#     tiers = {}
+#     tm = {}
+#     tm[5] = "S"
+#     tm[4] = "A"
+#     tm[3] = "B"
+#     tm[2] = "C"
+#     tm[1] = "D"
+#     tm[0] = "F"
+#
+#     for i in range(0, 6):
+#         tiers[tm[i]] = []
+#
+#     for i in range(0, 6):
+#         for k in dungeons_report:
+#             if float(k[0]) in buckets[i]:
+#                 if k not in added:
+#                     if tm[i] not in tiers:
+#                         tiers[tm[i]] = []
+#                     tiers[tm[i]] += [k]
+#                     added += [k]
+#
+#
+#     # add stragglers to last tier
+#     for k in dungeons_report:
+#         if k not in added:
+#             if tm[0] not in tiers:
+#                 tiers[tm[0]] = []
+#             tiers[tm[0]] += [k]
+#             added += [k]
+#
+#     return render_dungeon_tier_list(tiers, tm)
+#
+# def render_dungeon_tier_list(tiers, tm):
+#     dtl = {}
+#     dtl["S"] = ""
+#     dtl["A"] = ""
+#     dtl["B"] = ""
+#     dtl["C"] = ""
+#     dtl["D"] = ""
+#     dtl["F"] = ""
+#
+#     global dungeon_short_names
+#     template = env.get_template("dungeon-mini-icon.html")
+#
+#     for i in range(0, 6):
+#         for k in tiers[tm[i]]:
+#             rendered = template.render(dungeon_slug = k[4],
+#                                        dungeon_name = k[1],
+#                                        dungeon_short_name = dungeon_short_names[k[1]])
+#             dtl[tm[i]] += rendered
+#
+#     return dtl
     
-    for i in range(0, 6):
-        for k in dungeons_report:
-            if float(k[0]) in buckets[i]:
-                if k not in added:
-                    if tm[i] not in tiers:
-                        tiers[tm[i]] = []
-                    tiers[tm[i]] += [k]
-                    added += [k]
 
-
-    # add stragglers to last tier
-    for k in dungeons_report:
-        if k not in added:
-            if tm[0] not in tiers:
-                tiers[tm[0]] = []
-            tiers[tm[0]] += [k]
-            added += [k]
-
-    return render_dungeon_tier_list(tiers, tm)
-
-def render_dungeon_tier_list(tiers, tm):
-    dtl = {}
-    dtl["S"] = ""
-    dtl["A"] = ""
-    dtl["B"] = ""
-    dtl["C"] = ""
-    dtl["D"] = ""
-    dtl["F"] = ""
-
-    global dungeon_short_names
-    template = env.get_template("dungeon-mini-icon.html")
-    
-    for i in range(0, 6):
-        for k in tiers[tm[i]]:
-            rendered = template.render(dungeon_slug = k[4],
-                                       dungeon_name = k[1],
-                                       dungeon_short_name = dungeon_short_names[k[1]])
-            dtl[tm[i]] += rendered
-    
-    return dtl
-    
-
-def icon_spec(dname, prefix="", size=56):
-    dslug = slugify.slugify(str(dname))
-    return '<a href="%s.html"><img src="images/spec-icons/%s.jpg" width="%d" height="%d" title="%s" alt="%s" /><br/>%s</a>' % (prefix+dslug, dslug, size, size, dname, dname, dname)
+# def icon_spec(dname, prefix="", size=56):
+#     dslug = slugify.slugify(str(dname))
+#     return '<a href="%s.html"><img src="images/spec-icons/%s.jpg" width="%d" height="%d" title="%s" alt="%s" /><br/>%s</a>' % (prefix+dslug, dslug, size, size, dname, dname, dname)
 
 
 # generate a specs tier list
-def gen_spec_tier_list(specs_report, role, prefix="", api=False):
-    global role_titles
-
-    scores = []
-    for i in range(0, 4):
-        for k in specs_report[role_titles[i]]:
-            if int(k[3]) < 20: # ignore specs with fewer than 20 runs as they would skew the buckets; we'll add them to F later
-                continue
-            scores += [float(k[0])]
-
-    if len(scores) < 6: # relax the fewer than 20 rule (early scans early in season)
-        scores = []
-        for i in range(0, 4):
-            for k in specs_report[role_titles[i]]:
-                scores += [float(k[0])]
-        
-    buckets = ckmeans(scores, 6)
-            
-    added = []
-
-    tiers = {}
-    tm = {}
-    tm[5] = "S"
-    tm[4] = "A"
-    tm[3] = "B"
-    tm[2] = "C"
-    tm[1] = "D"
-    tm[0] = "F"
-
-    for i in range(0, 6):
-        tiers[tm[i]] = []
-
-
-    for i in range(0, 6):
-        for k in specs_report[role]:
-            if len(buckets) > i:
-                if float(k[0]) in buckets[i]:
-                    if k not in added:
-                        tiers[tm[i]] += [k]
-                        added += [k]
-
-
-    # add stragglers to last tier
-    for k in specs_report[role]:
-        if k not in added:
-            tiers[tm[0]] += [k]
-            added += [k]
-
-    if api==False:
-        dtl = {}
-        dtl["S"] = ""
-        dtl["A"] = ""
-        dtl["B"] = ""
-        dtl["C"] = ""
-        dtl["D"] = ""
-        dtl["F"] = ""
-
-
-        global spec_short_names
-        template = env.get_template("spec-mini-icon.html")
-        for i in range(0, 6):
-            for k in tiers[tm[i]]:
-                rendered = template.render(spec_name = k[1],
-                                       spec_short_name = spec_short_names[k[1]],
-                                       spec_slug = slugify.slugify(str(k[1])))
-                dtl[tm[i]] += rendered
-    
-        return dtl
-    else:
-        dtl = {}
-        dtl["S"] = []
-        dtl["A"] = []
-        dtl["B"] = []
-        dtl["C"] = []
-        dtl["D"] = []
-        dtl["F"] = []
-
-        for i in range(0, 6):
-            for k in tiers[tm[i]]:
-                dtl[tm[i]] += [k[1]]
-        
-        return dtl
-
-
-
-
-def icon_affix(dname, size=28):
-    dname = affix_rotation_affixes(dname)
-    dslug = slugify.slugify(str(dname))
-    
-    def miniaffix(aname, aslug, size):
-        return '<img src="images/affixes/%s.jpg" class="zoom-icon" width="%d" height="%d" title="%s" alt="%s" />' % (aslug, size, size, aname, aname)
-
-
-    affixen = dname.split(", ")
-    output = []
-
-    
-    for af in affixen:
-        afname = af
-        afslug = slugify.slugify(af)
-        output += [miniaffix(afname, afslug, size=size)]
-
-    output_string = output[0]
-    output_string += output[1]
-    output_string += output[2]
-#   R.I.P. Seasonal Affix  
-#    output_string += output[3]
-       
-    return output_string
-
-
-def render_affix_tier_list_api(tiers, tm):
-    dtl = {}
-    dtl["S"] = []
-    dtl["A"] = []
-    dtl["B"] = []
-    dtl["C"] = []
-    dtl["D"] = []
-    dtl["F"] = []
-
-    for i in range(0, 6):
-        for k in tiers[tm[i]]:
-            dtl[tm[i]] += [k[1]]
-    
-    return dtl
-
-
-def render_affix_tier_list(tiers, tm, api=False):
-    if api==True:
-        return render_affix_tier_list_api(tiers, tm)
-    
-    dtl = {}
-    dtl["S"] = ""
-    dtl["A"] = ""
-    dtl["B"] = ""
-    dtl["C"] = ""
-    dtl["D"] = ""
-    dtl["F"] = ""
-
-    template = env.get_template('affix-mini-icon.html')
-    template_all = env.get_template('affixes-mini-icons.html')
-    for i in range(0, 6):
-        for k in tiers[tm[i]]:
-            affixen = k[1].split(", ")
-            current_set = current_affixes()
-            this_set = k[1]
-            affix_set = ""
-            
-            slug_link = slugify.slugify(k[1])
-            if current_set in this_set:
-                slug_link = "index"
-
-            
-            for each_affix in affixen:
-                rendered = template.render(affix_slug = slugify.slugify(each_affix),
-                                           affix_name = each_affix)
-                affix_set += rendered
+# def gen_spec_tier_list(specs_report, role, prefix="", api=False):
+#     global role_titles
+#
+#     scores = []
+#     for i in range(0, 4):
+#         for k in specs_report[role_titles[i]]:
+#             if int(k[3]) < 20: # ignore specs with fewer than 20 runs as they would skew the buckets; we'll add them to F later
+#                 continue
+#             scores += [float(k[0])]
+#
+#     if len(scores) < 6: # relax the fewer than 20 rule (early scans early in season)
+#         scores = []
+#         for i in range(0, 4):
+#             for k in specs_report[role_titles[i]]:
+#                 scores += [float(k[0])]
+#
+#     buckets = ckmeans(scores, 6)
+#
+#     added = []
+#
+#     tiers = {}
+#     tm = {}
+#     tm[5] = "S"
+#     tm[4] = "A"
+#     tm[3] = "B"
+#     tm[2] = "C"
+#     tm[1] = "D"
+#     tm[0] = "F"
+#
+#     for i in range(0, 6):
+#         tiers[tm[i]] = []
+#
+#
+#     for i in range(0, 6):
+#         for k in specs_report[role]:
+#             if len(buckets) > i:
+#                 if float(k[0]) in buckets[i]:
+#                     if k not in added:
+#                         tiers[tm[i]] += [k]
+#                         added += [k]
+#
+#
+#     # add stragglers to last tier
+#     for k in specs_report[role]:
+#         if k not in added:
+#             tiers[tm[0]] += [k]
+#             added += [k]
+#
+#     if api==False:
+#         dtl = {}
+#         dtl["S"] = ""
+#         dtl["A"] = ""
+#         dtl["B"] = ""
+#         dtl["C"] = ""
+#         dtl["D"] = ""
+#         dtl["F"] = ""
+#
+#
+#         global spec_short_names
+#         template = env.get_template("spec-mini-icon.html")
+#         for i in range(0, 6):
+#             for k in tiers[tm[i]]:
+#                 rendered = template.render(spec_name = k[1],
+#                                        spec_short_name = spec_short_names[k[1]],
+#                                        spec_slug = slugify.slugify(str(k[1])))
+#                 dtl[tm[i]] += rendered
+#
+#         return dtl
+#     else:
+#         dtl = {}
+#         dtl["S"] = []
+#         dtl["A"] = []
+#         dtl["B"] = []
+#         dtl["C"] = []
+#         dtl["D"] = []
+#         dtl["F"] = []
+#
+#         for i in range(0, 6):
+#             for k in tiers[tm[i]]:
+#                 dtl[tm[i]] += [k[1]]
+#
+#         return dtl
 
 
 
-            dtl[tm[i]] += template_all.render(affix_link = slug_link,
-                                              affix_set = affix_set)
-    
-    return dtl
+
+# def icon_affix(dname, size=28):
+#     dname = affix_rotation_affixes(dname)
+#     dslug = slugify.slugify(str(dname))
+#
+#     def miniaffix(aname, aslug, size):
+#         return '<img src="images/affixes/%s.jpg" class="zoom-icon" width="%d" height="%d" title="%s" alt="%s" />' % (aslug, size, size, aname, aname)
+#
+#
+#     affixen = dname.split(", ")
+#     output = []
+#
+#
+#     for af in affixen:
+#         afname = af
+#         afslug = slugify.slugify(af)
+#         output += [miniaffix(afname, afslug, size=size)]
+#
+#     output_string = output[0]
+#     output_string += output[1]
+#     output_string += output[2]
+# #   R.I.P. Seasonal Affix
+# #    output_string += output[3]
+#
+#     return output_string
+
+
+# def render_affix_tier_list_api(tiers, tm):
+#     dtl = {}
+#     dtl["S"] = []
+#     dtl["A"] = []
+#     dtl["B"] = []
+#     dtl["C"] = []
+#     dtl["D"] = []
+#     dtl["F"] = []
+#
+#     for i in range(0, 6):
+#         for k in tiers[tm[i]]:
+#             dtl[tm[i]] += [k[1]]
+#
+#     return dtl
+#
+#
+# def render_affix_tier_list(tiers, tm, api=False):
+#     if api==True:
+#         return render_affix_tier_list_api(tiers, tm)
+#
+#     dtl = {}
+#     dtl["S"] = ""
+#     dtl["A"] = ""
+#     dtl["B"] = ""
+#     dtl["C"] = ""
+#     dtl["D"] = ""
+#     dtl["F"] = ""
+#
+#     template = env.get_template('affix-mini-icon.html')
+#     template_all = env.get_template('affixes-mini-icons.html')
+#     for i in range(0, 6):
+#         for k in tiers[tm[i]]:
+#             affixen = k[1].split(", ")
+#             current_set = current_affixes()
+#             this_set = k[1]
+#             affix_set = ""
+#
+#             slug_link = slugify.slugify(k[1])
+#             if current_set in this_set:
+#                 slug_link = "index"
+#
+#
+#             for each_affix in affixen:
+#                 rendered = template.render(affix_slug = slugify.slugify(each_affix),
+#                                            affix_name = each_affix)
+#                 affix_set += rendered
+#
+#
+#
+#             dtl[tm[i]] += template_all.render(affix_link = slug_link,
+#                                               affix_set = affix_set)
+#
+#     return dtl
 
 # todo: affix tier list (how do affixes compare with each other)
 # have this show on all affixes?
 # new: generate a dungeon tier list
-def gen_affix_tier_list(affixes_report, api=False):
-    if len(affixes_report) < 6:
-        return gen_affix_tier_list_small(affixes_report, api=api)
-
-    # ckmeans
-    scores = []
-    for k in affixes_report:
-        scores += [float(k[0])]
-
-    buckets = ckmeans(scores, 6)
-    added = []
-
-    tiers = {}
-    tm = {}
-    tm[5] = "S"
-    tm[4] = "A"
-    tm[3] = "B"
-    tm[2] = "C"
-    tm[1] = "D"
-    tm[0] = "F"
-
-
-    for i in range(0, 6):
-        tiers[tm[i]] = []
-    
-    for i in range(0, 6):
-        for k in affixes_report:
-            if float(k[0]) in buckets[i]:
-                if k not in added:
-                    if tm[i] not in tiers:
-                        tiers[tm[i]] = []
-                    tiers[tm[i]] += [k]
-                    added += [k]
-
-        # add stragglers to last tier
-    for k in affixes_report:
-        if k not in added:
-            if tm[0] not in tiers:
-                tiers[tm[0]] = []
-            tiers[tm[0]] += [k]
-            added += [k]
-
-    return render_affix_tier_list(tiers, tm, api=api)    
-    
-# use this if there are fewer than 6 affixes scanned
-# since we can't cluster into 6 with uh, fewer than 6
-def gen_affix_tier_list_small(affixes_report, api=False):
-   
-    # super simple tier list -- figure out the max and the min, and then bucket tiers
-    cimax = -1
-    cimin = -1
-
-    for k in affixes_report:       
-        if cimax == -1:
-            cimax = float(k[0])
-        if cimin == -1:
-            cimin = float(k[0])
-        if float(k[0]) < cimin:
-            cimin = float(k[0])
-        if float(k[0]) > cimax:
-            cimax = float(k[0])
-
-    cirange = cimax - cimin
-    cistep = cirange / 6
-
-    added = []
-
-    tiers = {}
-    tm = {}
-    tm[0] = "S"
-    tm[1] = "A"
-    tm[2] = "B"
-    tm[3] = "C"
-    tm[4] = "D"
-    tm[5] = "F"
-
-    for i in range(0, 6):
-        tiers[tm[i]] = []
-    
-    for i in range(0, 6):
-        for k in affixes_report:
-            if float(k[0]) >= (cimax-cistep*(i+1)):
-                if k not in added:
-                    if tm[i] not in tiers:
-                        tiers[tm[i]] = []
-                    tiers[tm[i]] += [k]
-                    added += [k]
-
-
-    # add stragglers to last tier
-    for k in affixes_report:
-        if k not in added:
-            if tm[5] not in tiers:
-                tiers[tm[5]] = []
-            tiers[tm[5]] += [k]
-            added += [k]
-    
-    return render_affix_tier_list(tiers, tm, api=api)
+# def gen_affix_tier_list(affixes_report, api=False):
+#     if len(affixes_report) < 6:
+#         return gen_affix_tier_list_small(affixes_report, api=api)
+#
+#     # ckmeans
+#     scores = []
+#     for k in affixes_report:
+#         scores += [float(k[0])]
+#
+#     buckets = ckmeans(scores, 6)
+#     added = []
+#
+#     tiers = {}
+#     tm = {}
+#     tm[5] = "S"
+#     tm[4] = "A"
+#     tm[3] = "B"
+#     tm[2] = "C"
+#     tm[1] = "D"
+#     tm[0] = "F"
+#
+#
+#     for i in range(0, 6):
+#         tiers[tm[i]] = []
+#
+#     for i in range(0, 6):
+#         for k in affixes_report:
+#             if float(k[0]) in buckets[i]:
+#                 if k not in added:
+#                     if tm[i] not in tiers:
+#                         tiers[tm[i]] = []
+#                     tiers[tm[i]] += [k]
+#                     added += [k]
+#
+#         # add stragglers to last tier
+#     for k in affixes_report:
+#         if k not in added:
+#             if tm[0] not in tiers:
+#                 tiers[tm[0]] = []
+#             tiers[tm[0]] += [k]
+#             added += [k]
+#
+#     return render_affix_tier_list(tiers, tm, api=api)
+#
+# # use this if there are fewer than 6 affixes scanned
+# # since we can't cluster into 6 with uh, fewer than 6
+# def gen_affix_tier_list_small(affixes_report, api=False):
+#
+#     # super simple tier list -- figure out the max and the min, and then bucket tiers
+#     cimax = -1
+#     cimin = -1
+#
+#     for k in affixes_report:
+#         if cimax == -1:
+#             cimax = float(k[0])
+#         if cimin == -1:
+#             cimin = float(k[0])
+#         if float(k[0]) < cimin:
+#             cimin = float(k[0])
+#         if float(k[0]) > cimax:
+#             cimax = float(k[0])
+#
+#     cirange = cimax - cimin
+#     cistep = cirange / 6
+#
+#     added = []
+#
+#     tiers = {}
+#     tm = {}
+#     tm[0] = "S"
+#     tm[1] = "A"
+#     tm[2] = "B"
+#     tm[3] = "C"
+#     tm[4] = "D"
+#     tm[5] = "F"
+#
+#     for i in range(0, 6):
+#         tiers[tm[i]] = []
+#
+#     for i in range(0, 6):
+#         for k in affixes_report:
+#             if float(k[0]) >= (cimax-cistep*(i+1)):
+#                 if k not in added:
+#                     if tm[i] not in tiers:
+#                         tiers[tm[i]] = []
+#                     tiers[tm[i]] += [k]
+#                     added += [k]
+#
+#
+#     # add stragglers to last tier
+#     for k in affixes_report:
+#         if k not in added:
+#             if tm[5] not in tiers:
+#                 tiers[tm[5]] = []
+#             tiers[tm[5]] += [k]
+#             added += [k]
+#
+#     return render_affix_tier_list(tiers, tm, api=api)
 
 # use this if there are fewer than 6 dungeons scanned
 # since we can't cluster into 6 with uh, fewer than 6
-def gen_dungeon_tier_list_small(dungeons_report):
-   
-    # super simple tier list -- figure out the max and the min, and then bucket tiers
-    cimax = -1
-    cimin = -1
-
-    for k in dungeons_report:       
-        if cimax == -1:
-            cimax = float(k[0])
-        if cimin == -1:
-            cimin = float(k[0])
-        if float(k[0]) < cimin:
-            cimin = float(k[0])
-        if float(k[0]) > cimax:
-            cimax = float(k[0])
-
-    cirange = cimax - cimin
-    cistep = cirange / 6
-
-    added = []
-
-    tiers = {}
-    tm = {}
-    tm[0] = "S"
-    tm[1] = "A"
-    tm[2] = "B"
-    tm[3] = "C"
-    tm[4] = "D"
-    tm[5] = "F"
-
-    for i in range(0, 6):
-        tiers[tm[i]] = []
-    
-    for i in range(0, 6):
-        for k in dungeons_report:
-            if float(k[0]) >= (cimax-cistep*(i+1)):
-                if k not in added:
-                    if tm[i] not in tiers:
-                        tiers[tm[i]] = []
-                    tiers[tm[i]] += [k]
-                    added += [k]
-
-
-    # add stragglers to last tier
-    for k in dungeons_report:
-        if k not in added:
-            if tm[5] not in tiers:
-                tiers[tm[5]] = []
-            tiers[tm[5]] += [k]
-            added += [k]
-    
-    return render_dungeon_tier_list(tiers, tm)
+# def gen_dungeon_tier_list_small(dungeons_report):
+#
+#     # super simple tier list -- figure out the max and the min, and then bucket tiers
+#     cimax = -1
+#     cimin = -1
+#
+#     for k in dungeons_report:
+#         if cimax == -1:
+#             cimax = float(k[0])
+#         if cimin == -1:
+#             cimin = float(k[0])
+#         if float(k[0]) < cimin:
+#             cimin = float(k[0])
+#         if float(k[0]) > cimax:
+#             cimax = float(k[0])
+#
+#     cirange = cimax - cimin
+#     cistep = cirange / 6
+#
+#     added = []
+#
+#     tiers = {}
+#     tm = {}
+#     tm[0] = "S"
+#     tm[1] = "A"
+#     tm[2] = "B"
+#     tm[3] = "C"
+#     tm[4] = "D"
+#     tm[5] = "F"
+#
+#     for i in range(0, 6):
+#         tiers[tm[i]] = []
+#
+#     for i in range(0, 6):
+#         for k in dungeons_report:
+#             if float(k[0]) >= (cimax-cistep*(i+1)):
+#                 if k not in added:
+#                     if tm[i] not in tiers:
+#                         tiers[tm[i]] = []
+#                     tiers[tm[i]] += [k]
+#                     added += [k]
+#
+#
+#     # add stragglers to last tier
+#     for k in dungeons_report:
+#         if k not in added:
+#             if tm[5] not in tiers:
+#                 tiers[tm[5]] = []
+#             tiers[tm[5]] += [k]
+#             added += [k]
+#
+#     return render_dungeon_tier_list(tiers, tm)
 
 
 # for background on the analytical approach of using the lower bound of a confidence interval:
 # https://www.evanmiller.org/how-not-to-sort-by-average-rating.html
 # https://www.evanmiller.org/ranking-items-with-star-ratings.html 
 
-def construct_analysis(counts, sort_by="lb_ci", limit=500):
-    overall = []
-    all_data = []
-    for name, runs in counts.iteritems():
-        for r in runs:
-            all_data += [r.score]
-
-    master_stddev = 1
-    if len(all_data) >= 2:
-        master_stddev = std(all_data, ddof=1)
-    
-       
-    for name, runs in counts.iteritems():
-        data = []
-        max_found = 0 
-        max_id = ""
-        max_level = 0
-        all_runs = []
-        for r in runs:
-            data += [r.score]
-            all_runs += [[r.score, r.mythic_level, r.keystone_run_id]]
-            if r.score >= max_found:
-                max_found = r.score
-                max_id = r.keystone_run_id
-                max_level = r.mythic_level
-        n = len(data)
-        if n == 0:
-            overall += [[name, 0, 0, n, [0, 0], [0, "", 0], []]]
-            continue
-        mean = average(data)
-        if n <= 1:
-            overall += [[name, mean, 0, n, [0, 0], [max_found, max_id, max_level], all_runs]]
-            continue
-
-
-        # filter to top 500
-        sorted_data = sorted(data, reverse=True)
-        sorted_data = sorted_data[:limit]
-                
-        stddev = std(sorted_data, ddof=1)
-        sorted_mean = average(sorted_data)
-        sorted_n = len(sorted_data)
-        t_bounds = t_interval(n)
-        ci = [sorted_mean + critval * master_stddev / sqrt(sorted_n) for critval in t_bounds]
-        
-#        stddev = std(data, ddof=1)
-#        t_bounds = t_interval(n)
-#        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
-        maxi = [max_found, max_id, max_level]
-        all_runs = sorted(all_runs, key=lambda x: x[0], reverse=True)
-        # restrict the mean just to the runs actually used for lb_ci
-        overall += [[name, sorted_mean, stddev, n, ci, maxi, all_runs]]
-
-    overall = sorted(overall, key=lambda x: x[4][0], reverse=True)        
-    if sort_by == "max":
-        overall = sorted(overall, key=lambda x: x[5][0], reverse=True)
-    if sort_by == "n":
-        overall = sorted(overall, key=lambda x: x[3], reverse=True)          
-    
-    return overall
+# def construct_analysis(counts, sort_by="lb_ci", limit=500):
+#     overall = []
+#     all_data = []
+#     for name, runs in counts.iteritems():
+#         for r in runs:
+#             all_data += [r.score]
+#
+#     master_stddev = 1
+#     if len(all_data) >= 2:
+#         master_stddev = std(all_data, ddof=1)
+#
+#
+#     for name, runs in counts.iteritems():
+#         data = []
+#         max_found = 0
+#         max_id = ""
+#         max_level = 0
+#         all_runs = []
+#         for r in runs:
+#             data += [r.score]
+#             all_runs += [[r.score, r.mythic_level, r.keystone_run_id]]
+#             if r.score >= max_found:
+#                 max_found = r.score
+#                 max_id = r.keystone_run_id
+#                 max_level = r.mythic_level
+#         n = len(data)
+#         if n == 0:
+#             overall += [[name, 0, 0, n, [0, 0], [0, "", 0], []]]
+#             continue
+#         mean = average(data)
+#         if n <= 1:
+#             overall += [[name, mean, 0, n, [0, 0], [max_found, max_id, max_level], all_runs]]
+#             continue
+#
+#
+#         # filter to top 500
+#         sorted_data = sorted(data, reverse=True)
+#         sorted_data = sorted_data[:limit]
+#
+#         stddev = std(sorted_data, ddof=1)
+#         sorted_mean = average(sorted_data)
+#         sorted_n = len(sorted_data)
+#         t_bounds = t_interval(n)
+#         ci = [sorted_mean + critval * master_stddev / sqrt(sorted_n) for critval in t_bounds]
+#
+# #        stddev = std(data, ddof=1)
+# #        t_bounds = t_interval(n)
+# #        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
+#         maxi = [max_found, max_id, max_level]
+#         all_runs = sorted(all_runs, key=lambda x: x[0], reverse=True)
+#         # restrict the mean just to the runs actually used for lb_ci
+#         overall += [[name, sorted_mean, stddev, n, ci, maxi, all_runs]]
+#
+#     overall = sorted(overall, key=lambda x: x[4][0], reverse=True)
+#     if sort_by == "max":
+#         overall = sorted(overall, key=lambda x: x[5][0], reverse=True)
+#     if sort_by == "n":
+#         overall = sorted(overall, key=lambda x: x[3], reverse=True)
+#
+#     return overall
 
 # construct_analysis for raid, which has per encounter lists of key metrics for a given spec
 def construct_analysis_raid(spec_counts):
@@ -1053,82 +1053,82 @@ def gen_pvp_spec_tier_list(specs_report, role, mode, api=False, prefix=""):
 ## getting data out and into counts
 
 # generate counts -- this is used by construct_analysis to do the statistical analysis
-def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
-    global dungeons, regions, specs, last_updated, RIO_MAX_PAGE
-
-    affixes_to_get = [affixes]
-    if affixes == "All Affixes":
-        affixes_to_get = known_affixes()
-
-    dungeon_counts = {}
-    spec_counts = {}
-    set_counts = {}
-    th_counts = {} # tank healer
-    dps_counts = {} # just dps
-    affix_counts = {} # compare affixes to each other (
-    dung_spec_counts = {} # spec per dungeons
-
-    for s in specs:
-        spec_counts[s] = []
-    
-    for d in dungeons:
-        dung_spec_counts[d] = {}        
-        for s in specs:
-            dung_spec_counts[d][s] = []
-
-    for affix in affixes_to_get:
-        affixes_slug = slugify.slugify(str(affix))
-        for region in regions:
-            for dung in dungeons:
-                for page in range(0, RIO_MAX_PAGE):
-                    dungeon_slug = slugify.slugify(str(dung))
-                    key_string = dungeon_slug + "-" + affixes_slug + "-" + region + "-" + str(page)
-                    key = ndb.Key('DungeonAffixRegion',
-                                  key_string)
-
-                    dar = key.get()
-
-                    if dar == None:
-                        continue
-
-                    if last_updated == None:
-                        last_updated = dar.last_updated
-                    if dar.last_updated > last_updated:
-                        last_updated = dar.last_updated
-
-                    for run in dar.runs:
-                        if run.mythic_level < MIN_KEY_LEVEL: # don't count runs under a +16
-                            continue
-                        
-                        if dung not in dungeon_counts:
-                            dungeon_counts[dung] = []
-                        dungeon_counts[dung] += [run]
-
-                        if affix not in affix_counts:
-                            affix_counts[affix] = []
-                        affix_counts[affix] += [run]
-
-                        # all this is spec / dungeon / comp breakdown
-                        if dungeon == "all" or dung == dungeon:
-                                if spec == "all":
-                                    if canonical_order(run.roster) not in set_counts:
-                                        set_counts[canonical_order(run.roster)] = []
-                                    set_counts[canonical_order(run.roster)] += [run]
-
-                                    if canonical_order(run.roster)[:2] not in th_counts:
-                                        th_counts[canonical_order(run.roster)[:2]] = []
-                                    th_counts[canonical_order(run.roster)[:2]] += [run]
-
-                                    if canonical_order(run.roster)[-3:] not in dps_counts:
-                                        dps_counts[canonical_order(run.roster)[-3:]] = []
-                                    dps_counts[canonical_order(run.roster)[-3:]] += [run]
-
-                                    for ch in run.roster:
-                                        if ch in spec_counts: # handle "fire paladin" errors
-                                            spec_counts[ch] += [run]
-                                            dung_spec_counts[dung][ch] += [run]
-                            
-    return dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts
+# def generate_counts(affixes="All Affixes", dungeon="all", spec="all"):
+#     global dungeons, regions, specs, last_updated, RIO_MAX_PAGE
+#
+#     affixes_to_get = [affixes]
+#     if affixes == "All Affixes":
+#         affixes_to_get = known_affixes()
+#
+#     dungeon_counts = {}
+#     spec_counts = {}
+#     set_counts = {}
+#     th_counts = {} # tank healer
+#     dps_counts = {} # just dps
+#     affix_counts = {} # compare affixes to each other (
+#     dung_spec_counts = {} # spec per dungeons
+#
+#     for s in specs:
+#         spec_counts[s] = []
+#
+#     for d in dungeons:
+#         dung_spec_counts[d] = {}
+#         for s in specs:
+#             dung_spec_counts[d][s] = []
+#
+#     for affix in affixes_to_get:
+#         affixes_slug = slugify.slugify(str(affix))
+#         for region in regions:
+#             for dung in dungeons:
+#                 for page in range(0, RIO_MAX_PAGE):
+#                     dungeon_slug = slugify.slugify(str(dung))
+#                     key_string = dungeon_slug + "-" + affixes_slug + "-" + region + "-" + str(page)
+#                     key = ndb.Key('DungeonAffixRegion',
+#                                   key_string)
+#
+#                     dar = key.get()
+#
+#                     if dar == None:
+#                         continue
+#
+#                     if last_updated == None:
+#                         last_updated = dar.last_updated
+#                     if dar.last_updated > last_updated:
+#                         last_updated = dar.last_updated
+#
+#                     for run in dar.runs:
+#                         if run.mythic_level < MIN_KEY_LEVEL: # don't count runs under a +16
+#                             continue
+#
+#                         if dung not in dungeon_counts:
+#                             dungeon_counts[dung] = []
+#                         dungeon_counts[dung] += [run]
+#
+#                         if affix not in affix_counts:
+#                             affix_counts[affix] = []
+#                         affix_counts[affix] += [run]
+#
+#                         # all this is spec / dungeon / comp breakdown
+#                         if dungeon == "all" or dung == dungeon:
+#                                 if spec == "all":
+#                                     if canonical_order(run.roster) not in set_counts:
+#                                         set_counts[canonical_order(run.roster)] = []
+#                                     set_counts[canonical_order(run.roster)] += [run]
+#
+#                                     if canonical_order(run.roster)[:2] not in th_counts:
+#                                         th_counts[canonical_order(run.roster)[:2]] = []
+#                                     th_counts[canonical_order(run.roster)[:2]] += [run]
+#
+#                                     if canonical_order(run.roster)[-3:] not in dps_counts:
+#                                         dps_counts[canonical_order(run.roster)[-3:]] = []
+#                                     dps_counts[canonical_order(run.roster)[-3:]] += [run]
+#
+#                                     for ch in run.roster:
+#                                         if ch in spec_counts: # handle "fire paladin" errors
+#                                             spec_counts[ch] += [run]
+#                                             dung_spec_counts[dung][ch] += [run]
+#
+#     return dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts
 
 
 # for constructing the raid tier list
@@ -1273,60 +1273,60 @@ def known_affixes():
 
     return known_affixes_save
 
-def known_affixes_links(prefix="", use_index=True):
-    known_affixes_list = known_affixes()
-    known_affixes_report = []
-    known_affixes_report += [["All Affixes", prefix+"all-affixes", ""]]
-    for k in known_affixes_list:
-        if use_index:
-            if k == current_affixes():
-                known_affixes_report += [[affix_rotation_affixes(k), prefix+"index",
-                                          icon_affix(k)]]
-            else:
-                known_affixes_report += [[affix_rotation_affixes(k), prefix+slugify.slugify(str(k)),
-                                          icon_affix(k)]]
-            
-        else:
-            known_affixes_report += [[affix_rotation_affixes(k), prefix+slugify.slugify(str(k)),
-                                      icon_affix(k)]]
-            
-    known_affixes_report.reverse()
-    return known_affixes_report
+# def known_affixes_links(prefix="", use_index=True):
+#     known_affixes_list = known_affixes()
+#     known_affixes_report = []
+#     known_affixes_report += [["All Affixes", prefix+"all-affixes", ""]]
+#     for k in known_affixes_list:
+#         if use_index:
+#             if k == current_affixes():
+#                 known_affixes_report += [[affix_rotation_affixes(k), prefix+"index",
+#                                           icon_affix(k)]]
+#             else:
+#                 known_affixes_report += [[affix_rotation_affixes(k), prefix+slugify.slugify(str(k)),
+#                                           icon_affix(k)]]
+#
+#         else:
+#             known_affixes_report += [[affix_rotation_affixes(k), prefix+slugify.slugify(str(k)),
+#                                       icon_affix(k)]]
+#
+#     known_affixes_report.reverse()
+#     return known_affixes_report
 
-def known_dungeon_links(affixes_slug, prefix=""):
-    known_dungeon_list = dungeons
-
-    known_dungeon_report = []
-
-    for k in known_dungeon_list:
-        known_dungeon_report += [[k, prefix+slugify.slugify(str(k))+"-" + affixes_slug]]
-            
-    return known_dungeon_report
-
-def known_specs_links(prefix=""):
-    global tanks, healers, melee, ranged
-    known_specs_report = []
-    for d in [sorted(tanks), sorted(healers), sorted(melee), sorted(ranged)]:
-        for k in d:
-            known_specs_report += [[k, slugify.slugify(str(k)), icon_spec(k, size=22)]]
-
-    return known_specs_report
-
-def known_specs_subset_links(subset, prefix=""):
-    known_specs_report = []
-    for d in [sorted(subset)]:
-        for k in d:
-            known_specs_report += [[k, slugify.slugify(str(k)), icon_spec(k, size=22)]]
-
-    return known_specs_report
+# def known_dungeon_links(affixes_slug, prefix=""):
+#     known_dungeon_list = dungeons
+#
+#     known_dungeon_report = []
+#
+#     for k in known_dungeon_list:
+#         known_dungeon_report += [[k, prefix+slugify.slugify(str(k))+"-" + affixes_slug]]
+#
+#     return known_dungeon_report
+#
+# def known_specs_links(prefix=""):
+#     global tanks, healers, melee, ranged
+#     known_specs_report = []
+#     for d in [sorted(tanks), sorted(healers), sorted(melee), sorted(ranged)]:
+#         for k in d:
+#             known_specs_report += [[k, slugify.slugify(str(k)), icon_spec(k, size=22)]]
+#
+#     return known_specs_report
+#
+# def known_specs_subset_links(subset, prefix=""):
+#     known_specs_report = []
+#     for d in [sorted(subset)]:
+#         for k in d:
+#             known_specs_report += [[k, slugify.slugify(str(k)), icon_spec(k, size=22)]]
+#
+#     return known_specs_report
 
         
-def current_affixes():
-    pull_query = KnownAffixes.query().order(-KnownAffixes.last_seen, -KnownAffixes.first_seen)
-    current_affixes_save = pull_query.fetch(1)[0].affixes
-        
-    
-    return current_affixes_save
+# def current_affixes():
+#     pull_query = KnownAffixes.query().order(-KnownAffixes.last_seen, -KnownAffixes.first_seen)
+#     current_affixes_save = pull_query.fetch(1)[0].affixes
+#
+#
+#     return current_affixes_save
 
 
 
@@ -1352,49 +1352,49 @@ def process_pvp_counts():
 
 ##   generating common reports
 
-def affix_rotation_affixes(affixes):
-    return affixes
+# def affix_rotation_affixes(affixes):
+#     return affixes
 
 # given a list of affixes, return a pretty affix string
 # <img><img><img><img> Affix1, Affix2, Affix3, Affix4
-def pretty_affixes(affixes, size=16, no_text=False):
-    if affixes=="All Affixes":
-        return "All Affixes"
-
-    output_string = ""
-    if no_text:
-        output_string = icon_affix(affixes, size=size)
-    else:
-        output_string = icon_affix(affixes, size=size) + " %s" % affix_rotation_affixes(affixes)
-    return output_string
+# def pretty_affixes(affixes, size=16, no_text=False):
+#     if affixes=="All Affixes":
+#         return "All Affixes"
+#
+#     output_string = ""
+#     if no_text:
+#         output_string = icon_affix(affixes, size=size)
+#     else:
+#         output_string = icon_affix(affixes, size=size) + " %s" % affix_rotation_affixes(affixes)
+#     return output_string
         
 
-def canonical_order(s):
-    # given a list, return a tuple in canonical order
-    output = []
-    ta = []
-    he = []
-    me = []
-    ra = []
-
-    for c in s:
-        if c in tanks:
-            ta += [c]
-        if c in healers:
-            he += [c]
-        if c in melee:
-            me += [c]
-        if c in ranged:
-            ra += [c]
-
-    output += sorted(ta) + sorted(he) + sorted(me) + sorted(ra)
-    return tuple(output)
-
-def pretty_set(s):
-    output_string = ""
-    for k in s:
-        output_string += "<td class=\"comp %s\">%s</td>" % (k, k)
-    return output_string
+# def canonical_order(s):
+#     # given a list, return a tuple in canonical order
+#     output = []
+#     ta = []
+#     he = []
+#     me = []
+#     ra = []
+#
+#     for c in s:
+#         if c in tanks:
+#             ta += [c]
+#         if c in healers:
+#             he += [c]
+#         if c in melee:
+#             me += [c]
+#         if c in ranged:
+#             ra += [c]
+#
+#     output += sorted(ta) + sorted(he) + sorted(me) + sorted(ra)
+#     return tuple(output)
+#
+# def pretty_set(s):
+#     output_string = ""
+#     for k in s:
+#         output_string += "<td class=\"comp %s\">%s</td>" % (k, k)
+#     return output_string
 
 def gen_set_report(set_counts):
     set_overall = construct_analysis(set_counts, sort_by="n")
