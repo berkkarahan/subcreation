@@ -51,7 +51,7 @@ covenantID_mapping[4] = {
 }
 
 covenantNameToID = {}
-for k, v in covenantID_mapping.iteritems():
+for k, v in covenantID_mapping.items():
     covenantNameToID[v["name"]] = v["id"]
 
 

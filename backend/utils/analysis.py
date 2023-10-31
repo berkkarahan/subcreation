@@ -1,5 +1,8 @@
 # numpy replacements
 from functools import lru_cache
+from math import sqrt
+
+import slugify
 
 
 def average(data):
@@ -212,7 +215,7 @@ def t_interval(n):
     t_table[120] = 1.98
     q = 1.96
 
-    for k, v in t_table.iteritems():
+    for k, v in t_table.items():
         if n >= k:
             q = v
 
@@ -222,7 +225,7 @@ def t_interval(n):
 def construct_analysis(counts, sort_by="lb_ci", limit=500):
     overall = []
     all_data = []
-    for name, runs in counts.iteritems():
+    for name, runs in counts.items():
         for r in runs:
             all_data += [r.score]
 
@@ -230,7 +233,7 @@ def construct_analysis(counts, sort_by="lb_ci", limit=500):
     if len(all_data) >= 2:
         master_stddev = std(all_data, ddof=1)
 
-    for name, runs in counts.iteritems():
+    for name, runs in counts.items():
         data = []
         max_found = 0
         max_id = ""
@@ -282,3 +285,240 @@ def construct_analysis(counts, sort_by="lb_ci", limit=500):
         overall = sorted(overall, key=lambda x: x[3], reverse=True)
 
     return overall
+
+
+def gen_set_report(set_counts):
+    from backend.utils.iterables import pretty_set
+
+    set_overall = construct_analysis(set_counts, sort_by="n")
+
+    set_output = []
+    for x in set_overall:
+        if x[3] <= 1:
+            continue
+        set_output += [
+            [
+                str("%.2f" % x[4][0]),
+                pretty_set(x[0]),
+                str("%.2f" % x[1]),
+                str(x[3]),
+                str("%.2f" % x[5][0]),  # maximum run
+                x[5][1],
+                x[5][2],  # level of the max run
+                x[6],  # all runs info
+            ]
+        ]
+
+    return set_output[:50]
+
+
+def gen_dungeon_report(dungeon_counts):
+    # use a higher limit for dungeons
+    dungeons_overall = construct_analysis(dungeon_counts, limit=400)
+
+    stats = {}
+
+    min_key = None
+    max_key = None
+    n_runs = 0
+
+    dungeon_output = []
+    for x in dungeons_overall:
+        dungeon_output += [
+            [
+                str("%.2f" % x[4][0]),
+                x[0],
+                str("%.2f" % x[1]),
+                str(x[3]),
+                slugify.slugify(str(x[0])),
+                str("%.2f" % x[5][0]),  # maximum run
+                x[5][1],  # id of the maximum run
+                x[5][2],  # level of the max run
+                x[6],  # all runs info
+            ]
+        ]
+
+        n_runs += len(x[6])
+
+        for k in x[6]:
+            if min_key == None:
+                min_key = k[1]
+            else:
+                if min_key > k[1]:
+                    min_key = k[1]
+
+        if max_key == None:
+            max_key = x[5][2]
+        else:
+            if max_key < x[5][2]:
+                max_key = x[5][2]
+
+    stats["min"] = min_key
+    stats["max"] = max_key
+    stats["n"] = n_runs
+
+    return dungeon_output, stats
+
+
+def gen_affix_report(affix_counts):
+    from backend.mplus.selectors.mplus import affix_rotation_affixes
+
+    affixes_overall = construct_analysis(
+        affix_counts, limit=3200 * 5
+    )  # look at all runs for affixes
+
+    stats = {}
+
+    min_key = None
+    max_key = None
+    n_runs = 0
+
+    affix_output = []
+    for x in affixes_overall:
+        affix_output += [
+            [
+                str("%.2f" % x[4][0]),
+                affix_rotation_affixes(x[0]),
+                str("%.2f" % x[1]),
+                str(x[3]),
+                slugify.slugify(str(x[0])),
+                str("%.2f" % x[5][0]),  # maximum run
+                x[5][1],  # id of the maximum run
+                x[5][2],  # level of the max run
+                x[6],  # all runs info
+            ]
+        ]
+
+        n_runs += len(x[6])
+
+        for k in x[6]:
+            if min_key == None:
+                min_key = k[1]
+            else:
+                if min_key > k[1]:
+                    min_key = k[1]
+
+        if max_key == None:
+            max_key = x[5][2]
+        else:
+            if max_key < x[5][2]:
+                max_key = x[5][2]
+
+    stats["min"] = min_key
+    stats["max"] = max_key
+    stats["n"] = n_runs
+
+    return affix_output, stats
+
+
+def gen_spec_report(spec_counts):
+    from backend.mplus.selectors.warcraft import (
+        get_role_titles,
+        get_specs,
+        get_tanks,
+        get_healers,
+        get_melee,
+        get_ranged,
+    )
+
+    role_titles = get_role_titles()
+    specs = get_specs()
+
+    role_package = {}
+    stats = {}
+
+    spec_overall = construct_analysis(spec_counts)
+
+    for i, display in enumerate(
+        [get_tanks(), get_healers(), get_melee(), get_ranged()]
+    ):
+        role_score = []
+        stats[role_titles[i]] = {}
+
+        min_key = None
+        max_key = None
+        n_runs = 0
+        ids = []
+
+        for k in sorted(spec_overall, key=lambda x: x[4][0], reverse=True):
+            if k[0] in display:
+                role_score += [
+                    [
+                        str("%.2f" % k[4][0]),  # lower bound of ci
+                        str(k[0]),  # name
+                        str("%.2f" % k[1]),  # mean
+                        str("%d" % k[3]).rjust(4),  # n
+                        slugify.slugify(str(str(k[0]))),  # slug name
+                        str("%.2f" % k[5][0]),  # maximum run
+                        k[5][1],  # id of the maximum run
+                        k[5][2],  # level of the max run
+                        k[6],  # all runs info
+                    ]
+                ]
+                for j in k[6]:
+                    ids += [j[2]]
+
+                for j in k[6]:
+                    if min_key == None:
+                        min_key = j[1]
+                    else:
+                        if min_key > j[1]:
+                            min_key = j[1]
+
+                if max_key == None:
+                    max_key = k[5][2]
+                else:
+                    if max_key < k[5][2]:
+                        max_key = k[5][2]
+
+        n_runs = len(set(ids))
+
+        stats[role_titles[i]]["min"] = min_key
+        stats[role_titles[i]]["max"] = max_key
+        stats[role_titles[i]]["n"] = n_runs
+
+        role_package[role_titles[i]] = role_score
+    return role_package, stats
+
+
+def gen_dung_spec_report(dung_spec_counts, spec_counts):
+    from backend.mplus.selectors.warcraft import (
+        get_specs,
+    )
+    from backend.mplus.selectors.mplus import get_current_dungeons
+
+    specs = get_specs()
+    dungeons = get_current_dungeons()
+
+    # start with the normal spec_report
+    role_package, stats = gen_spec_report(spec_counts)
+
+    # look at each dungeon for each spec --
+    # basically construct analysis on each, then average, including 0s
+    per_dungeon_overall = {}
+    for k, v in dung_spec_counts.items():
+        per_dungeon_overall[k] = construct_analysis(v)
+
+    # for each spec, go through and grab the lb_cis for each dungeon
+    per_spec_lb_ci = {}
+    for s in specs:
+        per_spec_lb_ci[s] = []
+        for d in dungeons:
+            for k in per_dungeon_overall[d]:
+                if k[0] == s:
+                    per_spec_lb_ci[s] += [k[4][0]]
+
+    # recalculate CI based on the as the average of dungeon and adjust the role package
+    # we'll be adjusting [0] of the rolepackage, which is "%.2f" % lb_ci
+    for k, v in role_package.items():
+        for rp in v:
+            rp_mean = average(per_spec_lb_ci[rp[1]])
+
+            # we're modifying role_package directly here
+            rp[0] = "%.2f" % rp_mean
+
+    # lastly, we need to resort role package within each set
+    for k, v in role_package.items():
+        role_package[k] = sorted(v, key=lambda x: float(x[0]), reverse=True)
+
+    return role_package, stats

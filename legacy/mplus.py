@@ -1396,169 +1396,169 @@ def process_pvp_counts():
 #         output_string += "<td class=\"comp %s\">%s</td>" % (k, k)
 #     return output_string
 
-def gen_set_report(set_counts):
-    set_overall = construct_analysis(set_counts, sort_by="n")
+# def gen_set_report(set_counts):
+#     set_overall = construct_analysis(set_counts, sort_by="n")
+#
+#     set_output = []
+#     for x in set_overall:
+#         if x[3] <= 1:
+#             continue
+#         set_output += [[str("%.2f" % x[4][0]),
+#                             pretty_set(x[0]),
+#                             str("%.2f" % x[1]),
+#                             str(x[3]),
+#                             str("%.2f" % x[5][0]), # maximum run
+#                             x[5][1],
+#                             x[5][2], # level of the max run
+#                             x[6], # all runs info
+#                         ]]
+#
+#     return set_output[:50]
 
-    set_output = []
-    for x in set_overall:
-        if x[3] <= 1:
-            continue
-        set_output += [[str("%.2f" % x[4][0]),
-                            pretty_set(x[0]),
-                            str("%.2f" % x[1]),
-                            str(x[3]),
-                            str("%.2f" % x[5][0]), # maximum run
-                            x[5][1],
-                            x[5][2], # level of the max run
-                            x[6], # all runs info
-                        ]]
+# def gen_dungeon_report(dungeon_counts):
+#     # use a higher limit for dungeons
+#     dungeons_overall = construct_analysis(dungeon_counts, limit=400)
+#
+#     stats = {}
+#
+#     min_key = None
+#     max_key = None
+#     n_runs = 0
+#
+#     dungeon_output = []
+#     for x in dungeons_overall:
+#
+#         dungeon_output += [[str("%.2f" % x[4][0]),
+#                             x[0],
+#                             str("%.2f" % x[1]),
+#                             str(x[3]),
+#                             slugify.slugify(str(x[0])),
+#                             str("%.2f" % x[5][0]), # maximum run
+#                             x[5][1], # id of the maximum run
+#                             x[5][2], # level of the max run
+#                             x[6], # all runs info
+#                             ]]
+#
+#         n_runs += len(x[6])
+#
+#         for k in x[6]:
+#             if min_key == None:
+#                 min_key = k[1]
+#             else:
+#                 if min_key > k[1]:
+#                     min_key = k[1]
+#
+#         if max_key == None:
+#             max_key = x[5][2]
+#         else:
+#             if max_key < x[5][2]:
+#                 max_key = x[5][2]
+#
+#
+#     stats["min"] = min_key
+#     stats["max"] = max_key
+#     stats["n"] = n_runs
+#
+#     return dungeon_output, stats
 
-    return set_output[:50]
+# def gen_affix_report(affix_counts):
+#     affixes_overall = construct_analysis(affix_counts, limit=3200*5) # look at all runs for affixes
+#
+#     stats = {}
+#
+#     min_key = None
+#     max_key = None
+#     n_runs = 0
+#
+#     affix_output = []
+#     for x in affixes_overall:
+#
+#         affix_output += [[str("%.2f" % x[4][0]),
+#                             affix_rotation_affixes(x[0]),
+#                             str("%.2f" % x[1]),
+#                             str(x[3]),
+#                             slugify.slugify(str(x[0])),
+#                             str("%.2f" % x[5][0]), # maximum run
+#                             x[5][1], # id of the maximum run
+#                             x[5][2], # level of the max run
+#                             x[6], # all runs info
+#                             ]]
+#
+#         n_runs += len(x[6])
+#
+#         for k in x[6]:
+#             if min_key == None:
+#                 min_key = k[1]
+#             else:
+#                 if min_key > k[1]:
+#                     min_key = k[1]
+#
+#         if max_key == None:
+#             max_key = x[5][2]
+#         else:
+#             if max_key < x[5][2]:
+#                 max_key = x[5][2]
+#
+#
+#     stats["min"] = min_key
+#     stats["max"] = max_key
+#     stats["n"] = n_runs
+#
+#     return affix_output, stats
 
-def gen_dungeon_report(dungeon_counts):
-    # use a higher limit for dungeons
-    dungeons_overall = construct_analysis(dungeon_counts, limit=400)
-
-    stats = {}
-
-    min_key = None
-    max_key = None
-    n_runs = 0 
-    
-    dungeon_output = []
-    for x in dungeons_overall:
-
-        dungeon_output += [[str("%.2f" % x[4][0]),
-                            x[0],
-                            str("%.2f" % x[1]),
-                            str(x[3]),
-                            slugify.slugify(str(x[0])),
-                            str("%.2f" % x[5][0]), # maximum run
-                            x[5][1], # id of the maximum run
-                            x[5][2], # level of the max run
-                            x[6], # all runs info
-                            ]]
-
-        n_runs += len(x[6])
-
-        for k in x[6]:
-            if min_key == None:
-                min_key = k[1]
-            else:
-                if min_key > k[1]:
-                    min_key = k[1]
-
-        if max_key == None:
-            max_key = x[5][2]
-        else:
-            if max_key < x[5][2]:
-                max_key = x[5][2]
-
-
-    stats["min"] = min_key
-    stats["max"] = max_key
-    stats["n"] = n_runs
-    
-    return dungeon_output, stats
-
-def gen_affix_report(affix_counts):
-    affixes_overall = construct_analysis(affix_counts, limit=3200*5) # look at all runs for affixes
-    
-    stats = {}
-
-    min_key = None
-    max_key = None
-    n_runs = 0     
-    
-    affix_output = []
-    for x in affixes_overall:
-
-        affix_output += [[str("%.2f" % x[4][0]),
-                            affix_rotation_affixes(x[0]),
-                            str("%.2f" % x[1]),
-                            str(x[3]),
-                            slugify.slugify(str(x[0])),
-                            str("%.2f" % x[5][0]), # maximum run
-                            x[5][1], # id of the maximum run
-                            x[5][2], # level of the max run
-                            x[6], # all runs info
-                            ]]
-
-        n_runs += len(x[6])
-
-        for k in x[6]:
-            if min_key == None:
-                min_key = k[1]
-            else:
-                if min_key > k[1]:
-                    min_key = k[1]
-
-        if max_key == None:
-            max_key = x[5][2]
-        else:
-            if max_key < x[5][2]:
-                max_key = x[5][2]
-
-
-    stats["min"] = min_key
-    stats["max"] = max_key
-    stats["n"] = n_runs
-
-    return affix_output, stats
-
-def gen_spec_report(spec_counts):
-    global role_titles, specs
-
-    role_package = {}
-    stats = {}
-
-    spec_overall = construct_analysis(spec_counts)
-
-    for i, display in enumerate([tanks, healers, melee, ranged]):
-        role_score = []
-        stats[role_titles[i]] = {}
-
-        min_key = None
-        max_key = None
-        n_runs = 0
-        ids = []
-        
-        for k in sorted(spec_overall, key=lambda x: x[4][0], reverse=True):
-            if k[0] in display:
-                role_score += [[str("%.2f" % k[4][0]), # lower bound of ci
-                                str(k[0]), # name
-                                str("%.2f" % k[1]), # mean
-                                str("%d" % k[3]).rjust(4), # n
-                                slugify.slugify(str(str(k[0]))), # slug name
-                                str("%.2f" % k[5][0]), # maximum run
-                                k[5][1], # id of the maximum run
-                                k[5][2], # level of the max run
-                                k[6], # all runs info
-                                ]]
-                for j in k[6]:
-                    ids += [j[2]]
-                        
-                for j in k[6]:
-                    if min_key == None:
-                        min_key = j[1]
-                    else:
-                        if min_key > j[1]:
-                            min_key = j[1]
-
-                if max_key == None:
-                    max_key = k[5][2]
-                else:
-                    if max_key < k[5][2]:
-                        max_key = k[5][2]
-
-        n_runs = len(set(ids))
-
-        stats[role_titles[i]]["min"] = min_key
-        stats[role_titles[i]]["max"] = max_key
-        stats[role_titles[i]]["n"] = n_runs
-                
-        role_package[role_titles[i]] = role_score
-    return role_package, stats
+# def gen_spec_report(spec_counts):
+#     global role_titles, specs
+#
+#     role_package = {}
+#     stats = {}
+#
+#     spec_overall = construct_analysis(spec_counts)
+#
+#     for i, display in enumerate([tanks, healers, melee, ranged]):
+#         role_score = []
+#         stats[role_titles[i]] = {}
+#
+#         min_key = None
+#         max_key = None
+#         n_runs = 0
+#         ids = []
+#
+#         for k in sorted(spec_overall, key=lambda x: x[4][0], reverse=True):
+#             if k[0] in display:
+#                 role_score += [[str("%.2f" % k[4][0]), # lower bound of ci
+#                                 str(k[0]), # name
+#                                 str("%.2f" % k[1]), # mean
+#                                 str("%d" % k[3]).rjust(4), # n
+#                                 slugify.slugify(str(str(k[0]))), # slug name
+#                                 str("%.2f" % k[5][0]), # maximum run
+#                                 k[5][1], # id of the maximum run
+#                                 k[5][2], # level of the max run
+#                                 k[6], # all runs info
+#                                 ]]
+#                 for j in k[6]:
+#                     ids += [j[2]]
+#
+#                 for j in k[6]:
+#                     if min_key == None:
+#                         min_key = j[1]
+#                     else:
+#                         if min_key > j[1]:
+#                             min_key = j[1]
+#
+#                 if max_key == None:
+#                     max_key = k[5][2]
+#                 else:
+#                     if max_key < k[5][2]:
+#                         max_key = k[5][2]
+#
+#         n_runs = len(set(ids))
+#
+#         stats[role_titles[i]]["min"] = min_key
+#         stats[role_titles[i]]["max"] = max_key
+#         stats[role_titles[i]]["n"] = n_runs
+#
+#         role_package[role_titles[i]] = role_score
+#     return role_package, stats
 
 
 # this exists to deal with specs that are only good in one dungeon
@@ -1569,794 +1569,777 @@ def gen_spec_report(spec_counts):
 # we instead take an average of the lb_ci for each dungeon
 # this reduces the prominence of 'first pull specs'
 # since they tend to be concentrated in a single dungeon and aren't applicable everywhere
-def gen_dung_spec_report(dung_spec_counts, spec_counts):
-    global specs, dungeons
-    
-    # start with the normal spec_report
-    role_package, stats = gen_spec_report(spec_counts)
-
-    # look at each dungeon for each spec --
-    # basically construct analysis on each, then average, including 0s
-    per_dungeon_overall = {}
-    for k, v in dung_spec_counts.iteritems():
-        per_dungeon_overall[k] = construct_analysis(v)
-
-    # for each spec, go through and grab the lb_cis for each dungeon
-    per_spec_lb_ci = {}
-    for s in specs:
-        per_spec_lb_ci[s] = []
-        for d in dungeons:
-            for k in per_dungeon_overall[d]:
-                if k[0] == s:
-                    per_spec_lb_ci[s] += [k[4][0]]
-
-
-    # recalculate CI based on the as the average of dungeon and adjust the role package
-    # we'll be adjusting [0] of the rolepackage, which is "%.2f" % lb_ci 
-    for k, v in role_package.iteritems():
-        for rp in v:
-            mean = average(per_spec_lb_ci[rp[1]])
-
-            # we're modifying role_package directly here
-            rp[0] = "%.2f" % mean
-
-    # lastly, we need to resort role package within each set
-    for k, v in role_package.iteritems():
-        role_package[k] = sorted(v, key=lambda x: float(x[0]), reverse=True)
-    
-    return role_package, stats
+# def gen_dung_spec_report(dung_spec_counts, spec_counts):
+#     global specs, dungeons
+#
+#     # start with the normal spec_report
+#     role_package, stats = gen_spec_report(spec_counts)
+#
+#     # look at each dungeon for each spec --
+#     # basically construct analysis on each, then average, including 0s
+#     per_dungeon_overall = {}
+#     for k, v in dung_spec_counts.iteritems():
+#         per_dungeon_overall[k] = construct_analysis(v)
+#
+#     # for each spec, go through and grab the lb_cis for each dungeon
+#     per_spec_lb_ci = {}
+#     for s in specs:
+#         per_spec_lb_ci[s] = []
+#         for d in dungeons:
+#             for k in per_dungeon_overall[d]:
+#                 if k[0] == s:
+#                     per_spec_lb_ci[s] += [k[4][0]]
+#
+#
+#     # recalculate CI based on the as the average of dungeon and adjust the role package
+#     # we'll be adjusting [0] of the rolepackage, which is "%.2f" % lb_ci
+#     for k, v in role_package.iteritems():
+#         for rp in v:
+#             mean = average(per_spec_lb_ci[rp[1]])
+#
+#             # we're modifying role_package directly here
+#             rp[0] = "%.2f" % mean
+#
+#     # lastly, we need to resort role package within each set
+#     for k, v in role_package.iteritems():
+#         role_package[k] = sorted(v, key=lambda x: float(x[0]), reverse=True)
+#
+#     return role_package, stats
 
 
 # wcl parsing starts here
-def wcl_parse(rankings, extractor, is_sorted=True, is_aggregated=True, only_use_ids=False, flatten=False):
-    groupings = {}
-    map_name_id_icon = []
-    metadata = {}
-
-    # go through each element in rankings
-    # and use extractor to pull out what we want to focus on
-    # and then add it to groupings
-    # also, build out a map of name to -> id icon for each element
-    for k in rankings:
-        # extractor pulls out the elements we want to use
-        names_in_set, name_id_icons = extractor(k)
-        map_name_id_icon += name_id_icons
-
-        # df prepatch: skip logs with broken talents
-        if "talents" in k:
-            if len(k["talents"]) < 10:
-                continue
-
-        add_this = None
-        if flatten: # use each element of names_in_set separately
-            added_this_round = []                    
-            for element in names_in_set:
-                add_this = tuple([element])
-                if add_this not in groupings:
-                   groupings[add_this] = 0
-                   metadata[add_this] = []
-                if add_this not in added_this_round:
-                   groupings[add_this] += 1
-                   added_this_round += [add_this]
-
-        else: # treat the elements in aggregate; don't consider them individually
-            if is_sorted:
-                add_this = tuple(sorted(names_in_set))
-            else:
-                add_this = tuple(names_in_set)
-
-            if add_this not in groupings:
-                groupings[add_this] = 0
-                metadata[add_this] = []
-    
-            groupings[add_this] += 1
-
-        if add_this == None:
-            continue
-            
-        link_text = ""
-        sort_value = 0
-
-        # is this for m+ or raid?
-        if "keystoneLevel" in k: # m+
-            link_text = "+%d" % k["keystoneLevel"]
-            sort_value = int(k["keystoneLevel"])
-        elif "total" in k: # raid
-            link_text = "%.2fk" % (float(k["total"])/1000)
-            sort_value = (float(k["total"])/1000)
-
-        # 0 is an artifact of band value, for aggregated reports in the popover -- unused now
-        report_id = ""
-        fight_id = 0
-        if "reportID" in k:
-            report_id = k["reportID"]
-            if "fightID" in k:
-                fight_id = k["fightID"]
-            else:
-                logging.info("no fight ID found!")
-
-        if flatten:
-            for element in names_in_set:
-                add_this = tuple([element])
-                metadata[add_this] += [[sort_value, 0, link_text, report_id, fight_id]]            
-        else:
-            metadata[add_this] += [[sort_value, 0, link_text, report_id, fight_id]]
-
-    # get rid of duplicate icons in the look up table / mapping
-    no_duplicate_mapping = {}
-    for mapping in map_name_id_icon:
-        if "id" not in mapping:
-            logging.info(mapping)
-            logging.info(extractor)
-            continue
-        if only_use_ids:
-            no_duplicate_mapping[mapping["id"]] = [mapping["id"], ""]
-        else:
-            no_duplicate_mapping[mapping["id"]] = [mapping["id"], mapping["icon"], mapping["name"]]
-
-    for k, v in metadata.iteritems():
-        metadata[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:1] # just the best one
-
-    return wcl_top10(groupings, metadata), no_duplicate_mapping
+# def wcl_parse(rankings, extractor, is_sorted=True, is_aggregated=True, only_use_ids=False, flatten=False):
+#     groupings = {}
+#     map_name_id_icon = []
+#     metadata = {}
+#
+#     # go through each element in rankings
+#     # and use extractor to pull out what we want to focus on
+#     # and then add it to groupings
+#     # also, build out a map of name to -> id icon for each element
+#     for k in rankings:
+#         # extractor pulls out the elements we want to use
+#         names_in_set, name_id_icons = extractor(k)
+#         map_name_id_icon += name_id_icons
+#
+#         # df prepatch: skip logs with broken talents
+#         if "talents" in k:
+#             if len(k["talents"]) < 10:
+#                 continue
+#
+#         add_this = None
+#         if flatten: # use each element of names_in_set separately
+#             added_this_round = []
+#             for element in names_in_set:
+#                 add_this = tuple([element])
+#                 if add_this not in groupings:
+#                    groupings[add_this] = 0
+#                    metadata[add_this] = []
+#                 if add_this not in added_this_round:
+#                    groupings[add_this] += 1
+#                    added_this_round += [add_this]
+#
+#         else: # treat the elements in aggregate; don't consider them individually
+#             if is_sorted:
+#                 add_this = tuple(sorted(names_in_set))
+#             else:
+#                 add_this = tuple(names_in_set)
+#
+#             if add_this not in groupings:
+#                 groupings[add_this] = 0
+#                 metadata[add_this] = []
+#
+#             groupings[add_this] += 1
+#
+#         if add_this == None:
+#             continue
+#
+#         link_text = ""
+#         sort_value = 0
+#
+#         # is this for m+ or raid?
+#         if "keystoneLevel" in k: # m+
+#             link_text = "+%d" % k["keystoneLevel"]
+#             sort_value = int(k["keystoneLevel"])
+#         elif "total" in k: # raid
+#             link_text = "%.2fk" % (float(k["total"])/1000)
+#             sort_value = (float(k["total"])/1000)
+#
+#         # 0 is an artifact of band value, for aggregated reports in the popover -- unused now
+#         report_id = ""
+#         fight_id = 0
+#         if "reportID" in k:
+#             report_id = k["reportID"]
+#             if "fightID" in k:
+#                 fight_id = k["fightID"]
+#             else:
+#                 logging.info("no fight ID found!")
+#
+#         if flatten:
+#             for element in names_in_set:
+#                 add_this = tuple([element])
+#                 metadata[add_this] += [[sort_value, 0, link_text, report_id, fight_id]]
+#         else:
+#             metadata[add_this] += [[sort_value, 0, link_text, report_id, fight_id]]
+#
+#     # get rid of duplicate icons in the look up table / mapping
+#     no_duplicate_mapping = {}
+#     for mapping in map_name_id_icon:
+#         if "id" not in mapping:
+#             logging.info(mapping)
+#             logging.info(extractor)
+#             continue
+#         if only_use_ids:
+#             no_duplicate_mapping[mapping["id"]] = [mapping["id"], ""]
+#         else:
+#             no_duplicate_mapping[mapping["id"]] = [mapping["id"], mapping["icon"], mapping["name"]]
+#
+#     for k, v in metadata.iteritems():
+#         metadata[k] = sorted(v, key=operator.itemgetter(0), reverse=True)[:1] # just the best one
+#
+#     return wcl_top10(groupings, metadata), no_duplicate_mapping
 
 
 # extract elements in category
-def wcl_generic_extract(ranking, category):
-    names_in_set = []
-    name_id_icons = []
-    if category not in ranking:
-        return [], []
-    
-    for i, j in enumerate(ranking[category]):
-        names_in_set += [j["id"]]
-        name_id_icons += [j]
+# def wcl_generic_extract(ranking, category):
+#     names_in_set = []
+#     name_id_icons = []
+#     if category not in ranking:
+#         return [], []
+#
+#     for i, j in enumerate(ranking[category]):
+#         names_in_set += [j["id"]]
+#         name_id_icons += [j]
+#
+#     return names_in_set, name_id_icons
+#
+# # extract gear a single ranking
+# def wcl_extract_gear(ranking, slots):
+#     names_in_set = []
+#     name_id_icons = []
+#     for i, j in enumerate(ranking["gear"]):
+#         if i in slots:
+#             names_in_set += [j["id"]]
+#             name_id_icons += [j]
+#
+#     return names_in_set, name_id_icons
+#
+# def wcl_extract_gems(ranking, primordial=False):
+#     names_in_set = []
+#     name_id_icons = []
+#
+#     for i, j in enumerate(ranking["gear"]):
+#         if "gems" in j:
+#             for each_gem in j["gems"]:
+#                 if primordial: # filter just to primordial
+#                     if each_gem["id"] not in primordial_stones:
+#                        continue
+#                 else: # filter out primordials
+#                     if each_gem["id"] in primordial_stones:
+#                        logging.info("filtering out primordials")
+#                        continue
+#                 names_in_set += [each_gem["id"]]
+#                 name_id_icons += [each_gem]
+#
+#     return names_in_set, name_id_icons
+#
+# def wcl_extract_tier(ranking):
+#     names_in_set = []
+#     name_id_icons = []
+#
+#     for i, j in enumerate(ranking["gear"]):
+#         if "id" in j:
+#             if j["id"] in tier_items:
+#                 names_in_set += [j["id"]]
+#                 name_id_icons += [j]
+#
+#     return names_in_set, name_id_icons
+#
+# def wcl_extract_embellishments(ranking):
+#     names_in_set = []
+#     name_id_icons = []
+#
+#     for i, j in enumerate(ranking["gear"]):
+#         if "id" in j:
+#             if j["id"] in embellished_items:
+#                 names_in_set += [j["id"]]
+#                 name_id_icons += [j]
+#
+#     return names_in_set, name_id_icons
+#
+# def wcl_extract_crafted(ranking):
+#     names_in_set = []
+#     name_id_icons = []
+#
+#     for i, j in enumerate(ranking["gear"]):
+#         if "id" in j:
+#             if j["id"] in crafted_items:
+#                 names_in_set += [j["id"]]
+#                 name_id_icons += [j]
+#
+#     return names_in_set, name_id_icons
 
-    return names_in_set, name_id_icons
-
-# extract gear a single ranking
-def wcl_extract_gear(ranking, slots):
-    names_in_set = []
-    name_id_icons = []
-    for i, j in enumerate(ranking["gear"]):
-        if i in slots:
-            names_in_set += [j["id"]]
-            name_id_icons += [j]
-
-    return names_in_set, name_id_icons
-
-def wcl_gear(rankings, slots):
-    is_sorted = True
-    if 15 in slots: # don't sort if there's an offhand
-        is_sorted = False
-
-    return wcl_parse(rankings,
-                     lambda e: wcl_extract_gear(e, slots),
-                     is_sorted = is_sorted)
-
-def wcl_extract_gems(ranking, primordial=False):
-    names_in_set = []
-    name_id_icons = []
-    
-    for i, j in enumerate(ranking["gear"]):
-        if "gems" in j:
-            for each_gem in j["gems"]:
-                if primordial: # filter just to primordial
-                    if each_gem["id"] not in primordial_stones:
-                       continue
-                else: # filter out primordials
-                    if each_gem["id"] in primordial_stones:
-                       logging.info("filtering out primordials")                        
-                       continue                    
-                names_in_set += [each_gem["id"]]
-                name_id_icons += [each_gem]
-
-    return names_in_set, name_id_icons
-
-def wcl_extract_tier(ranking):
-    names_in_set = []
-    name_id_icons = []
-    
-    for i, j in enumerate(ranking["gear"]):
-        if "id" in j:
-            if j["id"] in tier_items:
-                names_in_set += [j["id"]]
-                name_id_icons += [j]
-
-    return names_in_set, name_id_icons
-
-def wcl_extract_embellishments(ranking):
-    names_in_set = []
-    name_id_icons = []
-
-    for i, j in enumerate(ranking["gear"]):
-        if "id" in j:
-            if j["id"] in embellished_items:
-                names_in_set += [j["id"]]
-                name_id_icons += [j]
-
-    return names_in_set, name_id_icons
-
-def wcl_extract_crafted(ranking):
-    names_in_set = []
-    name_id_icons = []
-
-    for i, j in enumerate(ranking["gear"]):
-        if "id" in j:
-            if j["id"] in crafted_items:
-                names_in_set += [j["id"]]
-                name_id_icons += [j]
-
-    return names_in_set, name_id_icons
-
-def wcl_gems(rankings):
-    return wcl_parse(rankings,
-                     wcl_extract_gems,
-                     only_use_ids=True,
-                     flatten=True)
-
-def wcl_gem_builds(rankings):
-    return wcl_parse(rankings,
-                     wcl_extract_gems,
-                     only_use_ids=True)
-
-def wcl_primordials(rankings):
-    return wcl_parse(rankings,
-                     lambda e: wcl_extract_gems(e, primordial=True),
-                     only_use_ids=True,
-                     flatten=True)
-
-def wcl_primordial_builds(rankings):
-    return wcl_parse(rankings,
-                     lambda e: wcl_extract_gems(e, primordial=True),                     
-                     only_use_ids=True)
-
-def wcl_tier_items(rankings):
-    return wcl_parse(rankings,
-                     lambda e: wcl_extract_tier(e),
-                     only_use_ids=True,
-                     flatten=True)
-
-def wcl_tier_builds(rankings):
-    return wcl_parse(rankings,
-                     lambda e: wcl_extract_tier(e),                     
-                     only_use_ids=True)
-
-def wcl_embellished_items(rankings):
-    return wcl_parse(rankings,
-                     lambda e: wcl_extract_embellishments(e),
-                     only_use_ids=True,
-                     flatten=True)
-
-def wcl_embellished_builds(rankings):
-    return wcl_parse(rankings,
-                     lambda e: wcl_extract_embellishments(e),                     
-                     only_use_ids=True)
-
-def wcl_crafted_items(rankings):
-    return wcl_parse(rankings,
-                     lambda e: wcl_extract_crafted(e),
-                     only_use_ids=True,
-                     flatten=True)
-
-def wcl_crafted_builds(rankings):
-    return wcl_parse(rankings,
-                     lambda e: wcl_extract_crafted(e),                     
-                     only_use_ids=True)
-
-def wcl_hsc(rankings):
-    return wcl_parse(rankings,
-                     lambda e: wcl_extract_gear(e, [0, 2, 4]),
-                     is_sorted=False) # we want to show in helm, shoulders, chest order
-
-def wcl_extract_azerite_powers(ranking, offsets):
-    names_in_set = []
-    name_id_icons = []
-    for i, j in enumerate(ranking["azeritePowers"]):
-        if i % 5 in offsets:
-            names_in_set += [j["id"]]
-            name_id_icons += [j]
-            
-    return names_in_set, name_id_icons
-
-def wcl_primary(rankings):
-    return wcl_parse(rankings,
-                     lambda e: wcl_extract_azerite_powers(e, [0, 1]))
-
-def wcl_role(rankings):
-    return wcl_parse(rankings,
-                     lambda e: wcl_extract_azerite_powers(e, [2]))
-
-def wcl_defensive(rankings):
-    return wcl_parse(rankings,
-                     lambda e: wcl_extract_azerite_powers(e, [3]))
-
-
-def wcl_extract_essences(ranking):
-    names_in_set = []
-    name_id_icons = []
-    if "essencePowers" not in ranking:
-        return [], []
+# def wcl_gear(rankings, slots):
+#     is_sorted = True
+#     if 15 in slots: # don't sort if there's an offhand
+#         is_sorted = False
+#
+#     return wcl_parse(rankings,
+#                      lambda e: wcl_extract_gear(e, slots),
+#                      is_sorted = is_sorted)
+#
+# def wcl_gems(rankings):
+#     return wcl_parse(rankings,
+#                      wcl_extract_gems,
+#                      only_use_ids=True,
+#                      flatten=True)
+#
+# def wcl_gem_builds(rankings):
+#     return wcl_parse(rankings,
+#                      wcl_extract_gems,
+#                      only_use_ids=True)
+#
+# def wcl_primordials(rankings):
+#     return wcl_parse(rankings,
+#                      lambda e: wcl_extract_gems(e, primordial=True),
+#                      only_use_ids=True,
+#                      flatten=True)
+#
+# def wcl_primordial_builds(rankings):
+#     return wcl_parse(rankings,
+#                      lambda e: wcl_extract_gems(e, primordial=True),
+#                      only_use_ids=True)
+#
+# def wcl_tier_items(rankings):
+#     return wcl_parse(rankings,
+#                      lambda e: wcl_extract_tier(e),
+#                      only_use_ids=True,
+#                      flatten=True)
+#
+# def wcl_tier_builds(rankings):
+#     return wcl_parse(rankings,
+#                      lambda e: wcl_extract_tier(e),
+#                      only_use_ids=True)
+#
+# def wcl_embellished_items(rankings):
+#     return wcl_parse(rankings,
+#                      lambda e: wcl_extract_embellishments(e),
+#                      only_use_ids=True,
+#                      flatten=True)
+#
+# def wcl_embellished_builds(rankings):
+#     return wcl_parse(rankings,
+#                      lambda e: wcl_extract_embellishments(e),
+#                      only_use_ids=True)
+#
+# def wcl_crafted_items(rankings):
+#     return wcl_parse(rankings,
+#                      lambda e: wcl_extract_crafted(e),
+#                      only_use_ids=True,
+#                      flatten=True)
+#
+# def wcl_crafted_builds(rankings):
+#     return wcl_parse(rankings,
+#                      lambda e: wcl_extract_crafted(e),
+#                      only_use_ids=True)
+#
+# def wcl_hsc(rankings):
+#     return wcl_parse(rankings,
+#                      lambda e: wcl_extract_gear(e, [0, 2, 4]),
+#                      is_sorted=False) # we want to show in helm, shoulders, chest order
+#
+# def wcl_extract_azerite_powers(ranking, offsets):
+#     names_in_set = []
+#     name_id_icons = []
+#     for i, j in enumerate(ranking["azeritePowers"]):
+#         if i % 5 in offsets:
+#             names_in_set += [j["id"]]
+#             name_id_icons += [j]
+#
+#     return names_in_set, name_id_icons
+#
+# def wcl_primary(rankings):
+#     return wcl_parse(rankings,
+#                      lambda e: wcl_extract_azerite_powers(e, [0, 1]))
+#
+# def wcl_role(rankings):
+#     return wcl_parse(rankings,
+#                      lambda e: wcl_extract_azerite_powers(e, [2]))
+#
+# def wcl_defensive(rankings):
+#     return wcl_parse(rankings,
+#                      lambda e: wcl_extract_azerite_powers(e, [3]))
 
 
-    essences = []
-    for i, j in enumerate(ranking["essencePowers"]):
-        if i != 1: # skip the major's minor
-            essences += [j["id"]]
-            name_id_icons += [j]
 
-    major = essences[0]
-    minors = sorted(essences[1:])
-    names_in_set = [major] + minors            
-    
-    return names_in_set, name_id_icons    
     
 
-def wcl_essences(rankings):
-    return wcl_parse(rankings, wcl_extract_essences, is_sorted=False)
+# def wcl_essences(rankings):
+#     return wcl_parse(rankings, wcl_extract_essences, is_sorted=False)
 
 # now operates on talent_ids, not spell_ids
 # require_in needs to be talent_ids, not spell_ids
-def canonical_talent_order(talent_ids, require_in=None):
-    # talent_order has the talent order (using talent_ids!)
-    d = {k:v for v,k in enumerate(talent_id_order)}
-
-    talent_ids.sort(key=d.get)
-
-    filtered_talent_ids = []
-    for tid in talent_ids:
-        if require_in is not None:
-            if tid not in require_in:
-                continue
-        filtered_talent_ids += [tid]
-   
-    return filtered_talent_ids
+# def canonical_talent_order(talent_ids, require_in=None):
+#     # talent_order has the talent order (using talent_ids!)
+#     d = {k:v for v,k in enumerate(talent_id_order)}
+#
+#     talent_ids.sort(key=d.get)
+#
+#     filtered_talent_ids = []
+#     for tid in talent_ids:
+#         if require_in is not None:
+#             if tid not in require_in:
+#                 continue
+#         filtered_talent_ids += [tid]
+#
+#     return filtered_talent_ids
 
 # now operates on talent_ids, not spell_ids
-def wcl_extract_talents(ranking, require_in=None):
-    names_in_set = []
-    name_id_icons = []
-
-    for i, j in enumerate(ranking["talents"]):
-        if j["talentID"] == 0: # talents are now numbers, not strings
-            continue
-        
-        talent_id = j["talentID"]
-
-        if require_in != None:
-            if talent_id not in require_in:
-                continue
-        
-        names_in_set += [talent_id] # need to make it a string since every other id is a string
-        name_id_icons += [j]
-
-    return canonical_talent_order(names_in_set, require_in), name_id_icons
+# def wcl_extract_talents(ranking, require_in=None):
+#     names_in_set = []
+#     name_id_icons = []
+#
+#     for i, j in enumerate(ranking["talents"]):
+#         if j["talentID"] == 0: # talents are now numbers, not strings
+#             continue
+#
+#         talent_id = j["talentID"]
+#
+#         if require_in != None:
+#             if talent_id not in require_in:
+#                 continue
+#
+#         names_in_set += [talent_id] # need to make it a string since every other id is a string
+#         name_id_icons += [j]
+#
+#     return canonical_talent_order(names_in_set, require_in), name_id_icons
 
 # given a ranking, extra talent ids
-def wcl_get_talent_ids(ranking):
-    talent_ids = {}
-    points = 0
-    for i, j in enumerate(ranking["talents"]):
-        if "talentID" not in j: # skip if we lack talent id info
-            continue
-        if j["talentID"] == 0: # skip empty talents
-            continue
-        if "points" not in j: # skip if we lack point info
-            continue
-
-        tid = j["talentID"]
-        
-        if tid not in talent_ids:
-            talent_ids[tid] = 0
-        talent_ids[tid] = j["points"]
-        points += j["points"]
-
-#    logging.info(talent_ids)
-    if points < 52:
-        logging.info("fewer than 52 points (only %d) in a talent string (%d, %d, %s)" % (points, ranking["class"], ranking["spec"], ranking["reportID"]))
-
-    return talent_ids
+# def wcl_get_talent_ids(ranking):
+#     talent_ids = {}
+#     points = 0
+#     for i, j in enumerate(ranking["talents"]):
+#         if "talentID" not in j: # skip if we lack talent id info
+#             continue
+#         if j["talentID"] == 0: # skip empty talents
+#             continue
+#         if "points" not in j: # skip if we lack point info
+#             continue
+#
+#         tid = j["talentID"]
+#
+#         if tid not in talent_ids:
+#             talent_ids[tid] = 0
+#         talent_ids[tid] = j["points"]
+#         points += j["points"]
+#
+# #    logging.info(talent_ids)
+#     if points < 52:
+#         logging.info("fewer than 52 points (only %d) in a talent string (%d, %d, %s)" % (points, ranking["class"], ranking["spec"], ranking["reportID"]))
+#
+#     return talent_ids
 
 # given a reportID, find that in rankings
-def wcl_find_report(reportID, fightID, rankings):
-    for v in rankings:
-        if v["reportID"] == reportID:
-            if v["fightID"] == fightID:
-                return v
-    return None
+# def wcl_find_report(reportID, fightID, rankings):
+#     for v in rankings:
+#         if v["reportID"] == reportID:
+#             if v["fightID"] == fightID:
+#                 return v
+#     return None
 
 # get talent strings for the max logs in parsed
-def wcl_get_talent_strings(parsed, rankings, spec_name):
-    talent_strings = []
-    for k in parsed:
-        if len(k)<3:
-            continue
-        if len(k[2])<1:
-            continue
-        if len(k[2][0])<4:
-            continue       
-        tid = wcl_get_talent_ids(wcl_find_report(k[2][0][3], k[2][0][4], rankings))
-        if tid == {}:
-            talent_strings += [""] # no talent string available
-            continue
-        talent_strings += [encode_talent_string(tid, spec_name)]
+# def wcl_get_talent_strings(parsed, rankings, spec_name):
+#     talent_strings = []
+#     for k in parsed:
+#         if len(k)<3:
+#             continue
+#         if len(k[2])<1:
+#             continue
+#         if len(k[2][0])<4:
+#             continue
+#         tid = wcl_get_talent_ids(wcl_find_report(k[2][0][3], k[2][0][4], rankings))
+#         if tid == {}:
+#             talent_strings += [""] # no talent string available
+#             continue
+#         talent_strings += [encode_talent_string(tid, spec_name)]
+#
+#     return talent_strings
 
-    return talent_strings  
-
-def wcl_talents(rankings, require_in=None):
-    return wcl_parse(rankings, lambda e: wcl_extract_talents(e, require_in), is_sorted=False)
-
-def wcl_talents_top(rankings, require_in=None):
-    return wcl_parse(rankings, lambda e: wcl_extract_talents(e, require_in), is_sorted=False, flatten=True)
+# def wcl_talents(rankings, require_in=None):
+#     return wcl_parse(rankings, lambda e: wcl_extract_talents(e, require_in), is_sorted=False)
+#
+# def wcl_talents_top(rankings, require_in=None):
+#     return wcl_parse(rankings, lambda e: wcl_extract_talents(e, require_in), is_sorted=False, flatten=True)
 
 # we want enchants for particular set of slots
-def wcl_extract_enchants(ranking, slots, type="permanentEnchant"):
-    names_in_set = []
-    name_id_icons = []
-    for i, j in enumerate(ranking["gear"]):
-        if i in slots:
-            if type in j:
-                enchant_id = j[type]
-                # collapse lower ranks into the highest rank
-                if enchant_id in enchant_collapse:
-                    enchant_id = enchant_collapse[enchant_id]
-                names_in_set += [enchant_id]
-                name_id_icons += [{"id":enchant_id}]
+# def wcl_extract_enchants(ranking, slots, type="permanentEnchant"):
+#     names_in_set = []
+#     name_id_icons = []
+#     for i, j in enumerate(ranking["gear"]):
+#         if i in slots:
+#             if type in j:
+#                 enchant_id = j[type]
+#                 # collapse lower ranks into the highest rank
+#                 if enchant_id in enchant_collapse:
+#                     enchant_id = enchant_collapse[enchant_id]
+#                 names_in_set += [enchant_id]
+#                 name_id_icons += [{"id":enchant_id}]
+#
+#     return names_in_set, name_id_icons
 
-    return names_in_set, name_id_icons
-
-def wcl_enchants(rankings, slots, type="permanentEnchant"):
-    return wcl_parse(rankings, lambda e: wcl_extract_enchants(e, slots, type), only_use_ids=True)
+# def wcl_enchants(rankings, slots, type="permanentEnchant"):
+#     return wcl_parse(rankings, lambda e: wcl_extract_enchants(e, slots, type), only_use_ids=True)
     
 
 # pick the top 10, sorted by n
 # filter for blanks
-def wcl_top10(d, pop=None, top_n = 10):
-    # consider sorting by key level / dps instead?   
-    dv = sorted(d.items(), key=operator.itemgetter(1), reverse=True)
-    output = []
-    for i, (s, n) in enumerate(dv):
-        if i >= top_n:
-            break
-        if pop == None:
-            output += [[n, s, []]]
-        else:
-            output += [[n, s, pop[s]]]
-
-    return output
+# def wcl_top10(d, pop=None, top_n = 10):
+#     # consider sorting by key level / dps instead?
+#     dv = sorted(d.items(), key=operator.itemgetter(1), reverse=True)
+#     output = []
+#     for i, (s, n) in enumerate(dv):
+#         if i >= top_n:
+#             break
+#         if pop == None:
+#             output += [[n, s, []]]
+#         else:
+#             output += [[n, s, pop[s]]]
+#
+#     return output
 
 # go through extracted talents and find commonalities
 # common talents must be in require_in if is not None
-def identify_common_talents(talents):
-    talent_lists = []
-    for k in talents:
-        talent_lists += [k[1]]
-    if len(talent_lists)>0:
-        common = set(talent_lists[0])
-    else:
-        common = set()
-    for s in talent_lists[1:]:
-        common.intersection_update(s)
-    return set(common)
+# def identify_common_talents(talents):
+#     talent_lists = []
+#     for k in talents:
+#         talent_lists += [k[1]]
+#     if len(talent_lists)>0:
+#         common = set(talent_lists[0])
+#     else:
+#         common = set()
+#     for s in talent_lists[1:]:
+#         common.intersection_update(s)
+#     return set(common)
 
 # go through extracted talents and remove the common set once it's been found
 # return talents with the common talents removed
-def remove_common_talents(talents, common):
-    for k in talents:
-        k[1] = tuple(canonical_talent_order(list(set(k[1]) - common)))
-    return talents
+# def remove_common_talents(talents, common):
+#     for k in talents:
+#         k[1] = tuple(canonical_talent_order(list(set(k[1]) - common)))
+#     return talents
 
 
 # spec report generation
-def gen_wcl_spec_report(spec, dungeon="all"):
-    return base_gen_spec_report(spec, "mplus", dungeon)
+# def gen_wcl_spec_report(spec, dungeon="all"):
+#     return base_gen_spec_report(spec, "mplus", dungeon)
 
-def gen_wcl_raid_spec_report(spec, encounter="all", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
-    return base_gen_spec_report(spec, "raid", encounter, difficulty=difficulty, active_raid=active_raid)
+# def gen_wcl_raid_spec_report(spec, encounter="all", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
+#     return base_gen_spec_report(spec, "raid", encounter, difficulty=difficulty, active_raid=active_raid)
 
-def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
-    wcl_query = None
-
-    if mode == "mplus":
-        if encounter == "all":
-            wcl_query = SpecRankings.query(SpecRankings.spec==spec)
-        else:
-            wcl_query = SpecRankings.query(SpecRankings.spec==spec,
-                                           SpecRankings.dungeon==encounter)            
-    elif mode=="raid":       
-        if encounter == "all":
-            wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
-                                               SpecRankingsRaid.raid==active_raid)
-        else:
-            wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
-                                               SpecRankingsRaid.encounter==encounter,
-                                               SpecRankingsRaid.raid==active_raid)
-           
-    results = wcl_query.fetch()
-    global last_updated
-
-    maxima = []
-    n_parses = 0
-    rankings = []
-
-    available_difficulty = ""
-
-    # add logs per difficulty per encounter
-    mythic = {}
-    heroic = {}
-    normal = {}
-    
-    for k in results:
-        if last_updated == None:
-            last_updated = k.last_updated
-        if k.last_updated > last_updated:
-            last_updated = k.last_updated
-
-            
-        if mode == "raid":
-            # filter out ignored encounters raid_ignore for all bosses
-            if encounter == "all":
-                raid_ignore = get_raid_ignore(active_raid)
-                if k.encounter in raid_ignore:
-                    continue
-            
-        latest = json.loads(k.rankings)
-
-        no_blanks = []
-        # filter out reports that lack info (e.g. notalents)
-        for kk in latest:
-            if kk['talents'] == []:
-                continue
-            no_blanks += [kk]
-
-        latest = no_blanks
-        
-        if mode == "mplus":
-            filtered_latest = []            
-            for kk in latest:
-                if kk["keystoneLevel"] < MIN_KEY_LEVEL:
-                    continue
-                filtered_latest += [kk]
-            
-            rankings += filtered_latest
-        elif mode == "raid":
-            if k.difficulty == "Mythic":
-                if k.encounter not in mythic:
-                    mythic[k.encounter] = []
-                mythic[k.encounter] += latest
-            elif k.difficulty == "Heroic":
-                if k.encounter not in heroic:
-                    heroic[k.encounter] = []
-                heroic[k.encounter] += latest
-            elif k.difficulty == "Normal":
-                if k.encounter not in normal:
-                    normal[k.encounter] = []
-                normal[k.encounter] += latest
-
-    if mode == "raid":
-        # if it's all, go through encounter by c ounter
-        # if it's a specific ecnounter
-        if encounter == "all":
-            seen_difficulties = set()
-
-            raid_encounters = get_raid_encounters(active_raid)
-            
-            # go through encounter by encounter
-            for k, v in raid_encounters.iteritems():
-                if difficulty == "Mythic":
-                    if k in mythic:
-                        rankings += mythic[k]
-                        seen_difficulties.add("Mythic")
-                    elif k in heroic:
-                        rankings += heroic[k]
-                        seen_difficulties.add("Heroic")
-                    elif k in normal:
-                        rankings += normal[k]
-                        seen_difficulties.add("Normal")
-                elif difficulty == "Heroic":
-                    if k in heroic:
-                        rankings += heroic[k]
-                        seen_difficulties.add("Heroic")
-                    elif k in normal:
-                        rankings += normal[k]
-                        seen_difficulties.add("Normal")
-
-            canonical_order_difficulties = ["Mythic", "Heroic", "Normal"]
-                
-            seen_difficulties_canonical = []
-            for diff in canonical_order_difficulties:
-                if diff in seen_difficulties:
-                    seen_difficulties_canonical += [diff]
-                
-            available_difficulty = " / ".join(seen_difficulties_canonical)
-            
-        else:
-            if difficulty == "Mythic":
-                if mythic != [] and encounter in mythic:
-                        rankings = mythic[encounter]
-                        available_difficulty = "Mythic"
-                elif heroic != [] and encounter in heroic:
-                        rankings = heroic[encounter]
-                        available_difficulty = "Heroic"                    
-                else:
-                    if encounter in normal:
-                        rankings = normal[encounter]
-                        available_difficulty = "Normal"
-            elif difficulty == "Heroic":
-                if heroic != [] and encounter in heroic:
-                        rankings = heroic[encounter]
-                        available_difficulty = "Heroic"                    
-                else:
-                    if encounter in normal:
-                        rankings = normal[encounter]
-                        available_difficulty = "Normal"                    
-
-                
-                
-    unique_characters = set()   
-    for k in rankings:
-        name_to_add = k["name"] + "-" + k["serverName"]
-        unique_characters.add(name_to_add)
-        if mode == "mplus":
-            maxima += [k["keystoneLevel"]]
-
-    n_uniques = len(unique_characters)
-            
-    # clean up difficulty display
-    # a single boss should always be only one difficulty
-    # this is for the all bosses view, where we might have a mix of
-    # heroic and mythic bosses -- until all bosses are done on mythic for that spec
-            
-
-
-    items = {}
-    spells = {}
-
-    gear = {}    
-
-    gear_slots = []
-    gear_slots += [["helms", [0]]]
-    gear_slots += [["neck", [1]]]
-    gear_slots += [["shoulders", [2]]]
-    gear_slots += [["chests", [4]]]
-    gear_slots += [["belts", [5]]]
-    gear_slots += [["legs", [6]]]
-    gear_slots += [["feet", [7]]]
-    gear_slots += [["wrists", [8]]]
-    gear_slots += [["gloves", [9]]]
-    gear_slots += [["rings", [10, 11]]]
-    gear_slots += [["trinkets", [12, 13]]]
-    gear_slots += [["cloaks", [14]]]
-    gear_slots += [["weapons", [15, 16]]]
-
-    for (slot_name, slots) in gear_slots:
-        gear[slot_name], update_items = wcl_gear(rankings, slots) 
-        items.update(update_items)
-
-
-    # legendaries
-    gear["legendaries"] = []
-
-    gems, update_items = wcl_gems(rankings)
-    items.update(update_items)
-            
-    gem_builds, update_items = wcl_gem_builds(rankings)
-    items.update(update_items)
-
-    # 9.2: bye bye shards
-    # 10.0.7: hello primordials
-    primordials = {}
-    primordial_builds = {}
-    primordials, update_items = wcl_primordials(rankings)
-    items.update(update_items)
-            
-    primordial_builds, update_items = wcl_primordial_builds(rankings)
-    items.update(update_items)
-
-    tier_items, update_items = wcl_tier_items(rankings)
-    items.update(update_items)
-
-    tier_builds, update_items = wcl_tier_builds(rankings)
-    items.update(update_items)    
-
-    embellished_items, update_items = wcl_embellished_items(rankings)
-    items.update(update_items)
-
-    embellished_builds, update_items = wcl_embellished_builds(rankings)
-    items.update(update_items)   
-
-    crafted_items, update_items = wcl_crafted_items(rankings)
-    items.update(update_items)
-
-    crafted_builds, update_items = wcl_crafted_builds(rankings)
-    items.update(update_items)   
-    
-    enchants = {}
-    enchant_ids = {}
-
-    # slots are one LESS than what it is for macros because 0 indexing
-    enchants["weapons"], update_enchant_ids = wcl_enchants(rankings, [15, 16])
-    enchant_ids.update(update_enchant_ids)
-
-    enchants["chests"], update_enchant_ids = wcl_enchants(rankings, [4])
-    enchant_ids.update(update_enchant_ids)
-
-    enchants["wrists"], update_enchant_ids = wcl_enchants(rankings, [8])
-    enchant_ids.update(update_enchant_ids)
-
-    enchants["leg"], update_enchant_ids = wcl_enchants(rankings, [6])
-    enchant_ids.update(update_enchant_ids)    
-    
-    enchants["feet"], update_enchant_ids = wcl_enchants(rankings, [7])
-    enchant_ids.update(update_enchant_ids)    
-
-    enchants["cloaks"], update_enchant_ids = wcl_enchants(rankings, [14])
-    enchant_ids.update(update_enchant_ids)    
-    
-    enchants["rings"], update_enchant_ids = wcl_enchants(rankings, [10, 11])
-    enchant_ids.update(update_enchant_ids)    
-    
-    enchants["belts"], update_enchant_ids = wcl_enchants(rankings, [5], type="onUseEnchant")
-    enchant_ids.update(update_enchant_ids)
-
-    max_maxima = 0
-    min_maxima = 0
-    
-    if len(maxima) > 0:
-        max_maxima = max(maxima)
-        min_maxima = min(maxima)
-
-
-    if mode == "raid":
-        max_maxima = available_difficulty
-
-    talents_container = {}
-    talents_container["common"] = {}
-    
-    # wcl_parse returns [n, (talents), [[max_n, band, text, report]]]
-    talents, update_spells = wcl_talents(rankings)   
-    talents_container["talents"] = talents
-    spells.update(update_spells)
-    talents_container["talents_string"] = wcl_get_talent_strings(talents, rankings, spec)
-
-    talents_common = identify_common_talents(talents)
-    talents = remove_common_talents(talents, talents_common)
-    talents_container["common"]["talents"] = canonical_talent_order(list(talents_common))
-    
-#    talents_top, _ = wcl_talents_top(rankings, require_in=priority_talents)
-#    talents_container["top"] = talents_top
-#    talents_container["top_string"] = wcl_get_talent_strings(talents_top, rankings, spec)        
-
-#    talents_priority, _ = wcl_talents(rankings, require_in=priority_talents)
-#    talents_container["priority"] = talents_priority
-#    talents_container["priority_string"] = wcl_get_talent_strings(talents_priority, rankings, spec)    
-
-    talents_class, _ = wcl_talents(rankings, require_in=talent_id_class)
-    talents_container["class"] = talents_class
-    talents_container["class_string"] = wcl_get_talent_strings(talents_class, rankings, spec)
-
-    talents_class_common = identify_common_talents(talents_class)
-    talents_class = remove_common_talents(talents_class, talents_class_common)
-    talents_container["common"]["class"] = canonical_talent_order(list(talents_class_common))
-    
-    talents_spec, _ = wcl_talents(rankings, require_in=talent_id_spec)
-    talents_container["spec"] = talents_spec
-    talents_container["spec_string"] = wcl_get_talent_strings(talents_spec, rankings, spec)
-
-    talents_spec_common = identify_common_talents(talents_spec)
-    talents_spec = remove_common_talents(talents_spec, talents_spec_common)
-    talents_container["common"]["spec"] = canonical_talent_order(list(talents_spec_common))
-    
-    talents_class_active, _ = wcl_talents(rankings, require_in=(class_active))
-    talents_container["class_active"] = talents_class_active
-    talents_container["class_active_string"] = wcl_get_talent_strings(talents_class_active, rankings, spec)    
-   
-    talents_spec_active, _ = wcl_talents(rankings, require_in=(spec_active))
-    talents_container["spec_active"] = talents_spec_active
-    talents_container["spec_active_string"] = wcl_get_talent_strings(talents_spec_active, rankings, spec)    
-
-    # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
-    # raid will return available_difficulty in max_maxima
-    return len(rankings), n_uniques, max_maxima, min_maxima, talents_container, gear, enchants, gems, gem_builds, primordials, primordial_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds, crafted_items, crafted_builds
+# def base_gen_spec_report(spec, mode, encounter="all", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
+#     wcl_query = None
+#
+#     if mode == "mplus":
+#         if encounter == "all":
+#             wcl_query = SpecRankings.query(SpecRankings.spec==spec)
+#         else:
+#             wcl_query = SpecRankings.query(SpecRankings.spec==spec,
+#                                            SpecRankings.dungeon==encounter)
+#     elif mode=="raid":
+#         if encounter == "all":
+#             wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
+#                                                SpecRankingsRaid.raid==active_raid)
+#         else:
+#             wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
+#                                                SpecRankingsRaid.encounter==encounter,
+#                                                SpecRankingsRaid.raid==active_raid)
+#
+#     results = wcl_query.fetch()
+#     global last_updated
+#
+#     maxima = []
+#     n_parses = 0
+#     rankings = []
+#
+#     available_difficulty = ""
+#
+#     # add logs per difficulty per encounter
+#     mythic = {}
+#     heroic = {}
+#     normal = {}
+#
+#     for k in results:
+#         if last_updated == None:
+#             last_updated = k.last_updated
+#         if k.last_updated > last_updated:
+#             last_updated = k.last_updated
+#
+#
+#         if mode == "raid":
+#             # filter out ignored encounters raid_ignore for all bosses
+#             if encounter == "all":
+#                 raid_ignore = get_raid_ignore(active_raid)
+#                 if k.encounter in raid_ignore:
+#                     continue
+#
+#         latest = json.loads(k.rankings)
+#
+#         no_blanks = []
+#         # filter out reports that lack info (e.g. notalents)
+#         for kk in latest:
+#             if kk['talents'] == []:
+#                 continue
+#             no_blanks += [kk]
+#
+#         latest = no_blanks
+#
+#         if mode == "mplus":
+#             filtered_latest = []
+#             for kk in latest:
+#                 if kk["keystoneLevel"] < MIN_KEY_LEVEL:
+#                     continue
+#                 filtered_latest += [kk]
+#
+#             rankings += filtered_latest
+#         elif mode == "raid":
+#             if k.difficulty == "Mythic":
+#                 if k.encounter not in mythic:
+#                     mythic[k.encounter] = []
+#                 mythic[k.encounter] += latest
+#             elif k.difficulty == "Heroic":
+#                 if k.encounter not in heroic:
+#                     heroic[k.encounter] = []
+#                 heroic[k.encounter] += latest
+#             elif k.difficulty == "Normal":
+#                 if k.encounter not in normal:
+#                     normal[k.encounter] = []
+#                 normal[k.encounter] += latest
+#
+#     if mode == "raid":
+#         # if it's all, go through encounter by c ounter
+#         # if it's a specific ecnounter
+#         if encounter == "all":
+#             seen_difficulties = set()
+#
+#             raid_encounters = get_raid_encounters(active_raid)
+#
+#             # go through encounter by encounter
+#             for k, v in raid_encounters.iteritems():
+#                 if difficulty == "Mythic":
+#                     if k in mythic:
+#                         rankings += mythic[k]
+#                         seen_difficulties.add("Mythic")
+#                     elif k in heroic:
+#                         rankings += heroic[k]
+#                         seen_difficulties.add("Heroic")
+#                     elif k in normal:
+#                         rankings += normal[k]
+#                         seen_difficulties.add("Normal")
+#                 elif difficulty == "Heroic":
+#                     if k in heroic:
+#                         rankings += heroic[k]
+#                         seen_difficulties.add("Heroic")
+#                     elif k in normal:
+#                         rankings += normal[k]
+#                         seen_difficulties.add("Normal")
+#
+#             canonical_order_difficulties = ["Mythic", "Heroic", "Normal"]
+#
+#             seen_difficulties_canonical = []
+#             for diff in canonical_order_difficulties:
+#                 if diff in seen_difficulties:
+#                     seen_difficulties_canonical += [diff]
+#
+#             available_difficulty = " / ".join(seen_difficulties_canonical)
+#
+#         else:
+#             if difficulty == "Mythic":
+#                 if mythic != [] and encounter in mythic:
+#                         rankings = mythic[encounter]
+#                         available_difficulty = "Mythic"
+#                 elif heroic != [] and encounter in heroic:
+#                         rankings = heroic[encounter]
+#                         available_difficulty = "Heroic"
+#                 else:
+#                     if encounter in normal:
+#                         rankings = normal[encounter]
+#                         available_difficulty = "Normal"
+#             elif difficulty == "Heroic":
+#                 if heroic != [] and encounter in heroic:
+#                         rankings = heroic[encounter]
+#                         available_difficulty = "Heroic"
+#                 else:
+#                     if encounter in normal:
+#                         rankings = normal[encounter]
+#                         available_difficulty = "Normal"
+#
+#
+#
+#     unique_characters = set()
+#     for k in rankings:
+#         name_to_add = k["name"] + "-" + k["serverName"]
+#         unique_characters.add(name_to_add)
+#         if mode == "mplus":
+#             maxima += [k["keystoneLevel"]]
+#
+#     n_uniques = len(unique_characters)
+#
+#     # clean up difficulty display
+#     # a single boss should always be only one difficulty
+#     # this is for the all bosses view, where we might have a mix of
+#     # heroic and mythic bosses -- until all bosses are done on mythic for that spec
+#
+#
+#
+#     items = {}
+#     spells = {}
+#
+#     gear = {}
+#
+#     gear_slots = []
+#     gear_slots += [["helms", [0]]]
+#     gear_slots += [["neck", [1]]]
+#     gear_slots += [["shoulders", [2]]]
+#     gear_slots += [["chests", [4]]]
+#     gear_slots += [["belts", [5]]]
+#     gear_slots += [["legs", [6]]]
+#     gear_slots += [["feet", [7]]]
+#     gear_slots += [["wrists", [8]]]
+#     gear_slots += [["gloves", [9]]]
+#     gear_slots += [["rings", [10, 11]]]
+#     gear_slots += [["trinkets", [12, 13]]]
+#     gear_slots += [["cloaks", [14]]]
+#     gear_slots += [["weapons", [15, 16]]]
+#
+#     for (slot_name, slots) in gear_slots:
+#         gear[slot_name], update_items = wcl_gear(rankings, slots)
+#         items.update(update_items)
+#
+#
+#     # legendaries
+#     gear["legendaries"] = []
+#
+#     gems, update_items = wcl_gems(rankings)
+#     items.update(update_items)
+#
+#     gem_builds, update_items = wcl_gem_builds(rankings)
+#     items.update(update_items)
+#
+#     # 9.2: bye bye shards
+#     # 10.0.7: hello primordials
+#     primordials = {}
+#     primordial_builds = {}
+#     primordials, update_items = wcl_primordials(rankings)
+#     items.update(update_items)
+#
+#     primordial_builds, update_items = wcl_primordial_builds(rankings)
+#     items.update(update_items)
+#
+#     tier_items, update_items = wcl_tier_items(rankings)
+#     items.update(update_items)
+#
+#     tier_builds, update_items = wcl_tier_builds(rankings)
+#     items.update(update_items)
+#
+#     embellished_items, update_items = wcl_embellished_items(rankings)
+#     items.update(update_items)
+#
+#     embellished_builds, update_items = wcl_embellished_builds(rankings)
+#     items.update(update_items)
+#
+#     crafted_items, update_items = wcl_crafted_items(rankings)
+#     items.update(update_items)
+#
+#     crafted_builds, update_items = wcl_crafted_builds(rankings)
+#     items.update(update_items)
+#
+#     enchants = {}
+#     enchant_ids = {}
+#
+#     # slots are one LESS than what it is for macros because 0 indexing
+#     enchants["weapons"], update_enchant_ids = wcl_enchants(rankings, [15, 16])
+#     enchant_ids.update(update_enchant_ids)
+#
+#     enchants["chests"], update_enchant_ids = wcl_enchants(rankings, [4])
+#     enchant_ids.update(update_enchant_ids)
+#
+#     enchants["wrists"], update_enchant_ids = wcl_enchants(rankings, [8])
+#     enchant_ids.update(update_enchant_ids)
+#
+#     enchants["leg"], update_enchant_ids = wcl_enchants(rankings, [6])
+#     enchant_ids.update(update_enchant_ids)
+#
+#     enchants["feet"], update_enchant_ids = wcl_enchants(rankings, [7])
+#     enchant_ids.update(update_enchant_ids)
+#
+#     enchants["cloaks"], update_enchant_ids = wcl_enchants(rankings, [14])
+#     enchant_ids.update(update_enchant_ids)
+#
+#     enchants["rings"], update_enchant_ids = wcl_enchants(rankings, [10, 11])
+#     enchant_ids.update(update_enchant_ids)
+#
+#     enchants["belts"], update_enchant_ids = wcl_enchants(rankings, [5], type="onUseEnchant")
+#     enchant_ids.update(update_enchant_ids)
+#
+#     max_maxima = 0
+#     min_maxima = 0
+#
+#     if len(maxima) > 0:
+#         max_maxima = max(maxima)
+#         min_maxima = min(maxima)
+#
+#
+#     if mode == "raid":
+#         max_maxima = available_difficulty
+#
+#     talents_container = {}
+#     talents_container["common"] = {}
+#
+#     # wcl_parse returns [n, (talents), [[max_n, band, text, report]]]
+#     talents, update_spells = wcl_talents(rankings)
+#     talents_container["talents"] = talents
+#     spells.update(update_spells)
+#     talents_container["talents_string"] = wcl_get_talent_strings(talents, rankings, spec)
+#
+#     talents_common = identify_common_talents(talents)
+#     talents = remove_common_talents(talents, talents_common)
+#     talents_container["common"]["talents"] = canonical_talent_order(list(talents_common))
+#
+# #    talents_top, _ = wcl_talents_top(rankings, require_in=priority_talents)
+# #    talents_container["top"] = talents_top
+# #    talents_container["top_string"] = wcl_get_talent_strings(talents_top, rankings, spec)
+#
+# #    talents_priority, _ = wcl_talents(rankings, require_in=priority_talents)
+# #    talents_container["priority"] = talents_priority
+# #    talents_container["priority_string"] = wcl_get_talent_strings(talents_priority, rankings, spec)
+#
+#     talents_class, _ = wcl_talents(rankings, require_in=talent_id_class)
+#     talents_container["class"] = talents_class
+#     talents_container["class_string"] = wcl_get_talent_strings(talents_class, rankings, spec)
+#
+#     talents_class_common = identify_common_talents(talents_class)
+#     talents_class = remove_common_talents(talents_class, talents_class_common)
+#     talents_container["common"]["class"] = canonical_talent_order(list(talents_class_common))
+#
+#     talents_spec, _ = wcl_talents(rankings, require_in=talent_id_spec)
+#     talents_container["spec"] = talents_spec
+#     talents_container["spec_string"] = wcl_get_talent_strings(talents_spec, rankings, spec)
+#
+#     talents_spec_common = identify_common_talents(talents_spec)
+#     talents_spec = remove_common_talents(talents_spec, talents_spec_common)
+#     talents_container["common"]["spec"] = canonical_talent_order(list(talents_spec_common))
+#
+#     talents_class_active, _ = wcl_talents(rankings, require_in=(class_active))
+#     talents_container["class_active"] = talents_class_active
+#     talents_container["class_active_string"] = wcl_get_talent_strings(talents_class_active, rankings, spec)
+#
+#     talents_spec_active, _ = wcl_talents(rankings, require_in=(spec_active))
+#     talents_container["spec_active"] = talents_spec_active
+#     talents_container["spec_active_string"] = wcl_get_talent_strings(talents_spec_active, rankings, spec)
+#
+#     # raid won't have a max_maxima and a min_maxima (could use dps but not much point)
+#     # raid will return available_difficulty in max_maxima
+#     return len(rankings), n_uniques, max_maxima, min_maxima, talents_container, gear, enchants, gems, gem_builds, primordials, primordial_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds, crafted_items, crafted_builds
 
 ## end wcl parsing code
 
@@ -2551,27 +2534,27 @@ def render_affixes(affixes, prefix=""):
     return rendered
 
 
-def api_pvp_specs(mode):
-    global last_updated
-
-    specs_report, spec_stats = gen_pvp_specs_role_package(mode)
-    
-    tankstl = gen_pvp_spec_tier_list(specs_report, "Tanks", mode, api=True)
-    healerstl = gen_pvp_spec_tier_list(specs_report, "Healers", mode, api=True)
-    meleetl = gen_pvp_spec_tier_list(specs_report, "Melee", mode, api=True)
-    rangedtl = gen_pvp_spec_tier_list(specs_report, "Ranged", mode, api=True)
-    
-    last_updated_output = str(localized_time(last_updated))
-
-    rendered = {}
-    rendered["last_updated"] = last_updated_output
-    rendered["melee_tier_list"] = meleetl
-    rendered["ranged_tier_list"] = rangedtl
-    rendered["tank_tier_list"] = tankstl
-    rendered["healer_tier_list"] = healerstl
-    rendered["source_url"] = "https://pvp.subcreation.net/"
-        
-    return json.dumps(rendered)
+# def api_pvp_specs(mode):
+#     global last_updated
+#
+#     specs_report, spec_stats = gen_pvp_specs_role_package(mode)
+#
+#     tankstl = gen_pvp_spec_tier_list(specs_report, "Tanks", mode, api=True)
+#     healerstl = gen_pvp_spec_tier_list(specs_report, "Healers", mode, api=True)
+#     meleetl = gen_pvp_spec_tier_list(specs_report, "Melee", mode, api=True)
+#     rangedtl = gen_pvp_spec_tier_list(specs_report, "Ranged", mode, api=True)
+#
+#     last_updated_output = str(localized_time(last_updated))
+#
+#     rendered = {}
+#     rendered["last_updated"] = last_updated_output
+#     rendered["melee_tier_list"] = meleetl
+#     rendered["ranged_tier_list"] = rangedtl
+#     rendered["tank_tier_list"] = tankstl
+#     rendered["healer_tier_list"] = healerstl
+#     rendered["source_url"] = "https://pvp.subcreation.net/"
+#
+#     return json.dumps(rendered)
 
 # render compositions as a separate page from affixes
 def render_compositions(affixes, prefix=""):
