@@ -14,5 +14,3 @@ class ExportDataStream:
 
     def GetExportString(self):
         return ExportUtil.ConvertToBase64(self.dataEntries)
-
-

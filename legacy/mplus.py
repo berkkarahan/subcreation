@@ -11,8 +11,9 @@ from google.appengine.api.taskqueue import TaskRetryOptions
 from google.appengine.runtime import DeadlineExceededError
 
 from google.appengine.ext import vendor
+
 # add libraries in lib
-vendor.add('lib')
+vendor.add("lib")
 
 import slugify
 import cloudstorage as gcs
@@ -25,7 +26,12 @@ from backend.constants.dragonflight import primordial_stones
 
 from t_interval import t_interval
 from backend.constants.talents_to_spells import talents_to_spells
-from backend.constants.talent_ids import talent_id_order, talent_id_class, talent_id_spec, talent_id_heights
+from backend.constants.talent_ids import (
+    talent_id_order,
+    talent_id_class,
+    talent_id_spec,
+    talent_id_heights,
+)
 
 from models import Run, DungeonAffixRegion, KnownAffixes, PvPLadderStats, PvPCounts
 
@@ -228,6 +234,7 @@ from aberrus import aberrus_canonical_order, aberrus_short_names, aberrus_ignore
 
 ## data analysis start
 
+
 def create_package(name):
     package = {}
     package["name"] = name
@@ -304,7 +311,7 @@ def create_package(name):
 #             dtl[tm[i]] += rendered
 #
 #     return dtl
-    
+
 
 # def icon_spec(dname, prefix="", size=56):
 #     dslug = slugify.slugify(str(dname))
@@ -394,8 +401,6 @@ def create_package(name):
 #                 dtl[tm[i]] += [k[1]]
 #
 #         return dtl
-
-
 
 
 # def icon_affix(dname, size=28):
@@ -638,7 +643,7 @@ def create_package(name):
 
 # for background on the analytical approach of using the lower bound of a confidence interval:
 # https://www.evanmiller.org/how-not-to-sort-by-average-rating.html
-# https://www.evanmiller.org/ranking-items-with-star-ratings.html 
+# https://www.evanmiller.org/ranking-items-with-star-ratings.html
 
 # def construct_analysis(counts, sort_by="lb_ci", limit=500):
 #     overall = []
@@ -701,21 +706,22 @@ def create_package(name):
 #
 #     return overall
 
+
 # construct_analysis for raid, which has per encounter lists of key metrics for a given spec
 def construct_analysis_raid(spec_counts):
     counts = spec_counts
-    
+
     overall = {}
     all_data = []
 
     for encounter, metrics in counts.iteritems():
         for m in metrics:
             all_data += [m]
-    
+
     master_stddev = 1
     if len(all_data) >= 2:
         master_stddev = std(all_data, ddof=1)
-       
+
     for encounter, metrics in counts.iteritems():
         data = []
         for m in metrics:
@@ -733,19 +739,22 @@ def construct_analysis_raid(spec_counts):
         # filter to top 100
         sorted_data = sorted(data, reverse=True)
         sorted_data = sorted_data[:100]
-                
+
         stddev = std(sorted_data, ddof=1)
         sorted_mean = average(sorted_data)
         sorted_n = len(sorted_data)
         t_bounds = t_interval(n)
-        ci = [sorted_mean + critval * master_stddev / sqrt(sorted_n) for critval in t_bounds]
-        
-#        stddev = std(data, ddof=1)
-#        t_bounds = t_interval(n)
-#        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
+        ci = [
+            sorted_mean + critval * master_stddev / sqrt(sorted_n)
+            for critval in t_bounds
+        ]
+
+        #        stddev = std(data, ddof=1)
+        #        t_bounds = t_interval(n)
+        #        ci = [mean + critval * master_stddev / sqrt(n) for critval in t_bounds]
         # lbci, n, mean, data
-        # restrict the mean just to the runs actually used for lb_ci        
-        overall[encounter]= [ci[0], n, sorted_mean, data]
+        # restrict the mean just to the runs actually used for lb_ci
+        overall[encounter] = [ci[0], n, sorted_mean, data]
 
     return overall
 
@@ -754,16 +763,19 @@ def construct_analysis_raid(spec_counts):
 # build for each boss, and overall
 # save this to the db for each spec
 
+
 # read from the db
 def gen_raid_spec_analysis(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     # raid_generate_counts is now a cached call
-    raid_counts, raid_max_found, raid_max_link = raid_generate_counts(difficulty=difficulty, active_raid=active_raid)
-    
+    raid_counts, raid_max_found, raid_max_link = raid_generate_counts(
+        difficulty=difficulty, active_raid=active_raid
+    )
+
     analysis = {}
     lb_ci_spec = {}
 
     lb_ci_spec["all"] = {}
-    
+
     for s in specs:
         analysis[s] = construct_analysis_raid(raid_counts[s])
 
@@ -774,7 +786,7 @@ def gen_raid_spec_analysis(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
         raid_encounters = get_raid_encounters(active_raid)
         for e in raid_encounters:
             raid_ignore = get_raid_ignore(active_raid)
-            if e not in raid_ignore: # ignore certain encounters for the tier list
+            if e not in raid_ignore:  # ignore certain encounters for the tier list
                 all_scores += analysis[s][e][3]
                 scores += [analysis[s][e][0]]
                 n_scores += analysis[s][e][1]
@@ -785,13 +797,18 @@ def gen_raid_spec_analysis(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
         # using the average of the lbcis, n, mean of scores
         lb_ci_spec["all"][s] = [average(scores), n_scores, mean(all_scores)]
 
-    return lb_ci_spec, raid_max_found, raid_max_link    
+    return lb_ci_spec, raid_max_found, raid_max_link
 
-def gen_raid_specs_role_package(encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
+
+def gen_raid_specs_role_package(
+    encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""
+):
     global role_titles, specs
 
     # gen_raid_spec analysis uses the memoized raid_generate_counts
-    lb_ci_spec, raid_max_found, raid_max_link = gen_raid_spec_analysis(difficulty=difficulty, active_raid=active_raid)
+    lb_ci_spec, raid_max_found, raid_max_link = gen_raid_spec_analysis(
+        difficulty=difficulty, active_raid=active_raid
+    )
     encounter_overall = lb_ci_spec[encounter]
 
     role_package = {}
@@ -805,7 +822,7 @@ def gen_raid_specs_role_package(encounter, difficulty=MAX_RAID_DIFFICULTY, activ
         n_runs = 0
         ids = []
 
-        for k in display: # for spec k
+        for k in display:  # for spec k
             rmf = 0
             rml = ""
 
@@ -823,17 +840,20 @@ def gen_raid_specs_role_package(encounter, difficulty=MAX_RAID_DIFFICULTY, activ
 
                 if maxe != "":
                     rmf = raid_max_found[k][maxe]
-                    rml = raid_max_link[k][maxe]                
-            
-            role_score += [[str("%.2f" % encounter_overall[k][0]), # lower bound of ci
-                            str(k), # name of the spec
-                            str("%.2f" % encounter_overall[k][2]), # mean
-                            str("%d" % encounter_overall[k][1]).rjust(4), # n
-                            slugify.slugify(str(str(k))), # slug name
-                            str("%.2f" % rmf), # maximum run
-                            rml, # id of the maximum run
-            ]]
-            n_runs += encounter_overall[k][1] # since it's just parses, can add
+                    rml = raid_max_link[k][maxe]
+
+            role_score += [
+                [
+                    str("%.2f" % encounter_overall[k][0]),  # lower bound of ci
+                    str(k),  # name of the spec
+                    str("%.2f" % encounter_overall[k][2]),  # mean
+                    str("%d" % encounter_overall[k][1]).rjust(4),  # n
+                    slugify.slugify(str(str(k))),  # slug name
+                    str("%.2f" % rmf),  # maximum run
+                    rml,  # id of the maximum run
+                ]
+            ]
+            n_runs += encounter_overall[k][1]  # since it's just parses, can add
 
         stats[role_titles[i]]["n"] = n_runs
 
@@ -842,11 +862,18 @@ def gen_raid_specs_role_package(encounter, difficulty=MAX_RAID_DIFFICULTY, activ
         role_package[role_titles[i]] = role_score
 
     return role_package, stats
-    
+
 
 # generate a specs tier list
 # placeholder code for now
-def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
+def gen_raid_spec_tier_list(
+    specs_report,
+    role,
+    encounter_slug="all",
+    prefix="",
+    difficulty=MAX_RAID_DIFFICULTY,
+    active_raid="",
+):
     global role_titles
 
     # for raid, we compare tanks to tanks
@@ -858,27 +885,29 @@ def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix="",
     compare_with["Healers"] = ["Healers"]
     compare_with["Melee"] = ["Melee", "Ranged"]
     compare_with["Ranged"] = ["Melee", "Ranged"]
-    
+
     scores = []
     for i in range(0, 4):
         if role_titles[i] not in compare_with[role]:
             continue
         for k in specs_report[role_titles[i]]:
-            if int(k[3]) < 20: # ignore specs with fewer than 20 parses as they would skew the buckets; we'll add them to F later
+            if (
+                int(k[3]) < 20
+            ):  # ignore specs with fewer than 20 parses as they would skew the buckets; we'll add them to F later
                 continue
 
             scores += [float(k[0])]
 
-    if len(scores) < 6: # relax the fewer than 20 rule (early scans)
+    if len(scores) < 6:  # relax the fewer than 20 rule (early scans)
         scores = []
         for i in range(0, 4):
             if role_titles[i] not in compare_with[role]:
-                continue            
+                continue
             for k in specs_report[role_titles[i]]:
                 scores += [float(k[0])]
-        
+
     buckets = ckmeans(scores, 6)
-            
+
     added = []
 
     tiers = {}
@@ -893,7 +922,6 @@ def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix="",
     for i in range(0, 6):
         tiers[tm[i]] = []
 
-
     for i in range(0, 6):
         for k in specs_report[role]:
             if len(buckets) > i:
@@ -902,13 +930,12 @@ def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix="",
                         tiers[tm[i]] += [k]
                         added += [k]
 
-
     # add stragglers to last tier
     for k in specs_report[role]:
         if k not in added:
             tiers[tm[0]] += [k]
             added += [k]
-    
+
     dtl = {}
     dtl["S"] = ""
     dtl["A"] = ""
@@ -921,16 +948,19 @@ def gen_raid_spec_tier_list(specs_report, role, encounter_slug="all", prefix="",
     template = env.get_template("raid-spec-mini-icon.html")
     for i in range(0, 6):
         for k in tiers[tm[i]]:
-            rendered = template.render(spec_name = k[1],
-                                       spec_short_name = spec_short_names[k[1]],
-                                       spec_slug = slugify.slugify(str(k[1])),
-                                       encounter_slug = encounter_slug,
-                                       difficulty = difficulty,
-                                       active_raid = active_raid,
-                                       prefix = prefix)
+            rendered = template.render(
+                spec_name=k[1],
+                spec_short_name=spec_short_names[k[1]],
+                spec_slug=slugify.slugify(str(k[1])),
+                encounter_slug=encounter_slug,
+                difficulty=difficulty,
+                active_raid=active_raid,
+                prefix=prefix,
+            )
             dtl[tm[i]] += rendered
-    
-    return dtl   
+
+    return dtl
+
 
 def gen_pvp_specs_role_package(mode):
     global role_titles, specs
@@ -939,7 +969,7 @@ def gen_pvp_specs_role_package(mode):
 
     logging.info(mode)
     key_slug = "us-%s" % mode
-    pc = ndb.Key('PvPLadderStats', key_slug).get()
+    pc = ndb.Key("PvPLadderStats", key_slug).get()
     data = json.loads(pc.data)
 
     proxy_role_titles = {}
@@ -947,21 +977,21 @@ def gen_pvp_specs_role_package(mode):
     proxy_role_titles[1] = "healer"
     proxy_role_titles[2] = "melee"
     proxy_role_titles[3] = "ranged"
-    
+
     for i in range(4):
         role_package[role_titles[i]] = data["%s_data" % proxy_role_titles[i]]
         stats[role_titles[i]] = {}
         stats[role_titles[i]]["n"] = data["counts"][proxy_role_titles[i]]
 
-    logging.info(role_package)        
+    logging.info(role_package)
     logging.info(stats)
 
     # dirty hack to get around %z not working in strptime py2.7
     # we know the api always gives us US ET time, which is -5 from UTC
-    this_updated = data["last_updated"][:-6] 
+    this_updated = data["last_updated"][:-6]
     this_updated = datetime.datetime.strptime(this_updated, "%Y-%m-%d %H:%M:%S.%f")
     this_updated += datetime.timedelta(hours=5)
-    
+
     global last_updated
     if last_updated == None:
         last_updated = this_updated
@@ -970,12 +1000,12 @@ def gen_pvp_specs_role_package(mode):
 
     return role_package, stats
 
-    
+
 # solo shuffle tier list
 # it has tier list embedded in the internal api call
 def gen_pvp_spec_tier_list(specs_report, role, mode, api=False, prefix=""):
     key_slug = "us-%s" % mode
-    pc = ndb.Key('PvPLadderStats', key_slug).get()
+    pc = ndb.Key("PvPLadderStats", key_slug).get()
     data = json.loads(pc.data)
 
     proxy_role_titles = {}
@@ -983,7 +1013,7 @@ def gen_pvp_spec_tier_list(specs_report, role, mode, api=False, prefix=""):
     proxy_role_titles[1] = "healer"
     proxy_role_titles[2] = "melee"
     proxy_role_titles[3] = "ranged"
-    
+
     proxy_role = ""
     if role == "Tanks":
         proxy_role = "tank"
@@ -993,8 +1023,7 @@ def gen_pvp_spec_tier_list(specs_report, role, mode, api=False, prefix=""):
         proxy_role = "melee"
     elif role == "Ranged":
         proxy_role = "ranged"
-    
-        
+
     tiers = {}
     tm = {}
     tm[5] = "S"
@@ -1009,9 +1038,7 @@ def gen_pvp_spec_tier_list(specs_report, role, mode, api=False, prefix=""):
 
     logging.info(tiers)
 
-    
-
-    if api==False:
+    if api == False:
         dtl = {}
         dtl["S"] = ""
         dtl["A"] = ""
@@ -1024,11 +1051,13 @@ def gen_pvp_spec_tier_list(specs_report, role, mode, api=False, prefix=""):
         template = env.get_template("pvp-spec-mini-icon.html")
         for i in range(0, 6):
             for k in tiers[tm[i]]:
-                rendered = template.render(spec_name = k,
-                                           spec_short_name = spec_short_names[k],
-                                           spec_slug = slugify.slugify(str(k)))
+                rendered = template.render(
+                    spec_name=k,
+                    spec_short_name=spec_short_names[k],
+                    spec_slug=slugify.slugify(str(k)),
+                )
                 dtl[tm[i]] += rendered
-    
+
         return dtl
     else:
         dtl = {}
@@ -1042,10 +1071,8 @@ def gen_pvp_spec_tier_list(specs_report, role, mode, api=False, prefix=""):
         for i in range(0, 6):
             for k in tiers[tm[i]]:
                 dtl[tm[i]] += [k]
-        
-        return dtl        
 
-    
+        return dtl
 
 
 ## end data analysis
@@ -1135,14 +1162,18 @@ def gen_pvp_spec_tier_list(specs_report, role, mode, api=False, prefix=""):
 # we'll have 3 -- all dps against each other (melee and ranged)
 # all tanks against each other (since we only have dps for tanks and tank dps is so much lower)
 # all healers against each other, based on hps
-def process_raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
+def process_raid_generate_counts_spec_encounter(
+    spec, encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""
+):
     counts = []
-    
+
     # only consider the difficulty (we'll need to call this twice, once each for Heroic and Mythic)
-    wcl_query = SpecRankingsRaid.query(SpecRankingsRaid.spec==spec,
-                                       SpecRankingsRaid.difficulty==difficulty,
-                                       SpecRankingsRaid.encounter==encounter,
-                                       SpecRankingsRaid.raid==active_raid)
+    wcl_query = SpecRankingsRaid.query(
+        SpecRankingsRaid.spec == spec,
+        SpecRankingsRaid.difficulty == difficulty,
+        SpecRankingsRaid.encounter == encounter,
+        SpecRankingsRaid.raid == active_raid,
+    )
     results = wcl_query.fetch()
 
     rankings = []
@@ -1151,27 +1182,25 @@ def process_raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_
     max_link = ""
 
     # include max link for each encounter
-    
+
     global last_updated
     for k in results:
         if last_updated == None:
             last_updated = k.last_updated
         if k.last_updated > last_updated:
-            last_updated = k.last_updated    
+            last_updated = k.last_updated
 
         latest = json.loads(k.rankings)
 
         for k in latest:
-            metric = float(k["total"])/1000
+            metric = float(k["total"]) / 1000
             counts += [metric]
 
             if metric > max_found:
                 max_found = metric
                 max_link = k["reportID"]
                 # @@TODO add fight id
-            
 
-    
     data = {}
     data["counts"] = counts
     data["max_found"] = max_found
@@ -1182,25 +1211,29 @@ def process_raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_
     difficulty_slug = slugify.slugify(str(difficulty))
 
     key_slug = "%s-%s-%s-%s" % (spec_slug, encounter_slug, difficulty_slug, active_raid)
-    key = ndb.Key('RaidCounts', key_slug)
-    
-    raid_counts = RaidCounts(id = key_slug,
-                             difficulty = difficulty,
-                             spec = spec,
-                             encounter = encounter,
-                             raid = active_raid,
-                             data = json.dumps(data),
-                             last_updated = last_updated)
+    key = ndb.Key("RaidCounts", key_slug)
+
+    raid_counts = RaidCounts(
+        id=key_slug,
+        difficulty=difficulty,
+        spec=spec,
+        encounter=encounter,
+        raid=active_raid,
+        data=json.dumps(data),
+        last_updated=last_updated,
+    )
 
     raid_counts.put()
 
 
 def process_generate_raid_counts_for_raids(raids):
     for r in raids:
-        options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(process_generate_raid_counts, active_raid=r,
-                       _retry_options=options)
-        
+        options = TaskRetryOptions(task_retry_limit=1)
+        deferred.defer(
+            process_generate_raid_counts, active_raid=r, _retry_options=options
+        )
+
+
 def process_generate_raid_counts(active_raid=""):
     difficulties = ["Heroic"]
     if MAX_RAID_DIFFICULTY == "Mythic":
@@ -1209,20 +1242,34 @@ def process_generate_raid_counts(active_raid=""):
         for s in specs:
             raid_encounters = get_raid_encounters(active_raid)
             for k, v in raid_encounters.iteritems():
-                options = TaskRetryOptions(task_retry_limit = 1)        
-                deferred.defer(process_raid_generate_counts_spec_encounter, s, k, d, active_raid=active_raid,
-                               _retry_options=options)
+                options = TaskRetryOptions(task_retry_limit=1)
+                deferred.defer(
+                    process_raid_generate_counts_spec_encounter,
+                    s,
+                    k,
+                    d,
+                    active_raid=active_raid,
+                    _retry_options=options,
+                )
 
-def raid_generate_counts_spec_encounter(spec, encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
+
+def raid_generate_counts_spec_encounter(
+    spec, encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""
+):
     # read from the db
     spec_slug = slugify.slugify(str(spec))
     encounter_slug = slugify.slugify(str(encounter))
     difficulty_slug = slugify.slugify(str(difficulty))
     active_raid_slug = slugify.slugify(str(active_raid))
 
-    key_slug = "%s-%s-%s-%s" % (spec_slug, encounter_slug, difficulty_slug, active_raid_slug)
-    key = ndb.Key('RaidCounts', key_slug)
-    
+    key_slug = "%s-%s-%s-%s" % (
+        spec_slug,
+        encounter_slug,
+        difficulty_slug,
+        active_raid_slug,
+    )
+    key = ndb.Key("RaidCounts", key_slug)
+
     rc = key.get()
     if rc == None:
         return [0], 0.0, ""
@@ -1240,28 +1287,32 @@ def raid_generate_counts_spec(spec, difficulty=MAX_RAID_DIFFICULTY, active_raid=
     max_link = {}
     raid_encounters = get_raid_encounters(active_raid)
     for k, v in raid_encounters.iteritems():
-        counts[k], max_found[k], max_link[k] = raid_generate_counts_spec_encounter(spec, k, difficulty=difficulty, active_raid=active_raid)
+        counts[k], max_found[k], max_link[k] = raid_generate_counts_spec_encounter(
+            spec, k, difficulty=difficulty, active_raid=active_raid
+        )
     return counts, max_found, max_link
-        
+
 
 def raid_generate_counts(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     counts = {}
     max_found = {}
-    max_link = {}    
+    max_link = {}
     for s in specs:
-        counts[s], max_found[s], max_link[s] = raid_generate_counts_spec(s, difficulty=difficulty, active_raid=active_raid)
+        counts[s], max_found[s], max_link[s] = raid_generate_counts_spec(
+            s, difficulty=difficulty, active_raid=active_raid
+        )
 
     return counts, max_found, max_link
-       
-        
+
 
 # known affixes
 known_affixes_save = []
 
+
 def known_affixes():
-#    global known_affixes_save
-#    if known_affixes_save != []:
-#        return known_affixes_save # poor man's caching
+    #    global known_affixes_save
+    #    if known_affixes_save != []:
+    #        return known_affixes_save # poor man's caching
 
     known_affixes_save = []
     affix_query = KnownAffixes.query().order(KnownAffixes.first_seen)
@@ -1272,6 +1323,7 @@ def known_affixes():
                 known_affixes_save += [k.affixes]
 
     return known_affixes_save
+
 
 # def known_affixes_links(prefix="", use_index=True):
 #     known_affixes_list = known_affixes()
@@ -1320,7 +1372,7 @@ def known_affixes():
 #
 #     return known_specs_report
 
-        
+
 # def current_affixes():
 #     pull_query = KnownAffixes.query().order(-KnownAffixes.last_seen, -KnownAffixes.first_seen)
 #     current_affixes_save = pull_query.fetch(1)[0].affixes
@@ -1329,9 +1381,9 @@ def known_affixes():
 #     return current_affixes_save
 
 
-
 # generate pvp counts and store them
 # we want counts, n, max_rating
+
 
 # all abrogated by the new pvp backend
 def process_pvp_counts_for_a_mode(actual_mode):
@@ -1340,12 +1392,13 @@ def process_pvp_counts_for_a_mode(actual_mode):
 
 def process_pvp_counts_overall():
     return
-        
+
+
 def process_pvp_counts():
     return
 
-## end getting data out into counts
 
+## end getting data out into counts
 
 
 ## html generation start
@@ -1367,7 +1420,7 @@ def process_pvp_counts():
 #     else:
 #         output_string = icon_affix(affixes, size=size) + " %s" % affix_rotation_affixes(affixes)
 #     return output_string
-        
+
 
 # def canonical_order(s):
 #     # given a list, return a tuple in canonical order
@@ -1871,9 +1924,6 @@ def process_pvp_counts():
 #                      lambda e: wcl_extract_azerite_powers(e, [3]))
 
 
-
-    
-
 # def wcl_essences(rankings):
 #     return wcl_parse(rankings, wcl_extract_essences, is_sorted=False)
 
@@ -1989,7 +2039,7 @@ def process_pvp_counts():
 
 # def wcl_enchants(rankings, slots, type="permanentEnchant"):
 #     return wcl_parse(rankings, lambda e: wcl_extract_enchants(e, slots, type), only_use_ids=True)
-    
+
 
 # pick the top 10, sorted by n
 # filter for blanks
@@ -2346,10 +2396,14 @@ def process_pvp_counts():
 
 ## Rendering Code starts here
 
+
 def localized_time(last_updated):
     if last_updated == None:
-        return pytz.utc.localize(datetime.datetime.now()).astimezone(pytz.timezone("America/New_York"))
+        return pytz.utc.localize(datetime.datetime.now()).astimezone(
+            pytz.timezone("America/New_York")
+        )
     return pytz.utc.localize(last_updated).astimezone(pytz.timezone("America/New_York"))
+
 
 ## initial api
 ## todo: eventually we want this to be split into two
@@ -2358,12 +2412,20 @@ def localized_time(last_updated):
 ## for now, to avoid rewriting this entirely, we're generating it as a side effect
 def api_affixes_dungeons(affixes):
     global last_updated
-    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
+    (
+        dungeon_counts,
+        spec_counts,
+        set_counts,
+        th_counts,
+        dps_counts,
+        affix_counts,
+        dung_spec_counts,
+    ) = generate_counts(affixes)
     affixes_slug = slugify.slugify(str(affixes))
     affixes_slug_special = affixes_slug
     if affixes == current_affixes():
         affixes_slug_special = "index"
-    
+
     dungeons_report, dungeon_stats = gen_dungeon_report(dungeon_counts)
     dtl = gen_dungeon_tier_list(dungeons_report)
 
@@ -2375,7 +2437,7 @@ def api_affixes_dungeons(affixes):
         for d in dungeon_slugs:
             if d in v:
                 tiers[k] += [slugs_to_dungeons[d]]
-                
+
     last_updated_output = str(localized_time(last_updated))
     affixes_str = affixes
 
@@ -2387,22 +2449,21 @@ def api_affixes_dungeons(affixes):
 
     ## also store this
     affixes_slug = slugify.slugify(str(affixes))
-    key = ndb.Key('DungeonEaseTierList', affixes_slug)
-    tier_list_entry = DungeonEaseTierList(id=affixes_slug,
-                                          affixes=affixes,
-                                          last_updated=last_updated,
-                                          tier_list=tiers)
+    key = ndb.Key("DungeonEaseTierList", affixes_slug)
+    tier_list_entry = DungeonEaseTierList(
+        id=affixes_slug, affixes=affixes, last_updated=last_updated, tier_list=tiers
+    )
     tier_list_entry.put()
-                  
+
     return json.dumps(rendered)
 
 
 # process the overall tier lists
 def process_dungeon_ease_tier_lists_for_all_known_affixes():
     for af in known_affixes():
-        options = TaskRetryOptions(task_retry_limit = 1)        
+        options = TaskRetryOptions(task_retry_limit=1)
         deferred.defer(api_affixes_dungeons, af, _retry_options=options)
-        
+
 
 # read from the db to return the overall tier lists
 def api_affixes_dungeons_overall():
@@ -2410,40 +2471,49 @@ def api_affixes_dungeons_overall():
 
     rendered["current_affixes"] = current_affixes()
     rendered["source_url"] = "https://mplus.subcreation.net/"
-    rendered["last_updated"] = str(localized_time(last_updated))    
+    rendered["last_updated"] = str(localized_time(last_updated))
 
     query = DungeonEaseTierList.query()
     results = query.fetch()
-    
 
     tier_lists = {}
-    
+
     for detl in results:
         affixes = detl.affixes
         tier_list = detl.tier_list
         tier_lists[affixes] = tier_list
 
     rendered["tier_lists"] = tier_lists
-        
+
     return json.dumps(rendered)
 
 
 def api_affixes_specs(affixes):
     global last_updated
-    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
+    (
+        dungeon_counts,
+        spec_counts,
+        set_counts,
+        th_counts,
+        dps_counts,
+        affix_counts,
+        dung_spec_counts,
+    ) = generate_counts(affixes)
     affixes_slug = slugify.slugify(str(affixes))
     affixes_slug_special = affixes_slug
     if affixes == current_affixes():
         affixes_slug_special = "index"
-    
+
     specs_report, spec_stats = gen_spec_report(spec_counts)
-    dung_spec_report, dung_spec_stats = gen_dung_spec_report(dung_spec_counts, spec_counts)     
-    specs_report = dung_spec_report # to balance out per dungeon anomalies
-    
+    dung_spec_report, dung_spec_stats = gen_dung_spec_report(
+        dung_spec_counts, spec_counts
+    )
+    specs_report = dung_spec_report  # to balance out per dungeon anomalies
+
     tankstl = gen_spec_tier_list(specs_report, "Tanks", api=True)
     healerstl = gen_spec_tier_list(specs_report, "Healers", api=True)
     meleetl = gen_spec_tier_list(specs_report, "Melee", api=True)
-    rangedtl = gen_spec_tier_list(specs_report, "Ranged",api=True)
+    rangedtl = gen_spec_tier_list(specs_report, "Ranged", api=True)
 
     last_updated_output = str(localized_time(last_updated))
     affixes_str = affixes
@@ -2456,22 +2526,28 @@ def api_affixes_specs(affixes):
     rendered["tank_tier_list"] = tankstl
     rendered["healer_tier_list"] = healerstl
     rendered["source_url"] = "https://mplus.subcreation.net/"
-        
+
     return json.dumps(rendered)
-
-
 
 
 def api_affixes_tier_list():
     global last_updated
     affixes = "All Affixes"
-    
-    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
+
+    (
+        dungeon_counts,
+        spec_counts,
+        set_counts,
+        th_counts,
+        dps_counts,
+        affix_counts,
+        dung_spec_counts,
+    ) = generate_counts(affixes)
     affixes_slug = slugify.slugify(str(affixes))
 
-    affixes_report, affix_stats = gen_affix_report(affix_counts)        
+    affixes_report, affix_stats = gen_affix_report(affix_counts)
     aftl = gen_affix_tier_list(affixes_report, api=True)
-    
+
     last_updated_output = str(localized_time(last_updated))
     affixes_str = affixes
 
@@ -2480,22 +2556,33 @@ def api_affixes_tier_list():
     rendered["current_affixes"] = current_affixes()
     rendered["affixes_ease_tier_list"] = aftl
     rendered["source_url"] = "https://mplus.subcreation.net/all-affixes.html"
-        
+
     return json.dumps(rendered)
 
+
 def render_affixes(affixes, prefix=""):
-    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
+    (
+        dungeon_counts,
+        spec_counts,
+        set_counts,
+        th_counts,
+        dps_counts,
+        affix_counts,
+        dung_spec_counts,
+    ) = generate_counts(affixes)
     affixes_slug = slugify.slugify(str(affixes))
     affixes_slug_special = affixes_slug
     if affixes == current_affixes():
         affixes_slug_special = "index"
-    
+
     dungeons_report, dungeon_stats = gen_dungeon_report(dungeon_counts)
     specs_report, spec_stats = gen_spec_report(spec_counts)
-    dung_spec_report, dung_spec_stats = gen_dung_spec_report(dung_spec_counts, spec_counts)    
+    dung_spec_report, dung_spec_stats = gen_dung_spec_report(
+        dung_spec_counts, spec_counts
+    )
     affixes_report, affix_stats = gen_affix_report(affix_counts)
 
-    specs_report = dung_spec_report # to balance out per dungeon anomalies
+    specs_report = dung_spec_report  # to balance out per dungeon anomalies
 
     dtl = gen_dungeon_tier_list(dungeons_report)
     tankstl = gen_spec_tier_list(specs_report, "Tanks", prefix=prefix)
@@ -2503,34 +2590,36 @@ def render_affixes(affixes, prefix=""):
     meleetl = gen_spec_tier_list(specs_report, "Melee", prefix=prefix)
     rangedtl = gen_spec_tier_list(specs_report, "Ranged", prefix=prefix)
     aftl = gen_affix_tier_list(affixes_report)
-    
-    template = env.get_template('by-affix.html')
-    rendered = template.render(title=affixes + " - Mythic+",
-                               active_section = "mplus",
-                               prefix=prefix,
-                               affixes=affixes,
-                               pretty_affixes=pretty_affixes(affixes),
-                               pretty_affixes_large=pretty_affixes(affixes, size=56),
-                               affixes_slug=affixes_slug,
-                               affixes_slug_special=affixes_slug_special,
-                               dungeons=dungeons_report,
-                               dungeon_stats = dungeon_stats,
-                               affixes_report=affixes_report,
-                               affix_stats = affix_stats,
-                               aftl = aftl,
-                               dtl = dtl,
-                               tankstl = tankstl,
-                               healerstl = healerstl,
-                               meleetl = meleetl,
-                               rangedtl = rangedtl,
-                               role_package=specs_report,
-                               spec_stats = spec_stats,
-                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
-                               known_healers = known_specs_subset_links(healers, prefix=prefix),
-                               known_melee = known_specs_subset_links(melee, prefix=prefix),
-                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
-                               known_affixes = known_affixes_links(prefix=prefix),
-                               last_updated = localized_time(last_updated))
+
+    template = env.get_template("by-affix.html")
+    rendered = template.render(
+        title=affixes + " - Mythic+",
+        active_section="mplus",
+        prefix=prefix,
+        affixes=affixes,
+        pretty_affixes=pretty_affixes(affixes),
+        pretty_affixes_large=pretty_affixes(affixes, size=56),
+        affixes_slug=affixes_slug,
+        affixes_slug_special=affixes_slug_special,
+        dungeons=dungeons_report,
+        dungeon_stats=dungeon_stats,
+        affixes_report=affixes_report,
+        affix_stats=affix_stats,
+        aftl=aftl,
+        dtl=dtl,
+        tankstl=tankstl,
+        healerstl=healerstl,
+        meleetl=meleetl,
+        rangedtl=rangedtl,
+        role_package=specs_report,
+        spec_stats=spec_stats,
+        known_tanks=known_specs_subset_links(tanks, prefix=prefix),
+        known_healers=known_specs_subset_links(healers, prefix=prefix),
+        known_melee=known_specs_subset_links(melee, prefix=prefix),
+        known_ranged=known_specs_subset_links(ranged, prefix=prefix),
+        known_affixes=known_affixes_links(prefix=prefix),
+        last_updated=localized_time(last_updated),
+    )
     return rendered
 
 
@@ -2556,78 +2645,107 @@ def render_affixes(affixes, prefix=""):
 #
 #     return json.dumps(rendered)
 
+
 # render compositions as a separate page from affixes
 def render_compositions(affixes, prefix=""):
-    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
+    (
+        dungeon_counts,
+        spec_counts,
+        set_counts,
+        th_counts,
+        dps_counts,
+        affix_counts,
+        dung_spec_counts,
+    ) = generate_counts(affixes)
     affixes_slug = slugify.slugify(str(affixes))
     affixes_slug_special = affixes_slug
     if affixes == current_affixes():
         affixes_slug_special = "index"
-    
+
     set_report = gen_set_report(set_counts)
     th_report = gen_set_report(th_counts)
     dps_report = gen_set_report(dps_counts)
-    
-    template = env.get_template('compositions.html')
-    rendered = template.render(title=affixes + " - Compositions - Mythic+",
-                               active_section = "mplus",
-                               prefix=prefix,
-                               affixes=affixes,
-                               pretty_affixes=pretty_affixes(affixes),
-                               pretty_affixes_large=pretty_affixes(affixes, size=56),
-                               affixes_slug=affixes_slug,
-                               affixes_slug_special=affixes_slug_special,
-                               sets=set_report,
-                               sets_th=th_report,
-                               sets_dps=dps_report,
-                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
-                               known_healers = known_specs_subset_links(healers, prefix=prefix),
-                               known_melee = known_specs_subset_links(melee, prefix=prefix),
-                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
-                               known_affixes = known_affixes_links(prefix=prefix),
-                               last_updated = localized_time(last_updated))
+
+    template = env.get_template("compositions.html")
+    rendered = template.render(
+        title=affixes + " - Compositions - Mythic+",
+        active_section="mplus",
+        prefix=prefix,
+        affixes=affixes,
+        pretty_affixes=pretty_affixes(affixes),
+        pretty_affixes_large=pretty_affixes(affixes, size=56),
+        affixes_slug=affixes_slug,
+        affixes_slug_special=affixes_slug_special,
+        sets=set_report,
+        sets_th=th_report,
+        sets_dps=dps_report,
+        known_tanks=known_specs_subset_links(tanks, prefix=prefix),
+        known_healers=known_specs_subset_links(healers, prefix=prefix),
+        known_melee=known_specs_subset_links(melee, prefix=prefix),
+        known_ranged=known_specs_subset_links(ranged, prefix=prefix),
+        known_affixes=known_affixes_links(prefix=prefix),
+        last_updated=localized_time(last_updated),
+    )
     return rendered
+
 
 # render stats separately
 def render_stats(affixes, prefix=""):
-    dungeon_counts, spec_counts, set_counts, th_counts, dps_counts, affix_counts, dung_spec_counts = generate_counts(affixes)
+    (
+        dungeon_counts,
+        spec_counts,
+        set_counts,
+        th_counts,
+        dps_counts,
+        affix_counts,
+        dung_spec_counts,
+    ) = generate_counts(affixes)
     affixes_slug = slugify.slugify(str(affixes))
     affixes_slug_special = affixes_slug
     if affixes == current_affixes():
         affixes_slug_special = "index"
-   
+
     dungeons_report, dungeon_stats = gen_dungeon_report(dungeon_counts)
     specs_report, spec_stats = gen_spec_report(spec_counts)
-    dung_spec_report, dung_spec_stats = gen_dung_spec_report(dung_spec_counts, spec_counts)    
+    dung_spec_report, dung_spec_stats = gen_dung_spec_report(
+        dung_spec_counts, spec_counts
+    )
     affixes_report, affix_stats = gen_affix_report(affix_counts)
 
-    specs_report = dung_spec_report # to balance out per dungeon anomalies
-    
-    template = env.get_template('stats-affix.html')
-    rendered = template.render(title=affixes,
-                               active_section = "mplus",
-                               prefix=prefix,
-                               affixes=affixes,
-                               pretty_affixes=pretty_affixes(affixes),
-                               pretty_affixes_large=pretty_affixes(affixes, size=56),
-                               affixes_slug=affixes_slug,
-                               affixes_slug_special=affixes_slug_special,
-                               dungeons_report = dungeons_report,
-                               dungeon_stats = dungeon_stats,
-                               affixes_report=affixes_report,
-                               affix_stats = affix_stats,
-                               role_package = specs_report,
-                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
-                               known_healers = known_specs_subset_links(healers, prefix=prefix),
-                               known_melee = known_specs_subset_links(melee, prefix=prefix),
-                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
-                               known_affixes = known_affixes_links(prefix=prefix),
-                               last_updated = localized_time(last_updated))
+    specs_report = dung_spec_report  # to balance out per dungeon anomalies
+
+    template = env.get_template("stats-affix.html")
+    rendered = template.render(
+        title=affixes,
+        active_section="mplus",
+        prefix=prefix,
+        affixes=affixes,
+        pretty_affixes=pretty_affixes(affixes),
+        pretty_affixes_large=pretty_affixes(affixes, size=56),
+        affixes_slug=affixes_slug,
+        affixes_slug_special=affixes_slug_special,
+        dungeons_report=dungeons_report,
+        dungeon_stats=dungeon_stats,
+        affixes_report=affixes_report,
+        affix_stats=affix_stats,
+        role_package=specs_report,
+        known_tanks=known_specs_subset_links(tanks, prefix=prefix),
+        known_healers=known_specs_subset_links(healers, prefix=prefix),
+        known_melee=known_specs_subset_links(melee, prefix=prefix),
+        known_ranged=known_specs_subset_links(ranged, prefix=prefix),
+        known_affixes=known_affixes_links(prefix=prefix),
+        last_updated=localized_time(last_updated),
+    )
     return rendered
 
+
 # render raid stats separately
-def render_raid_stats(encounter, prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
-    specs_report, spec_stats = gen_raid_specs_role_package(encounter, difficulty=difficulty, active_raid=active_raid)
+def render_raid_stats(
+    encounter, prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid=""
+):
+    specs_report, spec_stats = gen_raid_specs_role_package(
+        encounter, difficulty=difficulty, active_raid=active_raid
+    )
 
     encounter_slugs = {}
     raid_canonical_order = get_raid_canonical_order(active_raid)
@@ -2635,23 +2753,25 @@ def render_raid_stats(encounter, prefix="", difficulty=MAX_RAID_DIFFICULTY, acti
         encounter_slugs[e] = slugify.slugify(str(e))
 
     encounter_slug = slugify.slugify(str(encounter))
-    
-    template = env.get_template('stats-raid.html')
-    rendered = template.render(title=encounter,
-                               active_section = "raid",
-                               prefix=prefix,
-                               difficulty = difficulty,
-                               encounter = encounter,
-                               encounter_slug = encounter_slug,
-                               active_raid = active_raid,
-                               raid_stats = spec_stats,
-                               role_package = specs_report,
-                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
-                               known_healers = known_specs_subset_links(healers, prefix=prefix),
-                               known_melee = known_specs_subset_links(melee, prefix=prefix),
-                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
-                               known_affixes = known_affixes_links(prefix=prefix),
-                               last_updated = localized_time(last_updated))
+
+    template = env.get_template("stats-raid.html")
+    rendered = template.render(
+        title=encounter,
+        active_section="raid",
+        prefix=prefix,
+        difficulty=difficulty,
+        encounter=encounter,
+        encounter_slug=encounter_slug,
+        active_raid=active_raid,
+        raid_stats=spec_stats,
+        role_package=specs_report,
+        known_tanks=known_specs_subset_links(tanks, prefix=prefix),
+        known_healers=known_specs_subset_links(healers, prefix=prefix),
+        known_melee=known_specs_subset_links(melee, prefix=prefix),
+        known_ranged=known_specs_subset_links(ranged, prefix=prefix),
+        known_affixes=known_affixes_links(prefix=prefix),
+        last_updated=localized_time(last_updated),
+    )
     return rendered
 
 
@@ -2666,16 +2786,38 @@ def get_archetype(spec):
         return "ranged"
     return "unknown"
 
+
 def render_wcl_spec(spec, dungeon="all", prefix=""):
     spec_slug = slugify.slugify(str(spec))
     affixes = "N/A"
-    n_parses, n_uniques, key_max, key_min, talents, gear, enchants, gems, gem_builds, primordials, primordial_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds, crafted_items, crafted_builds = gen_wcl_spec_report(spec, dungeon)
+    (
+        n_parses,
+        n_uniques,
+        key_max,
+        key_min,
+        talents,
+        gear,
+        enchants,
+        gems,
+        gem_builds,
+        primordials,
+        primordial_builds,
+        spells,
+        items,
+        enchant_ids,
+        tier_items,
+        tier_builds,
+        embellished_items,
+        embellished_builds,
+        crafted_items,
+        crafted_builds,
+    ) = gen_wcl_spec_report(spec, dungeon)
 
     talent_metadata = {}
     talent_metadata["talents_to_spells"] = talents_to_spells
     talent_metadata["class"] = talent_id_class
     talent_metadata["spec"] = talent_id_spec
-    talent_metadata["heights"] = talent_id_heights    
+    talent_metadata["heights"] = talent_id_heights
 
     title = spec + " - Mythic+"
     if dungeon != "all":
@@ -2684,117 +2826,137 @@ def render_wcl_spec(spec, dungeon="all", prefix=""):
     spec_slug = slugify.slugify(str(spec))
     dungeon_slug = slugify.slugify(str(dungeon))
 
-       
-    template = env.get_template('spec.html')
-    rendered = template.render(title = title,
-                               active_section = "mplus",
-                               active_page = spec_slug + "-" + dungeon_slug,
-                               dungeon = dungeon,
-                               spec = spec,
-                               dungeon_slugs = dungeon_slugs,
-                               slugs_to_dungeons = slugs_to_dungeons,
-                               dungeon_short_names = dungeon_short_names,
-                               archetype = get_archetype(spec),
-                               spec_slug = spec_slug,
-                               talents = talents,
-                               affixes = affixes,
-                               gear = gear,
-                               enchants = enchants,
-                               enchant_ids = enchant_ids,
-                               enchant_mapping = enchant_mapping,
-                               talent_metadata = talent_metadata,
-                               gems = gems,
-                               gem_builds = gem_builds,
-                               primordials = primordials,
-                               primordial_builds = primordial_builds,                               
-                               tier_items = tier_items,
-                               tier_builds = tier_builds,   
-                               embellished_items = embellished_items,
-                               embellished_builds = embellished_builds,
-                               crafted_items = crafted_items,
-                               crafted_builds = crafted_builds,                            
-                               spells = spells,
-                               items = items,
-                               n_parses = n_parses,
-                               n_uniques = n_uniques,
-                               key_max = key_max,
-                               key_min = key_min,
-                               metric = "key",
-                               prefix=prefix,
-                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
-                               known_healers = known_specs_subset_links(healers, prefix=prefix),
-                               known_melee = known_specs_subset_links(melee, prefix=prefix),
-                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
-                               known_affixes = known_affixes_links(prefix=prefix),
-                               last_updated = localized_time(last_updated))
+    template = env.get_template("spec.html")
+    rendered = template.render(
+        title=title,
+        active_section="mplus",
+        active_page=spec_slug + "-" + dungeon_slug,
+        dungeon=dungeon,
+        spec=spec,
+        dungeon_slugs=dungeon_slugs,
+        slugs_to_dungeons=slugs_to_dungeons,
+        dungeon_short_names=dungeon_short_names,
+        archetype=get_archetype(spec),
+        spec_slug=spec_slug,
+        talents=talents,
+        affixes=affixes,
+        gear=gear,
+        enchants=enchants,
+        enchant_ids=enchant_ids,
+        enchant_mapping=enchant_mapping,
+        talent_metadata=talent_metadata,
+        gems=gems,
+        gem_builds=gem_builds,
+        primordials=primordials,
+        primordial_builds=primordial_builds,
+        tier_items=tier_items,
+        tier_builds=tier_builds,
+        embellished_items=embellished_items,
+        embellished_builds=embellished_builds,
+        crafted_items=crafted_items,
+        crafted_builds=crafted_builds,
+        spells=spells,
+        items=items,
+        n_parses=n_parses,
+        n_uniques=n_uniques,
+        key_max=key_max,
+        key_min=key_min,
+        metric="key",
+        prefix=prefix,
+        known_tanks=known_specs_subset_links(tanks, prefix=prefix),
+        known_healers=known_specs_subset_links(healers, prefix=prefix),
+        known_melee=known_specs_subset_links(melee, prefix=prefix),
+        known_ranged=known_specs_subset_links(ranged, prefix=prefix),
+        known_affixes=known_affixes_links(prefix=prefix),
+        last_updated=localized_time(last_updated),
+    )
 
     return rendered
 
-def render_raid_index(encounter="all", difficulty=MAX_RAID_DIFFICULTY, prefix="", active_raid=""):
+
+def render_raid_index(
+    encounter="all", difficulty=MAX_RAID_DIFFICULTY, prefix="", active_raid=""
+):
     template = env.get_template("raid-index.html")
-    
-    specs_report, spec_stats = gen_raid_specs_role_package(encounter, difficulty=difficulty, active_raid=active_raid)
-    
+
+    specs_report, spec_stats = gen_raid_specs_role_package(
+        encounter, difficulty=difficulty, active_raid=active_raid
+    )
+
     encounter_slugs = {}
-    raid_canonical_order = get_raid_canonical_order(active_raid)    
+    raid_canonical_order = get_raid_canonical_order(active_raid)
     for e in raid_canonical_order:
         encounter_slugs[e] = slugify.slugify(str(e))
 
     encounter_slug = slugify.slugify(str(encounter))
-   
-    tankstl = gen_raid_spec_tier_list(specs_report, "Tanks",
-                                      encounter_slug=encounter_slug, prefix=prefix,
-                                      difficulty=difficulty,
-                                      active_raid=active_raid)
-    healerstl = gen_raid_spec_tier_list(specs_report, "Healers",
-                                        encounter_slug=encounter_slug,
-                                        prefix=prefix,
-                                        difficulty=difficulty,
-                                        active_raid=active_raid)
-    meleetl = gen_raid_spec_tier_list(specs_report, "Melee",
-                                      encounter_slug=encounter_slug,
-                                      prefix=prefix,
-                                      difficulty=difficulty,
-                                      active_raid=active_raid)
-    rangedtl = gen_raid_spec_tier_list(specs_report, "Ranged",
-                                       encounter_slug=encounter_slug,
-                                       prefix=prefix,
-                                       difficulty=difficulty,
-                                       active_raid=active_raid)
-  
+
+    tankstl = gen_raid_spec_tier_list(
+        specs_report,
+        "Tanks",
+        encounter_slug=encounter_slug,
+        prefix=prefix,
+        difficulty=difficulty,
+        active_raid=active_raid,
+    )
+    healerstl = gen_raid_spec_tier_list(
+        specs_report,
+        "Healers",
+        encounter_slug=encounter_slug,
+        prefix=prefix,
+        difficulty=difficulty,
+        active_raid=active_raid,
+    )
+    meleetl = gen_raid_spec_tier_list(
+        specs_report,
+        "Melee",
+        encounter_slug=encounter_slug,
+        prefix=prefix,
+        difficulty=difficulty,
+        active_raid=active_raid,
+    )
+    rangedtl = gen_raid_spec_tier_list(
+        specs_report,
+        "Ranged",
+        encounter_slug=encounter_slug,
+        prefix=prefix,
+        difficulty=difficulty,
+        active_raid=active_raid,
+    )
+
     active_page = "raid-index"
     if encounter != "all":
         active_page = "raid-" + encounter_slug
 
-    raid_short_names = get_raid_short_names(active_raid)    
+    raid_short_names = get_raid_short_names(active_raid)
     raid_ignore = get_raid_ignore(active_raid)
-    
-    rendered = template.render(prefix=prefix,
-                               active_page = active_page,
-                               active_section = "raid",
-                               title_override = "Subcreation %s" % RAID_NAME,
-                               tankstl = tankstl,
-                               healerstl = healerstl,
-                               meleetl = meleetl,
-                               difficulty = difficulty,
-                               rangedtl = rangedtl,
-                               role_package=specs_report,
-                               spec_stats = spec_stats,
-                               encounter=encounter,
-                               active_raid=active_raid,
-                               raid_ignore = raid_ignore,
-                               encounter_slugs = encounter_slugs,
-                               encounter_slug = encounter_slug,                               
-                               raid_canonical_order = raid_canonical_order,
-                               raid_short_names = raid_short_names,                               
-                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
-                               known_healers = known_specs_subset_links(healers, prefix=prefix),
-                               known_melee = known_specs_subset_links(melee, prefix=prefix),
-                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
-                               known_affixes = known_affixes_links(prefix=prefix),
-                               max_raid_difficulty = MAX_RAID_DIFFICULTY,
-                               last_updated = localized_time(last_updated))
 
+    rendered = template.render(
+        prefix=prefix,
+        active_page=active_page,
+        active_section="raid",
+        title_override="Subcreation %s" % RAID_NAME,
+        tankstl=tankstl,
+        healerstl=healerstl,
+        meleetl=meleetl,
+        difficulty=difficulty,
+        rangedtl=rangedtl,
+        role_package=specs_report,
+        spec_stats=spec_stats,
+        encounter=encounter,
+        active_raid=active_raid,
+        raid_ignore=raid_ignore,
+        encounter_slugs=encounter_slugs,
+        encounter_slug=encounter_slug,
+        raid_canonical_order=raid_canonical_order,
+        raid_short_names=raid_short_names,
+        known_tanks=known_specs_subset_links(tanks, prefix=prefix),
+        known_healers=known_specs_subset_links(healers, prefix=prefix),
+        known_melee=known_specs_subset_links(melee, prefix=prefix),
+        known_ranged=known_specs_subset_links(ranged, prefix=prefix),
+        known_affixes=known_affixes_links(prefix=prefix),
+        max_raid_difficulty=MAX_RAID_DIFFICULTY,
+        last_updated=localized_time(last_updated),
+    )
 
     return rendered
 
@@ -2808,53 +2970,53 @@ def render_pvp_index(mode="all", prefix=""):
     global pvp_modes
     pvp_canonical_order = ["solo-shuffle", "2v2", "3v3", "rbg"]
     pvp_pretty_names = {}
-    pvp_pretty_names["solo-shuffle"] = "Solo Shuffle"    
+    pvp_pretty_names["solo-shuffle"] = "Solo Shuffle"
     pvp_pretty_names["2v2"] = "2v2 Arena"
     pvp_pretty_names["3v3"] = "3v3 Arena"
     pvp_pretty_names["rbg"] = "Rated BGs"
-    
+
     mode_slugs = {}
     for e in pvp_canonical_order:
         mode_slugs[e] = slugify.slugify(str(e))
 
     mode_slug = slugify.slugify(str(mode))
-    
+
     tankstl = gen_pvp_spec_tier_list(specs_report, "Tanks", mode, prefix=prefix)
     healerstl = gen_pvp_spec_tier_list(specs_report, "Healers", mode, prefix=prefix)
     meleetl = gen_pvp_spec_tier_list(specs_report, "Melee", mode, prefix=prefix)
-    rangedtl = gen_pvp_spec_tier_list(specs_report, "Ranged", mode, prefix=prefix)    
+    rangedtl = gen_pvp_spec_tier_list(specs_report, "Ranged", mode, prefix=prefix)
 
     active_page = "pvp-index"
     if mode != "all":
         active_page = "pvp-" + mode_slug
 
-
     title_override = "Subcreation PvP"
     if mode != "all":
         title_override = "%s - Subcreation PvP" % pvp_pretty_names[mode]
-        
-    rendered = template.render(prefix=prefix,
-                               active_page = active_page,
-                               active_section = "pvp",
-                               title_override = title_override,
-                               tankstl = tankstl,
-                               healerstl = healerstl,
-                               meleetl = meleetl,
-                               rangedtl = rangedtl,
-                               role_package=specs_report,
-                               spec_stats = spec_stats,
-                               mode=mode,
-                               mode_slugs = mode_slugs,
-                               mode_slug = mode_slug,                               
-                               pvp_canonical_order = pvp_canonical_order,
-                               pvp_pretty_names = pvp_pretty_names,
-                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
-                               known_healers = known_specs_subset_links(healers, prefix=prefix),
-                               known_melee = known_specs_subset_links(melee, prefix=prefix),
-                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
-                               known_affixes = known_affixes_links(prefix=prefix),
-                               last_updated = localized_time(last_updated))
 
+    rendered = template.render(
+        prefix=prefix,
+        active_page=active_page,
+        active_section="pvp",
+        title_override=title_override,
+        tankstl=tankstl,
+        healerstl=healerstl,
+        meleetl=meleetl,
+        rangedtl=rangedtl,
+        role_package=specs_report,
+        spec_stats=spec_stats,
+        mode=mode,
+        mode_slugs=mode_slugs,
+        mode_slug=mode_slug,
+        pvp_canonical_order=pvp_canonical_order,
+        pvp_pretty_names=pvp_pretty_names,
+        known_tanks=known_specs_subset_links(tanks, prefix=prefix),
+        known_healers=known_specs_subset_links(healers, prefix=prefix),
+        known_melee=known_specs_subset_links(melee, prefix=prefix),
+        known_ranged=known_specs_subset_links(ranged, prefix=prefix),
+        known_affixes=known_affixes_links(prefix=prefix),
+        last_updated=localized_time(last_updated),
+    )
 
     return rendered
 
@@ -2865,79 +3027,111 @@ def render_pvp_stats(mode, prefix=""):
 
     pvp_canonical_order = ["solo-shuffle", "2v2", "3v3", "rbg"]
     pvp_pretty_names = {}
-    pvp_pretty_names["solo-shuffle"] = "Solo Shuffle"    
+    pvp_pretty_names["solo-shuffle"] = "Solo Shuffle"
     pvp_pretty_names["2v2"] = "2v2 Arena"
     pvp_pretty_names["3v3"] = "3v3 Arena"
     pvp_pretty_names["rbg"] = "Rated BGs"
-    
+
     mode_slugs = {}
     for e in pvp_canonical_order:
         mode_slugs[e] = slugify.slugify(str(e))
 
     mode_slug = slugify.slugify(str(mode))
-        
+
     mode_slug = slugify.slugify(str(mode))
-    
-    template = env.get_template('stats-pvp.html')
-    rendered = template.render(title=mode,
-                               active_section = "raid",
-                               prefix=prefix,
-                               mode = mode,
-                               mode_slug = mode_slug,
-                               pvp_stats = spec_stats,
-                               role_package = specs_report,
-                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
-                               known_healers = known_specs_subset_links(healers, prefix=prefix),
-                               known_melee = known_specs_subset_links(melee, prefix=prefix),
-                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
-                               known_affixes = known_affixes_links(prefix=prefix),
-                               last_updated = localized_time(last_updated))
+
+    template = env.get_template("stats-pvp.html")
+    rendered = template.render(
+        title=mode,
+        active_section="raid",
+        prefix=prefix,
+        mode=mode,
+        mode_slug=mode_slug,
+        pvp_stats=spec_stats,
+        role_package=specs_report,
+        known_tanks=known_specs_subset_links(tanks, prefix=prefix),
+        known_healers=known_specs_subset_links(healers, prefix=prefix),
+        known_melee=known_specs_subset_links(melee, prefix=prefix),
+        known_ranged=known_specs_subset_links(ranged, prefix=prefix),
+        known_affixes=known_affixes_links(prefix=prefix),
+        last_updated=localized_time(last_updated),
+    )
     return rendered
 
 
 def render_main_index(prefix=""):
     template = env.get_template("main-index.html")
 
-    rendered = template.render(prefix=prefix,
-                               title_override = "Subcreation",
-                               active_section = "main",
-                               active_page = "main-index")
-
+    rendered = template.render(
+        prefix=prefix,
+        title_override="Subcreation",
+        active_section="main",
+        active_page="main-index",
+    )
 
     return rendered
 
 
 def render_privacy(prefix=""):
     template = env.get_template("privacy.html")
-    rendered = template.render(prefix=prefix,
-                               title_override = "Privacy Policy - Subcreation",
-                               active_section = "main",
-                               active_page = "main-privacy")
-
+    rendered = template.render(
+        prefix=prefix,
+        title_override="Privacy Policy - Subcreation",
+        active_section="main",
+        active_page="main-privacy",
+    )
 
     return rendered
+
 
 def render_faq(prefix=""):
     template = env.get_template("faq.html")
-    rendered = template.render(prefix=prefix,
-                               title_override = "Frequently Asked Questions - Subcreation",
-                               active_section = "main",
-                               active_page = "main-faq")
-
+    rendered = template.render(
+        prefix=prefix,
+        title_override="Frequently Asked Questions - Subcreation",
+        active_section="main",
+        active_page="main-faq",
+    )
 
     return rendered
 
-def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
+
+def render_wcl_raid_spec(
+    spec, encounter="all", prefix="", difficulty=MAX_RAID_DIFFICULTY, active_raid=""
+):
     logging.info("%s %s %s" % (spec, encounter, difficulty))
     spec_slug = slugify.slugify(str(spec))
     affixes = "N/A"
-    n_parses, n_uniques, available_difficulty, _, talents,gear, enchants, gems, gem_builds, primordials, primordial_builds, spells, items, enchant_ids, tier_items, tier_builds, embellished_items, embellished_builds, crafted_items, crafted_builds = gen_wcl_raid_spec_report(spec, encounter, difficulty=difficulty, active_raid=active_raid)
+    (
+        n_parses,
+        n_uniques,
+        available_difficulty,
+        _,
+        talents,
+        gear,
+        enchants,
+        gems,
+        gem_builds,
+        primordials,
+        primordial_builds,
+        spells,
+        items,
+        enchant_ids,
+        tier_items,
+        tier_builds,
+        embellished_items,
+        embellished_builds,
+        crafted_items,
+        crafted_builds,
+    ) = gen_wcl_raid_spec_report(
+        spec, encounter, difficulty=difficulty, active_raid=active_raid
+    )
 
     talent_metadata = {}
     talent_metadata["talents_to_spells"] = talents_to_spells
     talent_metadata["class"] = talent_id_class
     talent_metadata["spec"] = talent_id_spec
-    talent_metadata["heights"] = talent_id_heights    
+    talent_metadata["heights"] = talent_id_heights
 
     encounter_pretty = encounter
     if encounter_pretty == "all":
@@ -2955,127 +3149,149 @@ def render_wcl_raid_spec(spec, encounter="all", prefix="", difficulty=MAX_RAID_D
     if spec in healers:
         metric = "hps"
 
-    raid_short_names = get_raid_short_names(active_raid)    
-        
-    template = env.get_template('spec-raid.html')
-    rendered = template.render(title = "%s - %s - %s" % (encounter_pretty, spec, RAID_NAME),
-                               active_section = "raid",
-                               spec = spec,
-                               spec_slug = spec_slug,
-                               archetype = get_archetype(spec),
-                               active_page = spec_slug + "-" + encounter_slug + "-" + difficulty_slug,
-                               talents = talents,
-                               affixes = affixes,
-                               gear = gear,
-                               spells = spells,
-                               items = items,
-                               enchants = enchants,
-                               enchant_ids = enchant_ids,
-                               enchant_mapping = enchant_mapping,
-                               talent_metadata = talent_metadata,                               
-                               metric = metric,
-                               gems = gems,
-                               gem_builds = gem_builds,
-                               primordials = primordials,
-                               primordial_builds = primordial_builds,
-                               tier_items = tier_items,
-                               tier_builds = tier_builds,
-                               embellished_items = embellished_items,
-                               embellished_builds = embellished_builds,
-                               crafted_items = crafted_items,
-                               crafted_builds = crafted_builds,         
-                               raid_canonical_order = raid_canonical_order,
-                               encounter_slugs = encounter_slugs,
-                               raid_short_names = raid_short_names,
-                               n_parses = n_parses,
-                               n_uniques = n_uniques,
-                               encounter = encounter,
-                               encounter_slug = encounter_slug,
-                               encounter_pretty = encounter_pretty,
-                               active_raid=active_raid,
-                               difficulty = difficulty,
-                               available_difficulty = available_difficulty,
-                               max_raid_difficulty = MAX_RAID_DIFFICULTY,
-                               prefix=prefix,
-                               known_tanks = known_specs_subset_links(tanks, prefix=prefix),
-                               known_healers = known_specs_subset_links(healers, prefix=prefix),
-                               known_melee = known_specs_subset_links(melee, prefix=prefix),
-                               known_ranged = known_specs_subset_links(ranged, prefix=prefix),
-                               known_affixes = known_affixes_links(prefix=prefix),
-                               last_updated = localized_time(last_updated))
+    raid_short_names = get_raid_short_names(active_raid)
+
+    template = env.get_template("spec-raid.html")
+    rendered = template.render(
+        title="%s - %s - %s" % (encounter_pretty, spec, RAID_NAME),
+        active_section="raid",
+        spec=spec,
+        spec_slug=spec_slug,
+        archetype=get_archetype(spec),
+        active_page=spec_slug + "-" + encounter_slug + "-" + difficulty_slug,
+        talents=talents,
+        affixes=affixes,
+        gear=gear,
+        spells=spells,
+        items=items,
+        enchants=enchants,
+        enchant_ids=enchant_ids,
+        enchant_mapping=enchant_mapping,
+        talent_metadata=talent_metadata,
+        metric=metric,
+        gems=gems,
+        gem_builds=gem_builds,
+        primordials=primordials,
+        primordial_builds=primordial_builds,
+        tier_items=tier_items,
+        tier_builds=tier_builds,
+        embellished_items=embellished_items,
+        embellished_builds=embellished_builds,
+        crafted_items=crafted_items,
+        crafted_builds=crafted_builds,
+        raid_canonical_order=raid_canonical_order,
+        encounter_slugs=encounter_slugs,
+        raid_short_names=raid_short_names,
+        n_parses=n_parses,
+        n_uniques=n_uniques,
+        encounter=encounter,
+        encounter_slug=encounter_slug,
+        encounter_pretty=encounter_pretty,
+        active_raid=active_raid,
+        difficulty=difficulty,
+        available_difficulty=available_difficulty,
+        max_raid_difficulty=MAX_RAID_DIFFICULTY,
+        prefix=prefix,
+        known_tanks=known_specs_subset_links(tanks, prefix=prefix),
+        known_healers=known_specs_subset_links(healers, prefix=prefix),
+        known_melee=known_specs_subset_links(melee, prefix=prefix),
+        known_ranged=known_specs_subset_links(ranged, prefix=prefix),
+        known_affixes=known_affixes_links(prefix=prefix),
+        last_updated=localized_time(last_updated),
+    )
 
     return rendered
 
 
 ## end html generation
-    
+
 ## templates
 
 from jinja2 import Environment, FileSystemLoader
+
 env = Environment(
-    loader=FileSystemLoader('templates'),
+    loader=FileSystemLoader("templates"),
 )
 
 ## end templates
 
 ## cloud storage -- low priority TODO: refactor this into one function instead of ugh, 3
 
+
 def write_to_storage(filename, content):
-    bucket_name = 'mplus.subcreation.net'
+    bucket_name = "mplus.subcreation.net"
     original_filename = filename
-    
+
     filename = "/%s/%s" % (bucket_name, filename)
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
-    gcs_file = gcs.open(filename,
-                        'w', content_type='text/html',
-                        options={"cache-control" : "public, max-age=28800"},
-                        retry_params=write_retry_params)
+    gcs_file = gcs.open(
+        filename,
+        "w",
+        content_type="text/html",
+        options={"cache-control": "public, max-age=28800"},
+        retry_params=write_retry_params,
+    )
     gcs_file.write(str(content))
     gcs_file.close()
 
     cloudflare_purge_cache(bucket_name, original_filename)
 
 
-def main_write_to_storage(filename, content, cache_control="public, max-age=86400", content_type="text/html"):
-    bucket_name = 'subcreation.net'
+def main_write_to_storage(
+    filename, content, cache_control="public, max-age=86400", content_type="text/html"
+):
+    bucket_name = "subcreation.net"
     original_filename = filename
-    
+
     filename = "/%s/%s" % (bucket_name, filename)
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
-    gcs_file = gcs.open(filename,
-                        'w', content_type=content_type,
-                        options={"cache-control" : cache_control},
-                        retry_params=write_retry_params)
+    gcs_file = gcs.open(
+        filename,
+        "w",
+        content_type=content_type,
+        options={"cache-control": cache_control},
+        retry_params=write_retry_params,
+    )
     gcs_file.write(str(content))
     gcs_file.close()
 
     cloudflare_purge_cache(bucket_name, original_filename)
 
-def pvp_write_to_storage(filename, content, cache_control="public, max-age=86400", content_type="text/html"):
-    bucket_name = 'pvp.subcreation.net'
+
+def pvp_write_to_storage(
+    filename, content, cache_control="public, max-age=86400", content_type="text/html"
+):
+    bucket_name = "pvp.subcreation.net"
     original_filename = filename
-    
+
     filename = "/%s/%s" % (bucket_name, filename)
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
-    gcs_file = gcs.open(filename,
-                        'w', content_type=content_type,
-                        options={"cache-control" : cache_control},
-                        retry_params=write_retry_params)
+    gcs_file = gcs.open(
+        filename,
+        "w",
+        content_type=content_type,
+        options={"cache-control": cache_control},
+        retry_params=write_retry_params,
+    )
     gcs_file.write(str(content))
     gcs_file.close()
 
-    cloudflare_purge_cache(bucket_name, original_filename)    
+    cloudflare_purge_cache(bucket_name, original_filename)
+
 
 def raid_write_to_storage(filename, content):
-    bucket_name = 'raid.subcreation.net'
+    bucket_name = "raid.subcreation.net"
     original_filename = filename
-    
+
     filename = "/%s/%s" % (bucket_name, filename)
     write_retry_params = gcs.RetryParams(backoff_factor=1.1)
-    gcs_file = gcs.open(filename,
-                        'w', content_type='text/html',
-                        options={"cache-control" : "public, max-age=86400"},
-                        retry_params=write_retry_params)
+    gcs_file = gcs.open(
+        filename,
+        "w",
+        content_type="text/html",
+        options={"cache-control": "public, max-age=86400"},
+        retry_params=write_retry_params,
+    )
     gcs_file.write(str(content))
     gcs_file.close()
 
@@ -3084,7 +3300,7 @@ def raid_write_to_storage(filename, content):
 
 def render_and_write(af):
     rendered = render_affixes(af)
-    
+
     filename_slug = slugify.slugify(str(af))
 
     if af == current_affixes():
@@ -3094,61 +3310,63 @@ def render_and_write(af):
 
     write_to_storage(filename_slug + ".html", rendered)
 
+
 def render_and_write_compositions(af):
     rendered = render_compositions(af)
-    
+
     filename_slug = slugify.slugify(str(af))
 
     affix_slug = slugify.slugify(str(af))
 
-    options = TaskRetryOptions(task_retry_limit = 1)
+    options = TaskRetryOptions(task_retry_limit=1)
     write_to_storage("compositions-" + filename_slug + ".html", rendered)
 
 
 def render_and_write_stats(af):
     rendered = render_stats(af)
-    
+
     filename_slug = slugify.slugify(str(af))
 
-    options = TaskRetryOptions(task_retry_limit = 1)
+    options = TaskRetryOptions(task_retry_limit=1)
     write_to_storage("stats-" + filename_slug + ".html", rendered)
 
-def render_and_write_raid_stats(encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
+
+def render_and_write_raid_stats(
+    encounter, difficulty=MAX_RAID_DIFFICULTY, active_raid=""
+):
     rendered = render_raid_stats(encounter, difficulty, active_raid=active_raid)
 
     filename_slug = ""
     if active_raid != "nathria":
         filename_slug += active_raid + "-"
-    
+
     filename_slug += slugify.slugify(str(encounter))
 
     if difficulty == "Heroic":
         filename_slug += "-heroic"
-            
+
     raid_write_to_storage("raid-stats-" + filename_slug + ".html", rendered)
-    
+
+
 def write_overviews():
     affixes_to_write = []
     affixes_to_write += ["All Affixes"]
     affixes_to_write += known_affixes()
 
     for af in affixes_to_write:
-        options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(render_and_write, af,
-                       _retry_options=options)
+        options = TaskRetryOptions(task_retry_limit=1)
+        deferred.defer(render_and_write, af, _retry_options=options)
 
     for af in affixes_to_write:
-        options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(render_and_write_compositions, af,
-                       _retry_options=options)
+        options = TaskRetryOptions(task_retry_limit=1)
+        deferred.defer(render_and_write_compositions, af, _retry_options=options)
 
     for af in affixes_to_write:
-        options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(render_and_write_stats, af,
-                       _retry_options=options)
+        options = TaskRetryOptions(task_retry_limit=1)
+        deferred.defer(render_and_write_stats, af, _retry_options=options)
 
-    options = TaskRetryOptions(task_retry_limit = 1)
-    deferred.defer(write_apis, _retry_options=options)    
+    options = TaskRetryOptions(task_retry_limit=1)
+    deferred.defer(write_apis, _retry_options=options)
 
 
 def create_spec_overview(s, d="all"):
@@ -3159,9 +3377,8 @@ def create_spec_overview(s, d="all"):
     else:
         dungeon_slug = slugify.slugify(str(d))
         filename = "%s-%s.html" % (spec_slug, dungeon_slug)
-    options = TaskRetryOptions(task_retry_limit = 1)        
-    deferred.defer(write_to_storage, filename, rendered,
-                       _retry_options=options)
+    options = TaskRetryOptions(task_retry_limit=1)
+    deferred.defer(write_to_storage, filename, rendered, _retry_options=options)
 
 
 def create_pvp_pages():
@@ -3169,16 +3386,15 @@ def create_pvp_pages():
     modes_to_generate = []
     modes_to_generate += ["all"]
     modes_to_generate += pvp_modes
-    
+
     for mode in modes_to_generate:
         rendered = render_pvp_index(mode)
-        options = TaskRetryOptions(task_retry_limit = 1)
+        options = TaskRetryOptions(task_retry_limit=1)
         filename = "%s.html" % mode
         if mode == "all":
             filename = "index.html"
 
-        deferred.defer(pvp_write_to_storage, filename, rendered,
-                       _retry_options=options)
+        deferred.defer(pvp_write_to_storage, filename, rendered, _retry_options=options)
 
     write_pvp_stats()
     write_pvp_apis()
@@ -3189,99 +3405,117 @@ def write_pvp_stats():
     modes_to_generate = []
     modes_to_generate += ["all"]
     modes_to_generate += pvp_modes
-    
+
     for mode in modes_to_generate:
         rendered = render_pvp_stats(mode)
-        options = TaskRetryOptions(task_retry_limit = 1)
+        options = TaskRetryOptions(task_retry_limit=1)
         filename = "pvp-stats-%s.html" % mode
 
-        deferred.defer(pvp_write_to_storage, filename, rendered,
-                       _retry_options=options)    
-    
+        deferred.defer(pvp_write_to_storage, filename, rendered, _retry_options=options)
+
+
 def write_pvp_apis():
     global pvp_modes
     modes_to_generate = []
     modes_to_generate += ["all"]
     modes_to_generate += pvp_modes
-    
+
     for mode in modes_to_generate:
         rendered = api_pvp_specs(mode)
-        options = TaskRetryOptions(task_retry_limit = 1)
+        options = TaskRetryOptions(task_retry_limit=1)
         filename = mode
-        deferred.defer(write_api_json, "api/v0/pvp/" + filename, rendered, _retry_options=options)    
+        deferred.defer(
+            write_api_json, "api/v0/pvp/" + filename, rendered, _retry_options=options
+        )
 
 
 def write_api_json(filename, rendered):
-    main_write_to_storage(filename,
-                          rendered,
-                          cache_control="public, max-age=28800",
-                          content_type="application/json")
-        
+    main_write_to_storage(
+        filename,
+        rendered,
+        cache_control="public, max-age=28800",
+        content_type="application/json",
+    )
+
+
 def create_main_pages():
     main_pages = [["index.html", render_main_index]]
 
-    for (filename, render_function) in main_pages:
+    for filename, render_function in main_pages:
         rendered = render_function()
-        options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(main_write_to_storage, filename, rendered,
-                       _retry_options=options)                        
-    
-def create_static_pages():
-    static_pages = [["privacy.html", render_privacy],
-                    ["faq.html", render_faq]]
+        options = TaskRetryOptions(task_retry_limit=1)
+        deferred.defer(
+            main_write_to_storage, filename, rendered, _retry_options=options
+        )
 
-    for (filename, render_function) in static_pages:
+
+def create_static_pages():
+    static_pages = [["privacy.html", render_privacy], ["faq.html", render_faq]]
+
+    for filename, render_function in static_pages:
         rendered = render_function()
-        options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(main_write_to_storage, filename, rendered,
-                       _retry_options=options) 
-    
+        options = TaskRetryOptions(task_retry_limit=1)
+        deferred.defer(
+            main_write_to_storage, filename, rendered, _retry_options=options
+        )
+
+
 def create_raid_index(difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     rendered = render_raid_index(difficulty=difficulty, active_raid=active_raid)
     filename = active_raid + ".html"
     if difficulty == "Heroic":
         filename = active_raid + "-heroic.html"
 
-    options = TaskRetryOptions(task_retry_limit = 1)        
+    options = TaskRetryOptions(task_retry_limit=1)
     raid_write_to_storage(filename, rendered)
 
-    # also write as index 
+    # also write as index
     if difficulty == MAX_RAID_DIFFICULTY:
         filename = "index.html"
-        options = TaskRetryOptions(task_retry_limit = 1)        
+        options = TaskRetryOptions(task_retry_limit=1)
         raid_write_to_storage(filename, rendered)
 
     # if it's heroic week then heroic is also the index
     if MAX_RAID_DIFFICULTY == "Heroic":
-        options = TaskRetryOptions(task_retry_limit = 1)        
+        options = TaskRetryOptions(task_retry_limit=1)
         raid_write_to_storage("index.html", rendered)
 
     encounters_to_write = []
-    raid_canonical_order = get_raid_canonical_order(active_raid)    
+    raid_canonical_order = get_raid_canonical_order(active_raid)
     encounters_to_write += raid_canonical_order
 
     for encounter in encounters_to_write:
         rendered = render_raid_index(encounter, difficulty, active_raid=active_raid)
         filename = ""
-        if active_raid != "nathria": # nathria doesn't prefix, other raids do
+        if active_raid != "nathria":  # nathria doesn't prefix, other raids do
             filename = active_raid + "-"
         filename += slugify.slugify(str(encounter))
         if difficulty == "Heroic":
             filename += "-heroic"
         filename += ".html"
-        options = TaskRetryOptions(task_retry_limit = 1)        
+        options = TaskRetryOptions(task_retry_limit=1)
         raid_write_to_storage(filename, rendered)
 
     # make sure to include all in stats
     encounters_to_write += ["all"]
     for encounter in encounters_to_write:
-        options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(render_and_write_raid_stats, encounter, difficulty, active_raid=active_raid,
-                       _retry_options=options)        
-    
-def create_raid_spec_overview(s, e="all", difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
+        options = TaskRetryOptions(task_retry_limit=1)
+        deferred.defer(
+            render_and_write_raid_stats,
+            encounter,
+            difficulty,
+            active_raid=active_raid,
+            _retry_options=options,
+        )
+
+
+def create_raid_spec_overview(
+    s, e="all", difficulty=MAX_RAID_DIFFICULTY, active_raid=""
+):
     spec_slug = slugify.slugify(str(s))
-    rendered = render_wcl_raid_spec(s, encounter=e, difficulty=difficulty, active_raid=active_raid)
+    rendered = render_wcl_raid_spec(
+        s, encounter=e, difficulty=difficulty, active_raid=active_raid
+    )
     filename_slug = ""
     if active_raid != "nathria":
         filename_slug += active_raid + "-"
@@ -3294,136 +3528,178 @@ def create_raid_spec_overview(s, e="all", difficulty=MAX_RAID_DIFFICULTY, active
     # special handling for heroic week -- write both files
     if MAX_RAID_DIFFICULTY == "Heroic":
         filename = filename_slug + ".html"
-        options = TaskRetryOptions(task_retry_limit = 1)        
+        options = TaskRetryOptions(task_retry_limit=1)
         raid_write_to_storage(filename, rendered)
-    
+
     if difficulty == "Heroic":
         filename_slug += "-heroic"
     filename = filename_slug + ".html"
-    options = TaskRetryOptions(task_retry_limit = 1)        
+    options = TaskRetryOptions(task_retry_limit=1)
     raid_write_to_storage(filename, rendered)
+
 
 def write_spec_overviews():
     for s in specs:
-        options = TaskRetryOptions(task_retry_limit = 1)        
-        deferred.defer(create_spec_overview, s, "all",
-                       _retry_options=options)
+        options = TaskRetryOptions(task_retry_limit=1)
+        deferred.defer(create_spec_overview, s, "all", _retry_options=options)
 
         for k, v in dungeon_encounters.iteritems():
-            options = TaskRetryOptions(task_retry_limit = 1)        
-            deferred.defer(create_spec_overview, s, k,
-                           _retry_options=options)
+            options = TaskRetryOptions(task_retry_limit=1)
+            deferred.defer(create_spec_overview, s, k, _retry_options=options)
 
 
 def write_api_dungeon_ease():
-    main_write_to_storage("api/v0/dungeon_ease_tier_list",
-                          api_affixes_dungeons(current_affixes()),
-                          cache_control="public, max-age=28800",
-                          content_type="application/json")
+    main_write_to_storage(
+        "api/v0/dungeon_ease_tier_list",
+        api_affixes_dungeons(current_affixes()),
+        cache_control="public, max-age=28800",
+        content_type="application/json",
+    )
+
 
 def write_api_dungeon_ease_overall():
-    main_write_to_storage("api/v0/dungeon_ease_tier_list_overall",
-                          api_affixes_dungeons_overall(),
-                          cache_control="public, max-age=28800",
-                          content_type="application/json")    
+    main_write_to_storage(
+        "api/v0/dungeon_ease_tier_list_overall",
+        api_affixes_dungeons_overall(),
+        cache_control="public, max-age=28800",
+        content_type="application/json",
+    )
+
 
 def write_api_dungeon_specs():
-    main_write_to_storage("api/v0/mplus_spec_tier_list",
-                          api_affixes_specs(current_affixes()),
-                          cache_control="public, max-age=28800",
-                          content_type="application/json")
+    main_write_to_storage(
+        "api/v0/mplus_spec_tier_list",
+        api_affixes_specs(current_affixes()),
+        cache_control="public, max-age=28800",
+        content_type="application/json",
+    )
+
 
 def write_api_affix_tier_list():
-    main_write_to_storage("api/v0/affixes_ease_tier_list",
-                          api_affixes_tier_list(),
-                          cache_control="public, max-age=28800",
-                          content_type="application/json")        
-            
+    main_write_to_storage(
+        "api/v0/affixes_ease_tier_list",
+        api_affixes_tier_list(),
+        cache_control="public, max-age=28800",
+        content_type="application/json",
+    )
+
+
 def write_apis():
-    options = TaskRetryOptions(task_retry_limit = 1)    
+    options = TaskRetryOptions(task_retry_limit=1)
     deferred.defer(write_api_dungeon_ease, _retry_options=options)
     deferred.defer(write_api_dungeon_specs, _retry_options=options)
     deferred.defer(write_api_affix_tier_list, _retry_options=options)
 
-    deferred.defer(process_dungeon_ease_tier_lists_for_all_known_affixes,
-                   _retry_options=options)
+    deferred.defer(
+        process_dungeon_ease_tier_lists_for_all_known_affixes, _retry_options=options
+    )
 
     deferred.defer(write_api_dungeon_ease_overall, _retry_options=options)
 
 
 def write_raid_spec_overviews(active_raid=""):
     # update the counts
-    process_generate_raid_counts(active_raid=active_raid)    
-    
+    process_generate_raid_counts(active_raid=active_raid)
+
     # write the index page
     difficulties = ["Heroic"]
     if MAX_RAID_DIFFICULTY == "Mythic":
         difficulties = ["Mythic", "Heroic"]
-    
-    options = TaskRetryOptions(task_retry_limit = 1)
+
+    options = TaskRetryOptions(task_retry_limit=1)
     for d in difficulties:
-        deferred.defer(create_raid_index, d, active_raid=active_raid,
-                       _retry_options=options)   
+        deferred.defer(
+            create_raid_index, d, active_raid=active_raid, _retry_options=options
+        )
 
     for s in specs:
         for d in difficulties:
-            options = TaskRetryOptions(task_retry_limit = 1)        
-            deferred.defer(create_raid_spec_overview, s, "all", d, active_raid=active_raid,
-                           _retry_options=options)
+            options = TaskRetryOptions(task_retry_limit=1)
+            deferred.defer(
+                create_raid_spec_overview,
+                s,
+                "all",
+                d,
+                active_raid=active_raid,
+                _retry_options=options,
+            )
 
             raid_encounters = get_raid_encounters(active_raid)
             for k, v in raid_encounters.iteritems():
-                options = TaskRetryOptions(task_retry_limit = 1)        
-                deferred.defer(create_raid_spec_overview, s, k, d, active_raid=active_raid,
-                           _retry_options=options)
+                options = TaskRetryOptions(task_retry_limit=1)
+                deferred.defer(
+                    create_raid_spec_overview,
+                    s,
+                    k,
+                    d,
+                    active_raid=active_raid,
+                    _retry_options=options,
+                )
 
 
 ## end cloud storage
 
 ## cloudflare cache purge
 
+
 def cloudflare_purge_cache(bucket, filename):
     url = "http://%s/%s" % (bucket, filename)
-    cf_endpoint = "https://api.cloudflare.com/client/v4/zones/%s/purge_cache" % cloudflare_zone
-    headers = { }
+    cf_endpoint = (
+        "https://api.cloudflare.com/client/v4/zones/%s/purge_cache" % cloudflare_zone
+    )
+    headers = {}
     headers["Content-Type"] = "application/json"
     headers["Authorization"] = "Bearer %s" % cloudflare_api_key
     data = {}
     data["files"] = [url]
     data = json.dumps(data)
 
-    result = urlfetch.fetch(cf_endpoint, payload=data,
-                            headers=headers, 
-                            method=urlfetch.POST)
+    result = urlfetch.fetch(
+        cf_endpoint, payload=data, headers=headers, method=urlfetch.POST
+    )
 
     return json.loads(result.content)["success"], url
+
 
 ## end cloudflare cache purge
 
 ## test reset db
 
+
 def reset_db():
-    kind_list = [DungeonAffixRegion, KnownAffixes, SpecRankings, SpecRankingsRaid, DungeonEaseTierList, PvPCounts, PvPLadderStats, RaidCounts ]
+    kind_list = [
+        DungeonAffixRegion,
+        KnownAffixes,
+        SpecRankings,
+        SpecRankingsRaid,
+        DungeonEaseTierList,
+        PvPCounts,
+        PvPLadderStats,
+        RaidCounts,
+    ]
     for a_kind in kind_list:
         kind_keys = a_kind.gql("").fetch(keys_only=True)
         ndb.delete_multi(kind_keys)
     return "resetDB for " + str(kind_list)
+
 
 # just elements for fated raids
 def reset_fated_db():
-    kind_list = [ SpecRankingsRaid, RaidCounts ]
+    kind_list = [SpecRankingsRaid, RaidCounts]
     for a_kind in kind_list:
         kind_keys = a_kind.gql("").fetch(keys_only=True)
         ndb.delete_multi(kind_keys)
     return "resetDB for " + str(kind_list)
 
+
 # just elements for prepatch
 def reset_prepatch_db():
-    kind_list = [ SpecRankings, SpecRankingsRaid, RaidCounts ]
+    kind_list = [SpecRankings, SpecRankingsRaid, RaidCounts]
     for a_kind in kind_list:
         kind_keys = a_kind.gql("").fetch(keys_only=True)
         ndb.delete_multi(kind_keys)
     return "resetDB for " + str(kind_list)
+
 
 # just spec rankings raid
 def reset_spec_rankings_raid():
@@ -3433,7 +3709,9 @@ def reset_spec_rankings_raid():
         ndb.delete_multi(kind_keys)
     return "resetDB for " + str(kind_list)
 
+
 ##
+
 
 def test_view(destination):
     affixes = current_affixes()
@@ -3462,17 +3740,15 @@ def test_view(destination):
 
     if spec != "all":
         if dung != "all":
-            return render_wcl_spec(spec, dung, prefix=prefix)        
+            return render_wcl_spec(spec, dung, prefix=prefix)
         return render_wcl_spec(spec, dungeon="all", prefix=prefix)
 
-
-
     if "compositions" in destination:
-        return render_compositions(affixes, prefix=prefix)        
+        return render_compositions(affixes, prefix=prefix)
 
     if "stats" in destination:
         return render_stats(affixes, prefix=prefix)
-    
+
     return render_affixes(affixes, prefix=prefix)
 
 
@@ -3485,29 +3761,43 @@ def test_raid_view(destination):
 
     if "heroic" in destination:
         difficulty = "Heroic"
-    
+
     for s in specs:
         if slugify.slugify(str(s)) in destination:
             spec = s
 
     active_raid = "aberrus"
     raid_canonical_order = aberrus_canonical_order
-                    
+
     for e in raid_canonical_order:
         if slugify.slugify(str(e)) in destination:
             encounter = e
-            
+
     if "index" in destination:
-        return render_raid_index(prefix=prefix, difficulty=difficulty, active_raid=active_raid)
+        return render_raid_index(
+            prefix=prefix, difficulty=difficulty, active_raid=active_raid
+        )
 
     if "stats" in destination:
-        return render_raid_stats(encounter, prefix=prefix, difficulty=difficulty, active_raid=active_raid)
-    
-    if spec == "all":
-        return render_raid_index(prefix=prefix, encounter=encounter, difficulty=difficulty, active_raid=active_raid)            
-            
+        return render_raid_stats(
+            encounter, prefix=prefix, difficulty=difficulty, active_raid=active_raid
+        )
 
-    return render_wcl_raid_spec(spec, encounter=encounter, prefix=prefix, difficulty=difficulty, active_raid=active_raid)
+    if spec == "all":
+        return render_raid_index(
+            prefix=prefix,
+            encounter=encounter,
+            difficulty=difficulty,
+            active_raid=active_raid,
+        )
+
+    return render_wcl_raid_spec(
+        spec,
+        encounter=encounter,
+        prefix=prefix,
+        difficulty=difficulty,
+        active_raid=active_raid,
+    )
 
 
 def test_main_view(destination):
@@ -3519,7 +3809,8 @@ def test_main_view(destination):
         return render_privacy(prefix=prefix)
 
     if "faq" in destination:
-        return render_faq(prefix=prefix)    
+        return render_faq(prefix=prefix)
+
 
 def test_pvp_view(destination):
     prefix = "pvp?goto="
@@ -3531,11 +3822,11 @@ def test_pvp_view(destination):
     for m in pvp_modes:
         if m in destination:
             mode = m
-    
+
     if "stats" in destination:
         return render_pvp_stats(mode, prefix=prefix)
-    
-    return render_pvp_index(mode, prefix=prefix)            
+
+    return render_pvp_index(mode, prefix=prefix)
 
 
 ## wcl querying
@@ -3545,26 +3836,29 @@ def _rankings(encounterId, class_id, spec, page=1, season=WCL_SEASON):
 
     global latest_patch_us
     latest_patch = latest_patch_us
-    
+
     now = datetime.datetime.now()
 
     latest_patch_mkt = time.mktime(latest_patch.timetuple())
-    four_weeks_ago = time.mktime(now.timetuple())-4*7*60*60*24
+    four_weeks_ago = time.mktime(now.timetuple()) - 4 * 7 * 60 * 60 * 24
 
     filter_back_to = four_weeks_ago
     if latest_patch_mkt > four_weeks_ago:
         filter_back_to = latest_patch_mkt
-    
+
     wcl_date = "date."
     wcl_date += "%d000" % (filter_back_to)
-    wcl_date += "." + "%d000" % (time.mktime(now.timetuple())+60*24)    
-    
-    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&class=%d&spec=%d&page=%d&filter=%s&includeCombatantInfo=true&api_key=%s" % (encounterId, season, class_id, spec, page, wcl_date, api_key)
+    wcl_date += "." + "%d000" % (time.mktime(now.timetuple()) + 60 * 24)
+
+    url = (
+        "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?partition=%d&class=%d&spec=%d&page=%d&filter=%s&includeCombatantInfo=true&api_key=%s"
+        % (encounterId, season, class_id, spec, page, wcl_date, api_key)
+    )
     logging.info(url)
 
     result = urlfetch.fetch(url, deadline=60)
     data = json.loads(result.content)
- 
+
     return data
 
 
@@ -3578,26 +3872,26 @@ def update_wcl_rankings(spec, dungeon, page):
     dungeon_slug = slugify.slugify(str(dungeon))
 
     aggregate = []
-    
+
     rankings = _rankings(dungeon_id, wcl_specs[spec][0], wcl_specs[spec][1], page=page)
 
     # if there's no data, just get out
     if "rankings" not in rankings:
         return
 
-    lpmkt_us = time.mktime(latest_patch_us.timetuple())*1000
-    lpmkt_eu = time.mktime(latest_patch_eu.timetuple())*1000
-    lpmkt_kr = time.mktime(latest_patch_kr.timetuple())*1000
-    lpmkt_tw = time.mktime(latest_patch_tw.timetuple())*1000
-        
+    lpmkt_us = time.mktime(latest_patch_us.timetuple()) * 1000
+    lpmkt_eu = time.mktime(latest_patch_eu.timetuple()) * 1000
+    lpmkt_kr = time.mktime(latest_patch_kr.timetuple()) * 1000
+    lpmkt_tw = time.mktime(latest_patch_tw.timetuple()) * 1000
+
     for k in rankings["rankings"]:
         # filtering for patches that change talents
         if "regionName" not in k:
             continue
-        
+
         if "startTime" not in k:
             continue
-        
+
         if k["regionName"] == "US":
             # if the log happened before patch, skip it
             if k["startTime"] < lpmkt_us:
@@ -3612,56 +3906,80 @@ def update_wcl_rankings(spec, dungeon, page):
             # if the log happened before patch, skip it
             if k["startTime"] < lpmkt_kr:
                 continue
-            
+
         if k["regionName"] == "TW":
             # if the log happened before patch, skip it
             if k["startTime"] < lpmkt_tw:
                 continue
-            
+
         # add the log
         aggregate += [k]
-    
-    key = ndb.Key('SpecRankings', "%s-%s-%d" % (spec_key, dungeon_slug, page))
+
+    key = ndb.Key("SpecRankings", "%s-%s-%d" % (spec_key, dungeon_slug, page))
     sr = SpecRankings(key=key)
     sr.spec = spec
     sr.dungeon = dungeon
     sr.page = page
     sr.rankings = json.dumps(aggregate)
-   
+
     sr.put()
+
 
 # 4 - heroic
 # 5 - mythic
-def _rankings_raid(encounterId, class_id, spec, difficulty=4, page=1, season=WCL_PARTITION, metric="dps"):
+def _rankings_raid(
+    encounterId,
+    class_id,
+    spec,
+    difficulty=4,
+    page=1,
+    season=WCL_PARTITION,
+    metric="dps",
+):
     # filter to the last 4 weeks
     # prepatch - a few days after since initial logs were mesesed up with talents
     global latest_patch_us
     latest_patch = latest_patch_us
-    
+
     now = datetime.datetime.now()
 
     latest_patch_mkt = time.mktime(latest_patch.timetuple())
-    four_weeks_ago = time.mktime(now.timetuple())-4*7*60*60*24        
-    
+    four_weeks_ago = time.mktime(now.timetuple()) - 4 * 7 * 60 * 60 * 24
+
     filter_back_to = four_weeks_ago
     if latest_patch_mkt > four_weeks_ago:
         filter_back_to = latest_patch_mkt
-    
+
     wcl_date = "date."
     wcl_date += "%d000" % (filter_back_to)
-    wcl_date += "." + "%d000" % (time.mktime(now.timetuple())+60*24)
+    wcl_date += "." + "%d000" % (time.mktime(now.timetuple()) + 60 * 24)
 
-    url = "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?difficulty=%d&partition=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&includeCombatantInfo=true&api_key=%s&partition=%s" % (encounterId, difficulty, season, class_id, spec, page, wcl_date, metric, api_key, season)
+    url = (
+        "https://www.warcraftlogs.com:443/v1/rankings/encounter/%d?difficulty=%d&partition=%d&class=%d&spec=%d&page=%d&filter=%s&metric=%s&includeCombatantInfo=true&api_key=%s&partition=%s"
+        % (
+            encounterId,
+            difficulty,
+            season,
+            class_id,
+            spec,
+            page,
+            wcl_date,
+            metric,
+            api_key,
+            season,
+        )
+    )
 
     logging.info(url)
-    
+
     result = urlfetch.fetch(url, deadline=60)
     data = json.loads(result.content)
     return data
 
 
-def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
-    
+def update_wcl_raid_rankings(
+    spec, encounter, page=1, difficulty=MAX_RAID_DIFFICULTY, active_raid=""
+):
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
     spec_key = slugify.slugify(str(spec))
@@ -3672,12 +3990,12 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
     encounter_slug = slugify.slugify(str(encounter))
 
     logging.info("%s %s %s %s [%s]" % (spec, encounter, difficulty, page, active_raid))
-    
+
     aggregate = []
-    
+
     difficulty_code = 5
     if difficulty == "Normal":
-        difficulty_code = 3    
+        difficulty_code = 3
     if difficulty == "Heroic":
         difficulty_code = 4
     if difficulty == "Mythic":
@@ -3686,8 +4004,15 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
     metric = "dps"
     if spec in healers:
         metric = "hps"
-        
-    rankings = _rankings_raid(encounter_id, wcl_specs[spec][0], wcl_specs[spec][1], difficulty_code, page=page, metric=metric)
+
+    rankings = _rankings_raid(
+        encounter_id,
+        wcl_specs[spec][0],
+        wcl_specs[spec][1],
+        difficulty_code,
+        page=page,
+        metric=metric,
+    )
 
     no_data_yet = False
     if "rankings" not in rankings:
@@ -3695,34 +4020,49 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
     else:
         if len(rankings["rankings"]) == 0:
             no_data_yet = True
-    
+
     # no data yet
     if no_data_yet:
-        logging.info("No parses found for %s %s %s %s (page %d)." % (active_raid, spec, difficulty, encounter, page))
-        if difficulty == "Heroic" and page == 1: # fall back to normal only if no heroic parses at all
+        logging.info(
+            "No parses found for %s %s %s %s (page %d)."
+            % (active_raid, spec, difficulty, encounter, page)
+        )
+        if (
+            difficulty == "Heroic" and page == 1
+        ):  # fall back to normal only if no heroic parses at all
             logging.info("Falling back to Normal")
             # queue up all pages for normal
             i = 1
-            while (i <= 5):
-                options = TaskRetryOptions(task_retry_limit = 1)
-                deferred.defer(update_wcl_raid_rankings, spec, encounter, page=i, difficulty="Normal", active_raid=active_raid,
-                               _retry_options=options)
+            while i <= 5:
+                options = TaskRetryOptions(task_retry_limit=1)
+                deferred.defer(
+                    update_wcl_raid_rankings,
+                    spec,
+                    encounter,
+                    page=i,
+                    difficulty="Normal",
+                    active_raid=active_raid,
+                    _retry_options=options,
+                )
                 i += 1
             return True
-        return False # otherwise fail
+        return False  # otherwise fail
     else:
-        logging.info("%d parses found for %s %s %s (page %d)" % (len(rankings["rankings"]), spec, difficulty, encounter, page))
+        logging.info(
+            "%d parses found for %s %s %s (page %d)"
+            % (len(rankings["rankings"]), spec, difficulty, encounter, page)
+        )
 
-    lpmkt_us = time.mktime(latest_patch_us.timetuple())*1000
-    lpmkt_eu = time.mktime(latest_patch_eu.timetuple())*1000
-    lpmkt_kr = time.mktime(latest_patch_kr.timetuple())*1000
-    lpmkt_tw = time.mktime(latest_patch_tw.timetuple())*1000
-        
+    lpmkt_us = time.mktime(latest_patch_us.timetuple()) * 1000
+    lpmkt_eu = time.mktime(latest_patch_eu.timetuple()) * 1000
+    lpmkt_kr = time.mktime(latest_patch_kr.timetuple()) * 1000
+    lpmkt_tw = time.mktime(latest_patch_tw.timetuple()) * 1000
+
     for k in rankings["rankings"]:
         # filtering for patches that change talents
         if "regionName" not in k:
             continue
-        
+
         if "startTime" not in k:
             continue
 
@@ -3740,7 +4080,7 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
             # if the log happened before patch, skip it
             if k["startTime"] < lpmkt_kr:
                 continue
-       
+
         if k["regionName"] == "TW":
             # if the log happened before patch, skip it
             if k["startTime"] < lpmkt_tw:
@@ -3749,7 +4089,17 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
         # add the log
         aggregate += [k]
 
-    key = ndb.Key('SpecRankingsRaid', "%s-%s-%s-%s-%d" % (spec_key, encounter_slug, slugify.slugify(str(difficulty)), active_raid, page))
+    key = ndb.Key(
+        "SpecRankingsRaid",
+        "%s-%s-%s-%s-%d"
+        % (
+            spec_key,
+            encounter_slug,
+            slugify.slugify(str(difficulty)),
+            active_raid,
+            page,
+        ),
+    )
     sr = SpecRankingsRaid(key=key)
     sr.spec = spec
     sr.encounter = encounter
@@ -3758,10 +4108,10 @@ def update_wcl_raid_rankings(spec, encounter, page=1, difficulty=MAX_RAID_DIFFIC
     sr.page = page
     sr.rankings = json.dumps(aggregate)
     sr.put()
-    
+
     return True
 
-    
+
 def update_wcl_spec(spec):
     if spec not in wcl_specs:
         return "invalid spec [%s]" % spec
@@ -3770,28 +4120,26 @@ def update_wcl_spec(spec):
     aggregate = []
     for k, v in dungeon_encounters.iteritems():
         i = 1
-        while (i <= 5):
-            options = TaskRetryOptions(task_retry_limit = 1)            
-            deferred.defer(update_wcl_rankings, spec, k, page=i,
-                           _retry_options=options)
+        while i <= 5:
+            options = TaskRetryOptions(task_retry_limit=1)
+            deferred.defer(update_wcl_rankings, spec, k, page=i, _retry_options=options)
             i += 1
 
-    return spec, spec_key,  wcl_specs[spec]
-
+    return spec, spec_key, wcl_specs[spec]
 
 
 # get the data for dungeons
 def update_wcl_update():
     for i, s in enumerate(specs):
-        options = TaskRetryOptions(task_retry_limit = 1)
+        options = TaskRetryOptions(task_retry_limit=1)
         deferred.defer(update_wcl_spec, s, _retry_options=options)
 
 
 def update_wcl_update_subset(subset):
     for i, s in enumerate(subset):
-        options = TaskRetryOptions(task_retry_limit = 1)
+        options = TaskRetryOptions(task_retry_limit=1)
         deferred.defer(update_wcl_spec, s, _retry_options=options)
-        
+
 
 def update_wcl_raid_spec(spec, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     logging.info("%s %s [%s]" % (spec, difficulty, active_raid))
@@ -3803,46 +4151,61 @@ def update_wcl_raid_spec(spec, difficulty=MAX_RAID_DIFFICULTY, active_raid=""):
     raid_encounters = get_raid_encounters(active_raid)
     for k, v in raid_encounters.iteritems():
         i = 1
-        while (i <= 5):
-            options = TaskRetryOptions(task_retry_limit = 1)
-            deferred.defer(update_wcl_raid_rankings, spec, k, page=i, difficulty=difficulty,
-                           active_raid=active_raid,
-                           _retry_options=options)
+        while i <= 5:
+            options = TaskRetryOptions(task_retry_limit=1)
+            deferred.defer(
+                update_wcl_raid_rankings,
+                spec,
+                k,
+                page=i,
+                difficulty=difficulty,
+                active_raid=active_raid,
+                _retry_options=options,
+            )
             i += 1
 
-    return spec, spec_key,  wcl_specs[spec]
-        
+    return spec, spec_key, wcl_specs[spec]
+
+
 # update wcl for raids
 def update_wcl_raid_update(active_raid=""):
     difficulties = ["Heroic"]
     if MAX_RAID_DIFFICULTY == "Mythic":
         difficulties = ["Mythic", "Heroic"]
-    
+
     for i, s in enumerate(specs):
         for d in difficulties:
-            options = TaskRetryOptions(task_retry_limit = 1)    
-            deferred.defer(update_wcl_raid_spec, s, d, active_raid, _retry_options=options)
+            options = TaskRetryOptions(task_retry_limit=1)
+            deferred.defer(
+                update_wcl_raid_spec, s, d, active_raid, _retry_options=options
+            )
+
 
 def update_wcl_raid_update_subset(subset, active_raid=""):
     difficulties = ["Heroic"]
     if MAX_RAID_DIFFICULTY == "Mythic":
         difficulties = ["Mythic", "Heroic"]
-    
+
     for i, s in enumerate(subset):
         for d in difficulties:
-            options = TaskRetryOptions(task_retry_limit = 1)    
-            deferred.defer(update_wcl_raid_spec, s, d, active_raid, _retry_options=options)
-    
+            options = TaskRetryOptions(task_retry_limit=1)
+            deferred.defer(
+                update_wcl_raid_spec, s, d, active_raid, _retry_options=options
+            )
+
+
 # update all the wcl for dungeons
 def update_wcl_all():
     update_wcl_update()
-    options = TaskRetryOptions(task_retry_limit = 1)
+    options = TaskRetryOptions(task_retry_limit=1)
     deferred.defer(write_spec_overviews, _retry_options=options)
+
 
 # update pvp ladder stats
 
 # region = us or eu
 # mode = 2v2 or 3v3 or rbg or solo-shuffle
+
 
 # alway use internal api
 def _pvp_rankings_internal(region, mode):
@@ -3853,371 +4216,402 @@ def _pvp_rankings_internal(region, mode):
     data = json.loads(result.content)
     return data
 
+
 def _pvp_rankings(region, mode):
-    if region == "us": # all regions in one since we pre-process all now
+    if region == "us":  # all regions in one since we pre-process all now
         return _pvp_rankings_internal(region, mode)
     else:
         return None
 
+
 def update_pvp_rankings(region, mode):
     data = _pvp_rankings(region, mode)
     key_slug = "%s-%s" % (region, mode)
-    ls = PvPLadderStats(id = key_slug,
-                        region = region,
-                        mode = mode,
-                        data = json.dumps(data))
-    ls.put()   
+    ls = PvPLadderStats(id=key_slug, region=region, mode=mode, data=json.dumps(data))
+    ls.put()
+
 
 def update_all_pvp_rankings():
     global pvp_regions, pvp_modes
     use_these_modes = pvp_modes
     use_these_modes += ["all"]
-    for region in ["us"]: # always us since we're using an internal api that aggregates for us
+    for region in [
+        "us"
+    ]:  # always us since we're using an internal api that aggregates for us
         for mode in use_these_modes:
-            options = TaskRetryOptions(task_retry_limit = 1)            
-            deferred.defer(update_pvp_rankings, region, mode,
-                           _retry_options=options)
+            options = TaskRetryOptions(task_retry_limit=1)
+            deferred.defer(update_pvp_rankings, region, mode, _retry_options=options)
+
 
 ## handlers
+
 
 class UpdateCurrentDungeons(webapp2.RequestHandler):
     def get(self):
         global dungeons, regions
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         update_current()
         self.response.write("Updates queued.")
 
+
 class OnlyGenerateHTML(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Writing templates to cloud storage...")
-        options = TaskRetryOptions(task_retry_limit = 1)
+        options = TaskRetryOptions(task_retry_limit=1)
         deferred.defer(write_overviews, _retry_options=options)
 
 
 class TestView(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
+        self.response.headers["Content-Type"] = "text/html"
         destination = self.request.get("goto", "index.html")
         self.response.write(test_view(destination))
 
+
 class TestRaidView(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
+        self.response.headers["Content-Type"] = "text/html"
         destination = self.request.get("goto", "index.html")
         self.response.write(test_raid_view(destination))
 
+
 class TestMainView(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
+        self.response.headers["Content-Type"] = "text/html"
         destination = self.request.get("goto", "index.html")
-        self.response.write(test_main_view(destination))        
-        
+        self.response.write(test_main_view(destination))
+
 
 class KnownAffixesShow(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
+        self.response.headers["Content-Type"] = "text/html"
         self.response.write(str(current_affixes()))
         self.response.write(str(known_affixes()))
 
+
 class WCLGetRankings(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Queueing updates...\n")
         update_wcl_all()
 
+
 class WCLGetRankingsOnly(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Queueing updates...\n")
         update_wcl_update()
 
+
 class TestLudusPvP(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Queueing PvP updates...\n")
         update_all_pvp_rankings()
 
+
 class TestWCLGetRankings(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Queueing updates...\n")
-#        update_wcl_update_subset(["Havoc Demon Hunter", "Fury Warrior"])
-#        update_wcl_update_subset(["Survival Hunter"])
-#        update_wcl_update_subset(["Arms Warrior"])
-#        update_wcl_update_subset(["Feral Druid"])
-#        update_wcl_update_subset(["Guardian Druid"])
-#        update_wcl_update_subset(["Blood Death Knight"])        
-#        update_wcl_update_subset(["Protection Warrior"])        
-#        update_wcl_update_subset(["Devastation Evoker"])
-#        update_wcl_update_subset(["Balance Druid"])
-#        update_wcl_update_subset(["Marksmanship Hunter"])
-#        update_wcl_update_subset(["Augmentation Evoker"])        
-#        update_wcl_update_subset(["Shadow Priest"])
-#        update_wcl_update_subset(["Demonology Warlock"])
-#        update_wcl_update_subset(["Outlaw Rogue"])
-        update_wcl_update_subset(["Mistweaver Monk"])        
+        #        update_wcl_update_subset(["Havoc Demon Hunter", "Fury Warrior"])
+        #        update_wcl_update_subset(["Survival Hunter"])
+        #        update_wcl_update_subset(["Arms Warrior"])
+        #        update_wcl_update_subset(["Feral Druid"])
+        #        update_wcl_update_subset(["Guardian Druid"])
+        #        update_wcl_update_subset(["Blood Death Knight"])
+        #        update_wcl_update_subset(["Protection Warrior"])
+        #        update_wcl_update_subset(["Devastation Evoker"])
+        #        update_wcl_update_subset(["Balance Druid"])
+        #        update_wcl_update_subset(["Marksmanship Hunter"])
+        #        update_wcl_update_subset(["Augmentation Evoker"])
+        #        update_wcl_update_subset(["Shadow Priest"])
+        #        update_wcl_update_subset(["Demonology Warlock"])
+        #        update_wcl_update_subset(["Outlaw Rogue"])
+        update_wcl_update_subset(["Mistweaver Monk"])
+
 
 class WCLGetRankingsRaidOnly(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Queueing updates...\n")
         raids_to_update = determine_raids_to_update()
         for r in raids_to_update:
-            update_wcl_raid_update(active_raid = r)
+            update_wcl_raid_update(active_raid=r)
+
 
 class WCLGetRankingsRaidOnlyAll(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Queueing updates for all known raids...\n")
         raids_to_update = known_raids
         for r in raids_to_update:
-            update_wcl_raid_update(active_raid = r)            
+            update_wcl_raid_update(active_raid=r)
+
 
 class TestWCLGetRankingsRaid(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Queueing updates...\n")
-#        update_wcl_raid_update_subset(["Havoc Demon Hunter", "Fury Warrior"])
-#        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="nathria")
-#        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sanctum")
-#        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sepulcher")
-#        update_wcl_raid_update_subset(["Devastation Evoker"], active_raid="vault")
-#        update_wcl_raid_update_subset(["Balance Druid"], active_raid="vault")
-#        update_wcl_raid_update_subset(["Feral Druid"], active_raid="vault")
-#        update_wcl_raid_update_subset(["Shadow Priest"], active_raid="vault")
-#        update_wcl_raid_update_subset(["Demonology Warlock"], active_raid="aberrus")
+        #        update_wcl_raid_update_subset(["Havoc Demon Hunter", "Fury Warrior"])
+        #        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="nathria")
+        #        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sanctum")
+        #        update_wcl_raid_update_subset(["Survival Hunter"], active_raid="sepulcher")
+        #        update_wcl_raid_update_subset(["Devastation Evoker"], active_raid="vault")
+        #        update_wcl_raid_update_subset(["Balance Druid"], active_raid="vault")
+        #        update_wcl_raid_update_subset(["Feral Druid"], active_raid="vault")
+        #        update_wcl_raid_update_subset(["Shadow Priest"], active_raid="vault")
+        #        update_wcl_raid_update_subset(["Demonology Warlock"], active_raid="aberrus")
         update_wcl_raid_update_subset(["Augmentation Evoker"], active_raid="aberrus")
-#        update_wcl_raid_update_subset(["Outlaw Rogue"], active_raid="vault")                                
+
+
+#        update_wcl_raid_update_subset(["Outlaw Rogue"], active_raid="vault")
+
 
 class WCLGenHTML(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Writing WCL HTML...\n")
-        options = TaskRetryOptions(task_retry_limit = 1)
+        options = TaskRetryOptions(task_retry_limit=1)
         deferred.defer(write_spec_overviews, _retry_options=options)
+
 
 class WCLRaidGenHTML(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Writing WCL Raid HTML...\n")
         raids_to_generate = determine_raids_to_generate()
         for r in raids_to_generate:
-            options = TaskRetryOptions(task_retry_limit = 1)
-            deferred.defer(write_raid_spec_overviews, active_raid = r,
-                           _retry_options=options)
+            options = TaskRetryOptions(task_retry_limit=1)
+            deferred.defer(
+                write_raid_spec_overviews, active_raid=r, _retry_options=options
+            )
+
 
 class WCLRaidGenHTMLAll(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Writing WCL Raid HTML for all known raids...\n")
         raids_to_generate = known_raids
         for r in raids_to_generate:
-            options = TaskRetryOptions(task_retry_limit = 1)
-            deferred.defer(write_raid_spec_overviews, active_raid = r,
-                           _retry_options=options)            
+            options = TaskRetryOptions(task_retry_limit=1)
+            deferred.defer(
+                write_raid_spec_overviews, active_raid=r, _retry_options=options
+            )
+
 
 class GenStaticHTML(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Writing Static HTML pages...\n")
-        options = TaskRetryOptions(task_retry_limit = 1)
+        options = TaskRetryOptions(task_retry_limit=1)
         deferred.defer(create_static_pages, _retry_options=options)
+
 
 class GenMainHTML(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Writing Main HTML pages...\n")
-        options = TaskRetryOptions(task_retry_limit = 1)
+        options = TaskRetryOptions(task_retry_limit=1)
         deferred.defer(create_main_pages, _retry_options=options)
+
 
 class GenPVP(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Writing PvP HTML pages...\n")
-        options = TaskRetryOptions(task_retry_limit = 1)
-        deferred.defer(create_pvp_pages, _retry_options=options)            
+        options = TaskRetryOptions(task_retry_limit=1)
+        deferred.defer(create_pvp_pages, _retry_options=options)
+
 
 class GenAPIs(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Writing APIs...\n")
-        options = TaskRetryOptions(task_retry_limit = 1)
+        options = TaskRetryOptions(task_retry_limit=1)
         deferred.defer(write_apis, _retry_options=options)
 
-        
+
 class TestCloudflarePurgeCache(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Testing cloudflare purge cache...\n")
-        options = TaskRetryOptions(task_retry_limit = 1)
-        self.response.write(cloudflare_purge_cache("mplus.subcreation.net", "index.html"))
+        options = TaskRetryOptions(task_retry_limit=1)
+        self.response.write(
+            cloudflare_purge_cache("mplus.subcreation.net", "index.html")
+        )
+
 
 class TestResetDB(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Clearing db\n")
-        options = TaskRetryOptions(task_retry_limit = 1)
+        options = TaskRetryOptions(task_retry_limit=1)
         self.response.write(reset_db())
+
 
 class TestResetFatedDB(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Clearing db for fated\n")
-        options = TaskRetryOptions(task_retry_limit = 1)
+        options = TaskRetryOptions(task_retry_limit=1)
         self.response.write(reset_fated_db())
+
 
 class TestResetPrepatchDB(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Clearing db for prepatch\n")
-        options = TaskRetryOptions(task_retry_limit = 1)
-        self.response.write(reset_prepatch_db())           
+        options = TaskRetryOptions(task_retry_limit=1)
+        self.response.write(reset_prepatch_db())
+
 
 class TestResetSpecRankingsRaid(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        self.response.headers["Content-Type"] = "text/plain"
         self.response.write("Clearing spec_rankings_raid\n")
-        options = TaskRetryOptions(task_retry_limit = 1)
-        self.response.write(reset_spec_rankings_raid())           
+        options = TaskRetryOptions(task_retry_limit=1)
+        self.response.write(reset_spec_rankings_raid())
+
 
 class APIDungeonEase(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
+        self.response.headers["Content-Type"] = "text/html"
         self.response.write(api_affixes_dungeons(current_affixes()))
+
 
 class APIDungeonEaseOverall(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
-        self.response.write(api_affixes_dungeons_overall())        
+        self.response.headers["Content-Type"] = "text/html"
+        self.response.write(api_affixes_dungeons_overall())
+
 
 class APIAffixEase(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
-        self.response.write(api_affixes_tier_list())        
+        self.response.headers["Content-Type"] = "text/html"
+        self.response.write(api_affixes_tier_list())
+
 
 class APIDungeonSpecs(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
+        self.response.headers["Content-Type"] = "text/html"
         self.response.write(api_affixes_specs(current_affixes()))
+
 
 class ProcessDungeonEaseTierLists(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
-        process_dungeon_ease_tier_lists_for_all_known_affixes()        
+        self.response.headers["Content-Type"] = "text/html"
+        process_dungeon_ease_tier_lists_for_all_known_affixes()
         self.response.write("Queueing processing tier lists...")
+
 
 class ProcessRaidCounts(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
-        process_generate_raid_counts_for_raids(known_raids) # crunch numbers for all
+        self.response.headers["Content-Type"] = "text/html"
+        process_generate_raid_counts_for_raids(known_raids)  # crunch numbers for all
         self.response.write("Queueing processing raid counts...")
+
 
 class ProcessPvPCounts(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
-        self.response.write("Queueing processing pvp counts...")        
+        self.response.headers["Content-Type"] = "text/html"
+        self.response.write("Queueing processing pvp counts...")
         process_pvp_counts()
+
 
 class TestPvPView(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
-        destination = self.request.get("goto", "index.html")        
+        self.response.headers["Content-Type"] = "text/html"
+        destination = self.request.get("goto", "index.html")
         self.response.write(test_pvp_view(destination))
+
 
 class APIPvPAll(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
+        self.response.headers["Content-Type"] = "text/html"
         self.response.write(api_pvp_specs("all"))
 
 
 class APIPvP2v2(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
+        self.response.headers["Content-Type"] = "text/html"
         self.response.write(api_pvp_specs("2v2"))
+
 
 class APIPvPSoloShuffle(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
-        self.response.write(api_pvp_specs("solo-shuffle"))        
+        self.response.headers["Content-Type"] = "text/html"
+        self.response.write(api_pvp_specs("solo-shuffle"))
 
 
 class APIPvP3v3(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
+        self.response.headers["Content-Type"] = "text/html"
         self.response.write(api_pvp_specs("3v3"))
 
-        
+
 class APIPvPRBG(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/html'
-        self.response.write(api_pvp_specs("rbg"))     
+        self.response.headers["Content-Type"] = "text/html"
+        self.response.write(api_pvp_specs("rbg"))
 
-app = webapp2.WSGIApplication([
 
-    # called in cron jobs
-    ## mplus
-        ('/refresh/affixes', UpdateCurrentDungeons),
-        ('/generate/affixes', OnlyGenerateHTML),
-    
-    ## dungeon top builds
-        ('/refresh/dungeons', WCLGetRankingsOnly),
-        ('/generate/dungeons', WCLGenHTML),         
-
-    ## raid top builds
-        ('/refresh/raids', WCLGetRankingsRaidOnly),
-        ('/generate/raids', WCLRaidGenHTML),
-    
-    ## pvp
-        ('/refresh/pvp', TestLudusPvP),
-        ('/process/pvp', ProcessPvPCounts),
-        ('/generate/pvp', GenPVP),        
-
-    ## main page
-        ('/generate/main', GenMainHTML),
-
-    # manually called if needed
-        ('/generate/static', GenStaticHTML), # make sure to call on migration
-
+app = webapp2.WSGIApplication(
+    [
+        # called in cron jobs
+        ## mplus
+        ("/refresh/affixes", UpdateCurrentDungeons),
+        ("/generate/affixes", OnlyGenerateHTML),
+        ## dungeon top builds
+        ("/refresh/dungeons", WCLGetRankingsOnly),
+        ("/generate/dungeons", WCLGenHTML),
+        ## raid top builds
+        ("/refresh/raids", WCLGetRankingsRaidOnly),
+        ("/generate/raids", WCLRaidGenHTML),
+        ## pvp
+        ("/refresh/pvp", TestLudusPvP),
+        ("/process/pvp", ProcessPvPCounts),
+        ("/generate/pvp", GenPVP),
+        ## main page
+        ("/generate/main", GenMainHTML),
+        # manually called if needed
+        ("/generate/static", GenStaticHTML),  # make sure to call on migration
         # don't need to explicitly call, built into other functions
         # only here if needed for one off fixes to regen just part
-        ('/process/dungeon_ease_tier_lists', ProcessDungeonEaseTierLists),
-        ('/process/raid_counts', ProcessRaidCounts),
-
+        ("/process/dungeon_ease_tier_lists", ProcessDungeonEaseTierLists),
+        ("/process/raid_counts", ProcessRaidCounts),
         # don't need to explicitly call, built into other functions
-        # only here if needed for one off fixes to regen just part    
-        ('/generate/apis', GenAPIs), # just mplus api, pvp api are incl generate/pvp
-
+        # only here if needed for one off fixes to regen just part
+        ("/generate/apis", GenAPIs),  # just mplus api, pvp api are incl generate/pvp
         # do this for all known_raids
-        ('/refresh/raids_all', WCLGetRankingsRaidOnlyAll),
-        ('/generate/raids_all', WCLRaidGenHTMLAll),
-        
-    # api functionality
-        ('/api/dungeon_ease', APIDungeonEase),
-        ('/api/mplus_specs', APIDungeonSpecs),
-        ('/api/mplus_affixes', APIAffixEase),
-        ('/api/dungeon_ease_overall', APIDungeonEaseOverall),
-        ('/api/pvp/all', APIPvPAll),
-        ('/api/pvp/solo-shuffle', APIPvPSoloShuffle),
-        ('/api/pvp/2v2', APIPvP2v2),
-        ('/api/pvp/3v3', APIPvP3v3),
-        ('/api/pvp/rbg', APIPvPRBG),
-
-    # testing
-        ('/view', TestView),
-        ('/raid', TestRaidView),
-        ('/pvp', TestPvPView),    
-        ('/main', TestMainView),    
-
-        ('/test/known_affixes', KnownAffixesShow),
-        ('/test/affixes', UpdateCurrentDungeons),
-        ('/test/dungeons', TestWCLGetRankings),
-        ('/test/raids', TestWCLGetRankingsRaid),
-        ('/test/pvp', TestLudusPvP),
-        ('/test/cloudflare_purge', TestCloudflarePurgeCache),
-        ('/test/reset_db', TestResetDB),
-        ('/test/reset_fated_db', TestResetFatedDB),
-        ('/test/reset_prepatch_db', TestResetPrepatchDB),        
-        ('/test/reset_spec_rankings_raid', TestResetSpecRankingsRaid),
-    
-        ], debug=True)
+        ("/refresh/raids_all", WCLGetRankingsRaidOnlyAll),
+        ("/generate/raids_all", WCLRaidGenHTMLAll),
+        # api functionality
+        ("/api/dungeon_ease", APIDungeonEase),
+        ("/api/mplus_specs", APIDungeonSpecs),
+        ("/api/mplus_affixes", APIAffixEase),
+        ("/api/dungeon_ease_overall", APIDungeonEaseOverall),
+        ("/api/pvp/all", APIPvPAll),
+        ("/api/pvp/solo-shuffle", APIPvPSoloShuffle),
+        ("/api/pvp/2v2", APIPvP2v2),
+        ("/api/pvp/3v3", APIPvP3v3),
+        ("/api/pvp/rbg", APIPvPRBG),
+        # testing
+        ("/view", TestView),
+        ("/raid", TestRaidView),
+        ("/pvp", TestPvPView),
+        ("/main", TestMainView),
+        ("/test/known_affixes", KnownAffixesShow),
+        ("/test/affixes", UpdateCurrentDungeons),
+        ("/test/dungeons", TestWCLGetRankings),
+        ("/test/raids", TestWCLGetRankingsRaid),
+        ("/test/pvp", TestLudusPvP),
+        ("/test/cloudflare_purge", TestCloudflarePurgeCache),
+        ("/test/reset_db", TestResetDB),
+        ("/test/reset_fated_db", TestResetFatedDB),
+        ("/test/reset_prepatch_db", TestResetPrepatchDB),
+        ("/test/reset_spec_rankings_raid", TestResetSpecRankingsRaid),
+    ],
+    debug=True,
+)
